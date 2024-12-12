@@ -74,4 +74,5 @@ yarn-error.log
 !.yarn/versions
 
 # config
+.env.dev
 .env.prod
