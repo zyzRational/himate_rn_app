@@ -1,4 +1,5 @@
-![输入图片说明](android/app/src/main/res/mipmap-hdpi/ic_launcher.png)
+
+![输入图片说明](android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png)
 # Himate
 
 ### 简介
