@@ -116,6 +116,7 @@ RELEASE_KEY_PASSWORD=
 ```
 ./gradlew assembleRelease
 ```
+构建完成的安装包位于：项目目录\android\app\build\outputs\apk\release
 
 ### 其它
 
