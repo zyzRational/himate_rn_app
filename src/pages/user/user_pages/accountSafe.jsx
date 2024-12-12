@@ -374,7 +374,7 @@ const Edituser = ({navigation, route}) => {
         <LoaderScreen
           message={'修改中...'}
           color={Colors.Primary}
-          backgroundColor={Colors.Primary}
+          backgroundColor={Colors.hyalineWhite}
           overlay={true}
         />
       ) : null}
