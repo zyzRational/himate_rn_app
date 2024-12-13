@@ -47,7 +47,9 @@ const MusicList = props => {
   const {showToast} = useToast();
   const dispatch = useDispatch();
   // baseConfig
-  const {STATIC_URL} = useSelector(state => state.baseConfigStore.baseConfig);
+  const {STATIC_URL, THUMBNAIL_URL} = useSelector(
+    state => state.baseConfigStore.baseConfig,
+  );
   const playingMusic = useSelector(state => state.musicStore.playingMusic);
   const userInfo = useSelector(state => state.userStore.userInfo);
 
@@ -638,7 +640,7 @@ const MusicList = props => {
                   />
                   <View row centerV padding-6>
                     <Image
-                      source={{uri: STATIC_URL + item.favorites_cover}}
+                      source={{uri: THUMBNAIL_URL + item.favorites_cover}}
                       style={styles.favoritesCover}
                     />
                     <View centerV marginL-12>
