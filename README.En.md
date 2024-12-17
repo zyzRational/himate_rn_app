@@ -39,6 +39,9 @@ update to: context.registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED)
 ### For iOS
 
 ```bash
+# in /ios
+pod install
+
 # using npm
 npm run ios
 

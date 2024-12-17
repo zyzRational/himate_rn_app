@@ -7,7 +7,6 @@ import {
 import Login from '../pages/login/login';
 import DrawerScreen from './screens/DrawerScreen';
 import BaseWebView from '../pages/commom/baseWebView';
-import Permissions from '../pages/commom/permissions';
 import {Colors, TouchableOpacity} from 'react-native-ui-lib';
 import {useSelector, useDispatch} from 'react-redux';
 import {setShowMusicCtrl} from '../stores/store-slice/musicStore';
@@ -67,16 +66,6 @@ const RootScreen = () => {
         {/*  公共屏幕 */}
         <Stack.Group
           screenOptions={({navigation}) => ({
-            headerShown: !isFullScreen,
-            headerStyle: {
-              backgroundColor: userToken ? themeColor : Colors.white,
-              height: 46,
-            },
-            headerTitleAlign: 'center',
-            headerTitleStyle: {
-              fontSize: 16,
-              color: userToken ? Colors.white : Colors.black,
-            },
             headerLeft: () => (
               <TouchableOpacity paddingH-26 onPress={() => navigation.goBack()}>
                 <FontAwesome
@@ -93,13 +82,6 @@ const RootScreen = () => {
             options={({route}) => ({
               title: route.params?.title,
             })}
-          />
-          <Stack.Screen
-            name="Permissions"
-            component={Permissions}
-            options={{
-              title: '权限管理',
-            }}
           />
         </Stack.Group>
       </Stack.Navigator>

@@ -1,5 +1,5 @@
-import React, {useState} from 'react';
-import {Vibration, StyleSheet, Modal} from 'react-native';
+import React, { useState } from 'react';
+import { Vibration, StyleSheet, Modal } from 'react-native';
 import {
   View,
   Card,
@@ -10,26 +10,26 @@ import {
   TouchableOpacity,
   Avatar,
 } from 'react-native-ui-lib';
-import {useSelector, useDispatch} from 'react-redux';
-import {useToast} from '../../../components/commom/Toast';
+import { useSelector, useDispatch } from 'react-redux';
+import { useToast } from '../../../components/commom/Toast';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import {getUserdetail} from '../../../api/user';
-import {addmate, getmateStatus} from '../../../api/mate';
+import { getUserdetail } from '../../../api/user';
+import { addmate, getmateStatus } from '../../../api/mate';
 import BaseDialog from '../../../components/commom/BaseDialog';
 import {
   Camera,
   useCameraDevice,
   useCodeScanner,
 } from 'react-native-vision-camera';
-import {requestCameraPermission} from '../../../stores/store-slice/permissionStore';
+import { requestCameraPermission } from '../../../stores/store-slice/permissionStore';
 
-const Addmate = ({navigation, route}) => {
-  const {showToast} = useToast();
+const Addmate = ({ navigation, route }) => {
+  const { showToast } = useToast();
   const userInfo = useSelector(state => state.userStore.userInfo);
   const isFullScreen = useSelector(state => state.settingStore.isFullScreen);
   const accessCamera = useSelector(state => state.permissionStore.accessCamera);
   // baseConfig
-  const {STATIC_URL} = useSelector(state => state.baseConfigStore.baseConfig);
+  const { STATIC_URL } = useSelector(state => state.baseConfigStore.baseConfig);
   const dispatch = useDispatch();
 
   /*  搜索用户 */
@@ -41,7 +41,7 @@ const Addmate = ({navigation, route}) => {
       return;
     }
     try {
-      const userRes = await getUserdetail({self_account: userAccount});
+      const userRes = await getUserdetail({ self_account: userAccount });
       if (userRes.success) {
         setUserDetail(userRes.data);
       }
@@ -125,7 +125,11 @@ const Addmate = ({navigation, route}) => {
                 dispatch(requestCameraPermission());
                 return;
               }
-              setModalVisible(true);
+              if (device) {
+                setModalVisible(true);
+              } else {
+                showToast('没有找到相机！', 'error');
+              }
             }}>
             <AntDesign name="scan1" size={24} color={Colors.Primary} />
           </TouchableOpacity>
@@ -133,7 +137,7 @@ const Addmate = ({navigation, route}) => {
             marginL-12
             label={'搜索'}
             borderRadius={8}
-            labelStyle={{fontSize: 13}}
+            labelStyle={{ fontSize: 13 }}
             avoidMinWidth={true}
             size={Button.sizes.small}
             backgroundColor={Colors.Primary}
@@ -173,7 +177,7 @@ const Addmate = ({navigation, route}) => {
                 marginL-8
                 label={'添加'}
                 borderRadius={8}
-                labelStyle={{fontSize: 13}}
+                labelStyle={{ fontSize: 13 }}
                 avoidMinWidth={true}
                 outline
                 outlineColor={Colors.Primary}
@@ -270,7 +274,7 @@ const Addmate = ({navigation, route}) => {
   );
 };
 const styles = StyleSheet.create({
-  Camera: {width: '100%', height: '82%'},
+  Camera: { width: '100%', height: '82%' },
   tipText: {
     position: 'absolute',
     width: '100%',

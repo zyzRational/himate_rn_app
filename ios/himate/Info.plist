@@ -69,6 +69,8 @@
 	<string>我们需要您授权访问照片库</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>我们需要您授权访问照片库</string>
+	<key>NSAppleMusicUsageDescription</key>
+    <string>我们需要您授权访问Apple Music</string>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
 </dict>

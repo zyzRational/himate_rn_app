@@ -8,6 +8,8 @@ import {setErrorMsg} from '../../stores/store-slice/errorMsgStore.js';
 const {BASE_URL} = store.getState().baseConfigStore.baseConfig;
 
 // 创建axios实例
+console.log('BASE_URL ',BASE_URL);
+
 const instance = axios.create({
   baseURL: BASE_URL || '',
   timeout: 18000,

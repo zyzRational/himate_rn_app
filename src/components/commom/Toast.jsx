@@ -85,7 +85,7 @@ const ToastProvider = props => {
       />
       {iosToatVisible ? (
         <Animated.View style={[styles.IosToastStyle, AnimatedShowToast]}>
-          <View style={styles.IosToastBox} padding-8>
+          <View style={styles.IosToastBox} padding-10>
             <Text white text80>
               {Message}
             </Text>
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   IosToastBox: {
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: 'rgba(0,0,0,0.5)',
     borderRadius: 6,
     maxWidth: 200,
   },

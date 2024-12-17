@@ -14,8 +14,9 @@
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		7699B88040F8A987B510C191 /* libPods-himate-himateTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 19F6CBCC0A4E27FBF8BF4A61 /* libPods-himate-himateTests.a */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
-		B63EFABA11B746A1B899DC3B /* BootSplash.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = DB92426AE39B45D6974BBB44 /* BootSplash.storyboard */; };
 		9E25AF90F6ED49499D75A0BC /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 91CD4D58F1E84E42A5714811 /* Colors.xcassets */; };
+		B527C0C11ADDD5C57149FEA8 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = E6533A3B25AC8EFD3F2F6BDF /* PrivacyInfo.xcprivacy */; };
+		B63EFABA11B746A1B899DC3B /* BootSplash.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = DB92426AE39B45D6974BBB44 /* BootSplash.storyboard */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -46,9 +47,10 @@
 		5DCACB8F33CDC322A6C60F78 /* libPods-himate.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-himate.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = himate/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		89C6BE57DB24E9ADA2F236DE /* Pods-himate-himateTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-himate-himateTests.release.xcconfig"; path = "Target Support Files/Pods-himate-himateTests/Pods-himate-himateTests.release.xcconfig"; sourceTree = "<group>"; };
+		91CD4D58F1E84E42A5714811 /* Colors.xcassets */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = folder.assetcatalog; name = Colors.xcassets; path = himate/Colors.xcassets; sourceTree = "<group>"; };
+		DB92426AE39B45D6974BBB44 /* BootSplash.storyboard */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = BootSplash.storyboard; path = himate/BootSplash.storyboard; sourceTree = "<group>"; };
+		E6533A3B25AC8EFD3F2F6BDF /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = himate/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
-		DB92426AE39B45D6974BBB44 /* BootSplash.storyboard */ = {isa = PBXFileReference; name = "BootSplash.storyboard"; path = "himate/BootSplash.storyboard"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		91CD4D58F1E84E42A5714811 /* Colors.xcassets */ = {isa = PBXFileReference; name = "Colors.xcassets"; path = "himate/Colors.xcassets"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = folder.assetcatalog; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -100,6 +102,7 @@
 				13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */,
 				DB92426AE39B45D6974BBB44 /* BootSplash.storyboard */,
 				91CD4D58F1E84E42A5714811 /* Colors.xcassets */,
+				E6533A3B25AC8EFD3F2F6BDF /* PrivacyInfo.xcprivacy */,
 			);
 			name = himate;
 			sourceTree = "<group>";
@@ -261,6 +264,7 @@
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				B63EFABA11B746A1B899DC3B /* BootSplash.storyboard in Resources */,
 				9E25AF90F6ED49499D75A0BC /* Colors.xcassets in Resources */,
+				B527C0C11ADDD5C57149FEA8 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -608,6 +612,7 @@
 				);
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
 				USE_HERMES = true;
 			};
 			name = Debug;

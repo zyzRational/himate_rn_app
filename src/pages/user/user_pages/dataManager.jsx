@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   FlatList,
   StyleSheet,
@@ -20,7 +20,7 @@ import {
   Badge,
   ProgressBar,
 } from 'react-native-ui-lib';
-import {useSelector, useDispatch} from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import {
   getUserUploadFiles,
   getUserMsgList,
@@ -28,38 +28,38 @@ import {
   delUserUploadFiles,
 } from '../../../api/dataManager';
 import dayjs from 'dayjs';
-import {getFileColor, getFileExt, getFileName} from '../../../utils/base';
+import { getFileColor, getFileExt, getFileName } from '../../../utils/base';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import BaseSheet from '../../../components/commom/BaseSheet';
-import {useToast} from '../../../components/commom/Toast';
-import {DownloadFile} from '../../../utils/Download';
-import {requestFolderPermission} from '../../../stores/store-slice/permissionStore';
+import { useToast } from '../../../components/commom/Toast';
+import { DownloadFile } from '../../../utils/Download';
+import { requestFolderPermission } from '../../../stores/store-slice/permissionStore';
 import DocumentPicker from 'react-native-document-picker';
-import {getDocumentfileFormdata} from '../../../utils/base';
-import {UploadFile} from '../../../api/upload';
-import {useRealm} from '@realm/react';
-import {setLocalMsg, getLocalUser, formatMsg} from '../../../utils/chatHandle';
+import { getDocumentfileFormdata } from '../../../utils/base';
+import { UploadFile } from '../../../api/upload';
+import { useRealm } from '@realm/react';
+import { setLocalMsg, getLocalUser, formatMsg } from '../../../utils/chatHandle';
 import BaseDialog from '../../../components/commom/BaseDialog';
-import {getStorage} from '../../../utils/Storage';
+import { getStorage } from '../../../utils/Storage';
 import VideoPlayer from 'react-native-video-controls';
 import ImageViewer from 'react-native-image-zoom-viewer';
-import {fullWidth} from '../../../styles';
+import { fullWidth } from '../../../styles';
 import Clipboard from '@react-native-clipboard/clipboard';
 import BaseTopBar from '../../../components/commom/BaseTopBar';
 
-const DataManager = ({navigation, route}) => {
+const DataManager = ({ navigation, route }) => {
   const userInfo = useSelector(state => state.userStore.userInfo);
   const accessFolder = useSelector(state => state.permissionStore.accessFolder);
 
   // baseConfig
-  const {STATIC_URL, THUMBNAIL_URL} = useSelector(
+  const { STATIC_URL, THUMBNAIL_URL } = useSelector(
     state => state.baseConfigStore.baseConfig,
   );
 
   const dispatch = useDispatch();
   const realm = useRealm();
 
-  const {showToast} = useToast();
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(false);
   const getFilesList = async (uid, type) => {
@@ -308,8 +308,8 @@ const DataManager = ({navigation, route}) => {
                   item.chat_type === 'group'
                     ? '群聊'
                     : item.chat_type === 'personal'
-                    ? '私聊'
-                    : '未知'
+                      ? '私聊'
+                      : '未知'
                 }
               />
               <View marginL-6>
@@ -319,12 +319,12 @@ const DataManager = ({navigation, route}) => {
                     item.msg_type === 'text'
                       ? '文字'
                       : item.msg_type === 'image'
-                      ? '图片'
-                      : item.msg_type === 'audio'
-                      ? '语音'
-                      : item.msg_type === 'video'
-                      ? '视频'
-                      : '未知'
+                        ? '图片'
+                        : item.msg_type === 'audio'
+                          ? '语音'
+                          : item.msg_type === 'video'
+                            ? '视频'
+                            : '未知'
                   }
                 />
               </View>
@@ -335,8 +335,8 @@ const DataManager = ({navigation, route}) => {
                     item.msg_status === 'unread'
                       ? '未读'
                       : item.msg_status === 'read'
-                      ? '已读'
-                      : '未知'
+                        ? '已读'
+                        : '未知'
                   }
                 />
               </View>
@@ -372,7 +372,7 @@ const DataManager = ({navigation, route}) => {
           </Text>
         </View>
       }
-      renderItem={({item, index}) => renderItem(item, index)}
+      renderItem={({ item, index }) => renderItem(item, index)}
     />
   );
 
@@ -400,7 +400,7 @@ const DataManager = ({navigation, route}) => {
             </Text>
           </View>
         }
-        renderItem={({item, index}) => renderItem(item, index)}
+        renderItem={({ item, index }) => renderItem(item, index)}
       />
       {groupAvaterFilesList.length > 0 ? (
         <View padding-6>
@@ -413,7 +413,7 @@ const DataManager = ({navigation, route}) => {
           setAvatarPageNum(prev => prev + 1);
         }}
         keyExtractor={(item, index) => item + index}
-        renderItem={({item, index}) => renderItem(item, index)}
+        renderItem={({ item, index }) => renderItem(item, index)}
       />
     </View>
   );
@@ -452,7 +452,7 @@ const DataManager = ({navigation, route}) => {
           </Text>
         </View>
       }
-      renderItem={({item, index}) => renderMsgItem(item, index)}
+      renderItem={({ item, index }) => renderMsgItem(item, index)}
     />
   );
 
@@ -473,7 +473,7 @@ const DataManager = ({navigation, route}) => {
           </Text>
         </View>
       }
-      renderItem={({item, index}) => renderItem(item, index)}
+      renderItem={({ item, index }) => renderItem(item, index)}
     />
   );
 
@@ -736,10 +736,10 @@ const DataManager = ({navigation, route}) => {
 
   /* 顶部导航栏 */
   const routes = [
-    {key: 'chat', title: '聊天文件', screen: ChatFilesScreen},
-    {key: 'avatar', title: '头像文件', screen: AvaterFilesScreen},
-    {key: 'upload', title: '文件存储', screen: UploadFilesScreen},
-    {key: 'msg', title: '聊天消息', screen: MsgFilesScreen},
+    { key: 'chat', title: '聊天文件', screen: ChatFilesScreen },
+    { key: 'avatar', title: '头像文件', screen: AvaterFilesScreen },
+    { key: 'upload', title: '文件存储', screen: UploadFilesScreen },
+    { key: 'msg', title: '聊天消息', screen: MsgFilesScreen },
   ];
 
   return (
@@ -872,8 +872,10 @@ const DataManager = ({navigation, route}) => {
                 .then(files => {
                   uploadFiles(files, 'upload');
                 })
-                .finally();
-              setShowUploadType(false);
+                .finally(() => {
+                  setShowUploadType(false);
+                });
+              ;
             },
           },
           {
@@ -881,14 +883,15 @@ const DataManager = ({navigation, route}) => {
             color: Colors.Primary,
             onPress: async () => {
               DocumentPicker.pick({
-                type: [DocumentPicker.types.allFiles],
+                type: [DocumentPicker.types.audio],
                 allowMultiSelection: true,
               })
                 .then(files => {
                   uploadFiles(files, 'music');
                 })
-                .finally();
-              setShowUploadType(false);
+                .finally(() => {
+                  setShowUploadType(false);
+                });
             },
           },
         ]}
@@ -972,7 +975,7 @@ const DataManager = ({navigation, route}) => {
           setModalVisible(!modalVisible);
         }}>
         <VideoPlayer
-          source={{uri: fullscreenUri}}
+          source={{ uri: fullscreenUri }}
           toggleResizeModeOnFullscreen={false}
           disableFullscreen={true}
           onBack={() => {
@@ -984,11 +987,11 @@ const DataManager = ({navigation, route}) => {
       {/* 图片预览 */}
       <Modal visible={imageShow} transparent={true}>
         <ImageViewer
-          imageUrls={[{url: fullscreenUri}]}
+          imageUrls={[{ url: fullscreenUri }]}
           onClick={() => {
             setImageShow(false);
           }}
-          menuContext={{saveToLocal: '退出预览', cancel: '取消'}}
+          menuContext={{ saveToLocal: '退出预览', cancel: '取消' }}
           onSave={() => {
             setImageShow(false);
           }}
@@ -1001,7 +1004,7 @@ const DataManager = ({navigation, route}) => {
             </View>
           )}
           renderFooter={() => (
-            <View flex center row padding-16 style={{width: fullWidth}}>
+            <View flex center row padding-16 style={{ width: fullWidth }}>
               <Text center grey70 text90>
                 单击退出预览
               </Text>
@@ -1014,7 +1017,7 @@ const DataManager = ({navigation, route}) => {
 };
 
 const styles = StyleSheet.create({
-  image: {width: 50, height: 50, borderRadius: 4, marginRight: 12},
+  image: { width: 50, height: 50, borderRadius: 4, marginRight: 12 },
   fileIcon: {
     width: 50,
     height: 50,

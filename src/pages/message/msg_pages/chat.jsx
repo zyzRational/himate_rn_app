@@ -1,5 +1,5 @@
-import React, {useEffect, useCallback, useState} from 'react';
-import {ActivityIndicator, StyleSheet, Vibration, Modal} from 'react-native';
+import React, { useEffect, useCallback, useState } from 'react';
+import { ActivityIndicator, StyleSheet, Vibration, Modal } from 'react-native';
 import {
   View,
   Button,
@@ -27,11 +27,11 @@ import {
 } from 'react-native-gifted-chat';
 import Clipboard from '@react-native-clipboard/clipboard';
 import ImagePicker from 'react-native-image-crop-picker';
-import {useSelector, useDispatch} from 'react-redux';
-import {useSocket} from '../../../utils/socket';
-import {getSessionDetail} from '../../../api/session';
-import {useToast} from '../../../components/commom/Toast';
-import {useRealm} from '@realm/react';
+import { useSelector, useDispatch } from 'react-redux';
+import { useSocket } from '../../../utils/socket';
+import { getSessionDetail } from '../../../api/session';
+import { useToast } from '../../../components/commom/Toast';
+import { useRealm } from '@realm/react';
 import {
   formatMsg,
   formatJoinUser,
@@ -40,8 +40,8 @@ import {
   getLocalUser,
   addOrUpdateLocalUser,
 } from '../../../utils/chatHandle';
-import {setIsPlaySound} from '../../../stores/store-slice/settingStore';
-import {setNowSessionId} from '../../../stores/store-slice/chatMsgStore';
+import { setIsPlaySound } from '../../../stores/store-slice/settingStore';
+import { setNowSessionId } from '../../../stores/store-slice/chatMsgStore';
 import {
   deepClone,
   getfileFormdata,
@@ -53,7 +53,7 @@ import {
   getFileExt,
   getFileColor,
 } from '../../../utils/base';
-import {UploadFile} from '../../../api/upload';
+import { UploadFile } from '../../../api/upload';
 import Video from 'react-native-video';
 import VideoPlayer from 'react-native-video-controls';
 import DocumentPicker from 'react-native-document-picker';
@@ -71,27 +71,27 @@ import Animated, {
   withSpring,
   runOnJS,
 } from 'react-native-reanimated';
-import {fullWidth, fullHeight} from '../../../styles';
-import {DownloadFile} from '../../../utils/Download';
+import { fullWidth, fullHeight } from '../../../styles';
+import { DownloadFile } from '../../../utils/Download';
 import BaseSheet from '../../../components/commom/BaseSheet';
 import {
   requestCameraPermission,
   requestMicrophonePermission,
   requestFolderPermission,
 } from '../../../stores/store-slice/permissionStore';
-import {cancelNotification} from '../../../utils/MsgNotification';
-import {createRandomSecretKey, encryptAES} from '../../../utils/cryptoHandle';
+import { cancelNotification } from '../../../utils/MsgNotification';
+import { createRandomSecretKey, encryptAES } from '../../../utils/cryptoHandle';
 import ImageViewer from 'react-native-image-zoom-viewer';
 
 const audioRecorderPlayer = new AudioRecorderPlayer();
 let recordTimer = null;
 
-const Chat = ({navigation, route}) => {
-  const {session_id, chat_type, clientMsgId} = route.params;
+const Chat = ({ navigation, route }) => {
+  const { session_id, chat_type, clientMsgId } = route.params;
 
   const dispatch = useDispatch();
-  const {showToast} = useToast();
-  const {socket} = useSocket();
+  const { showToast } = useToast();
+  const { socket } = useSocket();
   const realm = useRealm();
   const userInfo = useSelector(state => state.userStore.userInfo);
   const acceptMsgData = useSelector(state => state.chatMsgStore.msgData);
@@ -105,7 +105,7 @@ const Chat = ({navigation, route}) => {
   const accessFolder = useSelector(state => state.permissionStore.accessFolder);
 
   // baseConfig
-  const {STATIC_URL, THUMBNAIL_URL} = useSelector(
+  const { STATIC_URL, THUMBNAIL_URL } = useSelector(
     state => state.baseConfigStore.baseConfig,
   );
   const isEncryptMsg = useSelector(state => state.settingStore.isEncryptMsg);
@@ -142,7 +142,7 @@ const Chat = ({navigation, route}) => {
   const [sId, setSId] = useState(null); // session id
   const [jionUsers, setJionUsers] = useState(getLocalUser(realm) || []);
   const getUnreadMsg = async (sessionId, chatType, user_info) => {
-    const {id: userId, user_name, user_avatar} = user_info || {};
+    const { id: userId, user_name, user_avatar } = user_info || {};
     try {
       const unreadRes = await getSessionDetail({
         session_id: sessionId,
@@ -150,7 +150,7 @@ const Chat = ({navigation, route}) => {
         msg_status: 'unread',
       });
       if (unreadRes.success) {
-        const {id, msgs, mate, group} = unreadRes.data;
+        const { id, msgs, mate, group } = unreadRes.data;
         setSId(id);
 
         //将消息格式化，向服务器发送已读消息
@@ -307,7 +307,7 @@ const Chat = ({navigation, route}) => {
     };
     // 加密消息
     if (isEncryptMsg) {
-      const {secret, trueSecret} = createRandomSecretKey(secretStr);
+      const { secret, trueSecret } = createRandomSecretKey(secretStr);
       baseMsg.msg_secret = secret;
       baseMsg.msgdata = JSON.stringify(encryptAES(message, trueSecret));
     }
@@ -395,7 +395,7 @@ const Chat = ({navigation, route}) => {
           value => {
             setUploadProgress(value);
           },
-          {uid: userInfo?.id, fileType: msgType, useType: 'chat'},
+          { uid: userInfo?.id, fileType: msgType, useType: 'chat' },
         );
         setNowSendId(null);
         removeUploadIds(message._id);
@@ -520,7 +520,7 @@ const Chat = ({navigation, route}) => {
       if (acceptMsgData.session_id !== session_id) {
         return;
       }
-      const {id: msgId, send_uid, isReSend} = acceptMsgData || {};
+      const { id: msgId, send_uid, isReSend } = acceptMsgData || {};
       const msg = formatMsg(acceptMsgData);
       if (isLoadingComplete && (send_uid !== userInfo.id || isReSend)) {
         addMsg([msg], jionUsers, userInfo.id);
@@ -604,7 +604,7 @@ const Chat = ({navigation, route}) => {
         center
         iconSource={() => (
           <FontAwesome
-            style={{transform: [{rotate: `${showMore ? '45deg' : '0deg'}`}]}}
+            style={{ transform: [{ rotate: `${showMore ? '45deg' : '0deg'}` }] }}
             name="plus"
             color={Colors.Primary}
             size={18}
@@ -639,7 +639,7 @@ const Chat = ({navigation, route}) => {
           paddingLeft: 10,
           paddingVertical: 8,
         }}
-        accessoryStyle={{height: 80, paddingLeft: 26}}></InputToolbar>
+        accessoryStyle={{ height: 80, paddingLeft: 26 }}></InputToolbar>
     );
   };
 
@@ -715,7 +715,7 @@ const Chat = ({navigation, route}) => {
         wrapperStyle={{
           backgroundColor: Colors.white,
         }}
-        textStyle={{color: Colors.grey2030}}
+        textStyle={{ color: Colors.grey2030 }}
         activityIndicatorColor={Colors.Primary}></LoadEarlier>
     );
   };
@@ -725,8 +725,8 @@ const Chat = ({navigation, route}) => {
     return (
       <Day
         {...props}
-        containerStyle={{marginTop: 20, marginBottom: 20}}
-        textStyle={{color: Colors.grey40, fontWeight: 400}}></Day>
+        containerStyle={{ marginTop: 20, marginBottom: 20 }}
+        textStyle={{ color: Colors.grey40, fontWeight: 400 }}></Day>
     );
   };
 
@@ -927,7 +927,7 @@ const Chat = ({navigation, route}) => {
           setShowActionSheet(true);
         }}>
         {props.currentMessage._id === nowSendId ||
-        uploadIds.includes(props.currentMessage._id) ? (
+          uploadIds.includes(props.currentMessage._id) ? (
           <AnimatedScanner
             progress={
               props.currentMessage._id === nowSendId ? uploadProgress : 0
@@ -939,7 +939,7 @@ const Chat = ({navigation, route}) => {
         ) : null}
         <Image
           style={styles.image}
-          source={{uri: props.currentMessage.image}}
+          source={{ uri: props.currentMessage.image }}
         />
       </TouchableOpacity>
     );
@@ -963,7 +963,7 @@ const Chat = ({navigation, route}) => {
       if (prevs.find(item => item.cMsgId === videoMsg.clientMsg_id)) {
         return prevs;
       } else {
-        return [...prevs, {cMsgId: videoMsg.clientMsg_id, duration}];
+        return [...prevs, { cMsgId: videoMsg.clientMsg_id, duration }];
       }
     });
   }, []);
@@ -976,7 +976,7 @@ const Chat = ({navigation, route}) => {
         <View padding-4>
           <Video
             style={styles.video}
-            source={{uri: videoMsg.video}}
+            source={{ uri: videoMsg.video }}
             resizeMode="cover"
             paused={true}
             bufferConfig={{
@@ -1055,7 +1055,7 @@ const Chat = ({navigation, route}) => {
   const [audioPlayprogress, setAudioPlayprogress] = useState({});
 
   const playAudio = audioMsg => {
-    const {clientMsg_id, audio} = audioMsg;
+    const { clientMsg_id, audio } = audioMsg;
     if (nowReadyAudioId === clientMsg_id) {
       return;
     } else {
@@ -1079,7 +1079,7 @@ const Chat = ({navigation, route}) => {
     const audioMsg = props.currentMessage;
     if (audioMsg.audio) {
       return (
-        <Animated.View style={{...styles.audioBut, width}}>
+        <Animated.View style={{ ...styles.audioBut, width }}>
           <TouchableOpacity
             onPress={() => playAudio(audioMsg)}
             onLongPress={() => {
@@ -1248,7 +1248,7 @@ const Chat = ({navigation, route}) => {
       recorderVisible.value = true;
       runOnJS(startRecord)();
     })
-    .onUpdate(({translationX, translationY}) => {
+    .onUpdate(({ translationX, translationY }) => {
       // console.log('onUpdate', translationX, translationY);
       if (
         translationX > 0 &&
@@ -1274,7 +1274,7 @@ const Chat = ({navigation, route}) => {
       isSureSend.value = false;
       runOnJS(setRecordFlag)('');
     })
-    .onEnd(({velocityX, velocityY}) => {
+    .onEnd(({ velocityX, velocityY }) => {
       // console.log('onEnd', velocityX, velocityY);
       recorderVisible.value = false;
       runOnJS(stopRecord)();
@@ -1331,7 +1331,7 @@ const Chat = ({navigation, route}) => {
                   .then(image => {
                     sendMediaMsg([image], 'camera');
                   })
-                  .finally(setShowMore(false));
+                  .finally(() => { setShowMore(false) });
               }}>
               <View
                 flexS
@@ -1360,7 +1360,7 @@ const Chat = ({navigation, route}) => {
                   .then(video => {
                     sendMediaMsg([video], 'camera');
                   })
-                  .finally(setShowMore(false));
+                  .finally(() => { setShowMore(false) });
               }}>
               <View
                 flexS
@@ -1395,7 +1395,9 @@ const Chat = ({navigation, route}) => {
                     console.log('文件:', medias);
                     sendMediaMsg(medias, 'folder');
                   })
-                  .finally(setShowMore(false));
+                  .finally(() => {
+                    setShowMore(false);
+                  });
               }}>
               <View
                 flexS
@@ -1485,7 +1487,7 @@ const Chat = ({navigation, route}) => {
         renderBubble={renderBubble}
         renderTicks={renderTicks}
         renderSend={renderSend}
-        renderTime={() => {}}
+        renderTime={() => { }}
         renderActions={renderActions}
         renderInputToolbar={renderInputToolbar}
         renderComposer={renderComposer}
@@ -1525,11 +1527,11 @@ const Chat = ({navigation, route}) => {
       {/* 图片预览弹窗 */}
       <Modal visible={imageShow} transparent={true}>
         <ImageViewer
-          imageUrls={[{url: nowImage}]}
+          imageUrls={[{ url: nowImage }]}
           onClick={() => {
             setImageShow(false);
           }}
-          menuContext={{saveToLocal: '保存到本地', cancel: '取消'}}
+          menuContext={{ saveToLocal: '保存到本地', cancel: '取消' }}
           onSave={url => {
             saveFile(url);
             setImageShow(false);
@@ -1543,7 +1545,7 @@ const Chat = ({navigation, route}) => {
             </View>
           )}
           renderFooter={() => (
-            <View flex center row padding-16 style={{width: fullWidth}}>
+            <View flex center row padding-16 style={{ width: fullWidth }}>
               <Text center grey70 text90>
                 长按保存图片，单击退出预览
               </Text>
@@ -1561,7 +1563,7 @@ const Chat = ({navigation, route}) => {
           setModalVisible(!modalVisible);
         }}>
         <VideoPlayer
-          source={{uri: fullscreenUri}}
+          source={{ uri: fullscreenUri }}
           toggleResizeModeOnFullscreen={false}
           disableFullscreen={true}
           onBack={() => {
@@ -1635,7 +1637,7 @@ const Chat = ({navigation, route}) => {
           <FlatList
             data={groupMembers}
             keyExtractor={(item, index) => item + index}
-            renderItem={({item, index}) => renderMemberList(item, index)}
+            renderItem={({ item, index }) => renderMemberList(item, index)}
           />
         </View>
       </Modal>

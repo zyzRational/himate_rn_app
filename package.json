@@ -7,7 +7,7 @@
     "ios": "react-native run-ios",
     "lint": "eslint .",
     "start": "react-native start",
-    "start:dev": "set RN_ENV=dev && react-native start --experimental-debugger",
+    "start:dev": "set RN_ENV=local && react-native start --experimental-debugger",
     "start:prod": "set RN_ENV=prod && react-native start",
     "test": "jest"
   },

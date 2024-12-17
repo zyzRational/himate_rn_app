@@ -174,12 +174,17 @@ export const requestFolderPermission = () => dispatch => {
 
 /* 请求通知权限 */
 export const requestNotifyPermission = () => dispatch => {
-  requestNotifications().then(({status}) => {
-    if (status !== 'granted') {
-      openSettings().catch(() => console.warn('打开设置失败'));
-    }
-    dispatch(setAccessNotify(status === 'granted'));
-  });
+  if (Platform.OS === 'ios') {
+    openSettings().catch(() => console.warn('打开设置失败'));
+  }
+  if (Platform.OS === 'android') {
+    requestNotifications().then(({status}) => {
+      if (status !== 'granted') {
+        openSettings().catch(() => console.warn('打开设置失败'));
+      }
+      dispatch(setAccessNotify(status === 'granted'));
+    });
+  }
 };
 
 export default permissionSlice.reducer;
