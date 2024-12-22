@@ -1,5 +1,5 @@
-import React, {Component, useEffect, useState} from 'react';
-import {StyleSheet, ScrollView, Vibration, RefreshControl} from 'react-native';
+import React, { Component, useEffect, useState } from 'react';
+import { StyleSheet, ScrollView, Vibration, RefreshControl } from 'react-native';
 import {
   View,
   Text,
@@ -15,34 +15,34 @@ import {
   Avatar,
 } from 'react-native-ui-lib';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import {useToast} from '../../components/commom/Toast';
-import {getGroupDetail, editGroup, deleteGroup} from '../../api/group';
-import {editGroupMember, deleteGroupMember} from '../../api/groupMember';
-import {UploadFile} from '../../api/upload';
-import {useSelector, useDispatch} from 'react-redux';
+import { useToast } from '../../components/commom/Toast';
+import { getGroupDetail, editGroup, deleteGroup } from '../../api/group';
+import { editGroupMember, deleteGroupMember } from '../../api/groupMember';
+import { UploadFile } from '../../api/upload';
+import { useSelector, useDispatch } from 'react-redux';
 import ImagePicker from 'react-native-image-crop-picker';
 import BaseDialog from '../../components/commom/BaseDialog';
 import ListItem from '../../components/commom/ListItem';
-import {useRealm} from '@realm/react';
-import {fullWidth} from '../../styles';
+import { useRealm } from '@realm/react';
+import { fullWidth } from '../../styles';
 import BaseSheet from '../../components/commom/BaseSheet';
-import {getfileFormdata} from '../../utils/base';
+import { getfileFormdata } from '../../utils/base';
 import {
   requestCameraPermission,
   requestFolderPermission,
 } from '../../stores/store-slice/permissionStore';
 
-const GroupInfo = ({navigation, route}) => {
-  const {session_id} = route.params || {};
+const GroupInfo = ({ navigation, route }) => {
+  const { session_id } = route.params || {};
   const userInfo = useSelector(state => state.userStore.userInfo);
   const accessCamera = useSelector(state => state.permissionStore.accessCamera);
   const accessFolder = useSelector(state => state.permissionStore.accessFolder);
 
   // baseConfig
-  const {STATIC_URL} = useSelector(state => state.baseConfigStore.baseConfig);
+  const { STATIC_URL } = useSelector(state => state.baseConfigStore.baseConfig);
   const dispatch = useDispatch();
 
-  const {showToast} = useToast();
+  const { showToast } = useToast();
   const [groupInfo, setGroupInfo] = useState({});
   const [groupname, setGroupname] = useState(null);
   const [groupIntroduce, setGroupIntroduce] = useState(null);
@@ -55,8 +55,8 @@ const GroupInfo = ({navigation, route}) => {
       const res = await getGroupDetail(groupId);
       // console.log(res);
       if (res.success) {
-        const {group_name, group_avatar, group_introduce} = res.data;
-        setGroupInfo({...res.data});
+        const { group_name, group_avatar, group_introduce } = res.data;
+        setGroupInfo({ ...res.data });
         setAvatarUri(STATIC_URL + group_avatar);
         setGroupname(group_name);
         setGroupIntroduce(group_introduce);
@@ -95,7 +95,7 @@ const GroupInfo = ({navigation, route}) => {
       setUploading(true);
       // 修改头像
       if (truekey === 'group_avatar') {
-        const res = await UploadFile(fileData, () => {}, {
+        const res = await UploadFile(fileData, () => { }, {
           uid: userInfo?.id,
           fileType: 'image',
           useType: 'group',
@@ -284,7 +284,7 @@ const GroupInfo = ({navigation, route}) => {
                 群头像
               </Text>
             </View>
-            <View marginH-20 style={{display: avatarshow ? 'flex' : 'none'}}>
+            <View marginH-20 style={{ display: avatarshow ? 'flex' : 'none' }}>
               <Button
                 label={'保存'}
                 outline={true}
@@ -292,10 +292,10 @@ const GroupInfo = ({navigation, route}) => {
                 size={Button.sizes.small}
                 borderRadius={8}
                 backgroundColor={Colors.Primary}
-                onPress={() => submitData({group_avatar: true})}
+                onPress={() => submitData({ group_avatar: true })}
               />
             </View>
-            <Image source={{uri: avatarUri}} style={styles.image} />
+            <Image source={{ uri: avatarUri }} style={styles.image} />
             <FontAwesome name="angle-right" color={Colors.grey50} size={26} />
           </Card>
           <Card enableShadow={false} flexS marginT-16 padding-16>
@@ -321,13 +321,13 @@ const GroupInfo = ({navigation, route}) => {
                   setNameshow(!isNeedSave(groupname));
                 }}
               />
-              <View marginB-20 style={{display: nameshow ? 'flex' : 'none'}}>
+              <View marginB-20 style={{ display: nameshow ? 'flex' : 'none' }}>
                 <Button
                   label={'保存'}
                   size={Button.sizes.xSmall}
                   borderRadius={8}
                   backgroundColor={Colors.Primary}
-                  onPress={() => submitData({group_name: groupname})}
+                  onPress={() => submitData({ group_name: groupname })}
                 />
               </View>
             </View>
@@ -359,13 +359,13 @@ const GroupInfo = ({navigation, route}) => {
               />
               <View
                 marginB-20
-                style={{display: introduceshow ? 'flex' : 'none'}}>
+                style={{ display: introduceshow ? 'flex' : 'none' }}>
                 <Button
                   label={'保存'}
                   size={Button.sizes.xSmall}
                   borderRadius={8}
                   backgroundColor={Colors.Primary}
-                  onPress={() => submitData({group_introduce: groupIntroduce})}
+                  onPress={() => submitData({ group_introduce: groupIntroduce })}
                 />
               </View>
             </View>
@@ -447,12 +447,12 @@ const GroupInfo = ({navigation, route}) => {
                   <GridList
                     data={groupInfo?.members}
                     containerWidth={fullWidth * 0.9}
-                    contentContainerStyle={{paddingBottom: 12}}
+                    contentContainerStyle={{ paddingBottom: 12 }}
                     maxItemWidth={80}
                     numColumns={4}
                     itemSpacing={12}
                     listPadding={12}
-                    renderItem={({item}) => (
+                    renderItem={({ item }) => (
                       <TouchableOpacity
                         key={item.id}
                         flexS
@@ -481,19 +481,19 @@ const GroupInfo = ({navigation, route}) => {
                             item.member_role === 'owner'
                               ? '群主'
                               : item.member_role === 'admin'
-                              ? '管理员'
-                              : null
+                                ? '管理员'
+                                : null
                           }
                           ribbonStyle={{
                             backgroundColor:
                               item.member_role === 'owner'
                                 ? Colors.Primary
                                 : item.member_role === 'admin'
-                                ? Colors.yellow30
-                                : null,
+                                  ? Colors.yellow30
+                                  : null,
                           }}
                         />
-                        <Text text90L numberOfLines={1} style={{maxWidth: 60}}>
+                        <Text text90L numberOfLines={1} style={{ maxWidth: 60 }}>
                           {item.member_remark}
                         </Text>
                       </TouchableOpacity>
@@ -501,7 +501,7 @@ const GroupInfo = ({navigation, route}) => {
                   />
                 </>
               }
-              onPress={() => {}}
+              onPress={() => { }}
             />
           </Card>
 
@@ -569,7 +569,9 @@ const GroupInfo = ({navigation, route}) => {
                 .then(image => {
                   setAvatarfile(image);
                 })
-                .finally(setShowDialog(false));
+                .finally(() => {
+                  setShowDialog(false)
+                });
             },
           },
           {
@@ -592,7 +594,9 @@ const GroupInfo = ({navigation, route}) => {
                 .then(image => {
                   setAvatarfile(image);
                 })
-                .finally(setShowDialog(false));
+                .finally(() => {
+                  setShowDialog(false)
+                });
             },
           },
         ]}
@@ -732,7 +736,7 @@ const GroupInfo = ({navigation, route}) => {
   );
 };
 const styles = StyleSheet.create({
-  image: {width: 60, height: 60, borderRadius: 8, marginRight: 12},
+  image: { width: 60, height: 60, borderRadius: 8, marginRight: 12 },
   input: {
     maxWidth: 260,
   },

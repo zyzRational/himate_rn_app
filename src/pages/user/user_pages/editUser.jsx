@@ -1,5 +1,5 @@
-import React, {useEffect, useState} from 'react';
-import {StyleSheet, ScrollView, RefreshControl} from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import {
   View,
   Text,
@@ -14,23 +14,23 @@ import {
   LoaderScreen,
 } from 'react-native-ui-lib';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import {useToast} from '../../../components/commom/Toast';
-import {getUserdetail, EditUserInfo} from '../../../api/user';
-import {UploadFile} from '../../../api/upload';
-import {useDispatch, useSelector} from 'react-redux';
-import {setUserInfo as setUserData} from '../../../stores/store-slice/userStore';
+import { useToast } from '../../../components/commom/Toast';
+import { getUserdetail, EditUserInfo } from '../../../api/user';
+import { UploadFile } from '../../../api/upload';
+import { useDispatch, useSelector } from 'react-redux';
+import { setUserInfo as setUserData } from '../../../stores/store-slice/userStore';
 import ImagePicker from 'react-native-image-crop-picker';
 import BaseSheet from '../../../components/commom/BaseSheet';
-import {getfileFormdata} from '../../../utils/base';
+import { getfileFormdata } from '../../../utils/base';
 import {
   requestCameraPermission,
   requestFolderPermission,
 } from '../../../stores/store-slice/permissionStore';
 
-const Edituser = ({navigation, route}) => {
-  const {userId} = route.params || {};
+const Edituser = ({ navigation, route }) => {
+  const { userId } = route.params || {};
 
-  const {showToast} = useToast();
+  const { showToast } = useToast();
   const [userInfo, setUserInfo] = useState({});
   const [username, setUsername] = useState(null);
   const [selfaccount, setSelfaccount] = useState(null);
@@ -41,7 +41,7 @@ const Edituser = ({navigation, route}) => {
   const accessFolder = useSelector(state => state.permissionStore.accessFolder);
 
   // baseConfig
-  const {STATIC_URL} = useSelector(state => state.baseConfigStore.baseConfig);
+  const { STATIC_URL } = useSelector(state => state.baseConfigStore.baseConfig);
 
   const dispatch = useDispatch();
 
@@ -49,12 +49,12 @@ const Edituser = ({navigation, route}) => {
   const dataInit = async () => {
     setRefreshing(true);
     try {
-      const res = await getUserdetail({id: userId});
+      const res = await getUserdetail({ id: userId });
       // console.log(res);
       if (res.success) {
-        const {user_avatar, user_name, sex, self_account, birthday} = res.data;
+        const { user_avatar, user_name, sex, self_account, birthday } = res.data;
         dispatch(setUserData(res.data));
-        setUserInfo({user_avatar, user_name, sex, self_account, birthday});
+        setUserInfo({ user_avatar, user_name, sex, self_account, birthday });
         setAvatarUri(STATIC_URL + user_avatar);
         setUsername(user_name);
         setSelfaccount(self_account);
@@ -101,7 +101,7 @@ const Edituser = ({navigation, route}) => {
       setUploading(true);
       // 修改头像
       if (truekey === 'user_avatar') {
-        const res = await UploadFile(fileData, () => {}, {
+        const res = await UploadFile(fileData, () => { }, {
           uid: userId,
           fileType: 'image',
           useType: 'user',
@@ -193,7 +193,7 @@ const Edituser = ({navigation, route}) => {
                 头像
               </Text>
             </View>
-            <View marginH-20 style={{display: avatarshow ? 'flex' : 'none'}}>
+            <View marginH-20 style={{ display: avatarshow ? 'flex' : 'none' }}>
               <Button
                 label={'保存'}
                 outline={true}
@@ -201,10 +201,10 @@ const Edituser = ({navigation, route}) => {
                 size={Button.sizes.small}
                 borderRadius={8}
                 backgroundColor={Colors.Primary}
-                onPress={() => submitData({user_avatar: true})}
+                onPress={() => submitData({ user_avatar: true })}
               />
             </View>
-            <Image source={{uri: avatarUri}} style={styles.image} />
+            <Image source={{ uri: avatarUri }} style={styles.image} />
             <FontAwesome name="angle-right" color={Colors.grey50} size={26} />
           </Card>
           <Card flexS enableShadow={false} marginT-16 padding-16>
@@ -230,13 +230,13 @@ const Edituser = ({navigation, route}) => {
                   setNameshow(!isNeedSave(username));
                 }}
               />
-              <View marginB-20 style={{display: nameshow ? 'flex' : 'none'}}>
+              <View marginB-20 style={{ display: nameshow ? 'flex' : 'none' }}>
                 <Button
                   label={'保存'}
                   size={Button.sizes.small}
                   borderRadius={8}
                   backgroundColor={Colors.Primary}
-                  onPress={() => submitData({user_name: username})}
+                  onPress={() => submitData({ user_name: username })}
                 />
               </View>
             </View>
@@ -262,13 +262,13 @@ const Edituser = ({navigation, route}) => {
                   setAccountshow(!isNeedSave(selfaccount));
                 }}
               />
-              <View marginB-20 style={{display: accountshow ? 'flex' : 'none'}}>
+              <View marginB-20 style={{ display: accountshow ? 'flex' : 'none' }}>
                 <Button
                   label={'保存'}
                   size={Button.sizes.small}
                   borderRadius={8}
                   backgroundColor={Colors.Primary}
-                  onPress={() => submitData({self_account: selfaccount})}
+                  onPress={() => submitData({ self_account: selfaccount })}
                 />
               </View>
             </View>
@@ -287,13 +287,13 @@ const Edituser = ({navigation, route}) => {
               />
               <View
                 marginB-20
-                style={{display: birthdayshow ? 'flex' : 'none'}}>
+                style={{ display: birthdayshow ? 'flex' : 'none' }}>
                 <Button
                   label={'保存'}
                   size={Button.sizes.small}
                   borderRadius={8}
                   backgroundColor={Colors.Primary}
-                  onPress={() => submitData({birthday: userBirthday})}
+                  onPress={() => submitData({ birthday: userBirthday })}
                 />
               </View>
             </View>
@@ -312,14 +312,14 @@ const Edituser = ({navigation, route}) => {
                   size={18}
                   label={'男'}
                   color={Colors.geekblue}
-                  labelStyle={{color: Colors.geekblue}}
+                  labelStyle={{ color: Colors.geekblue }}
                 />
                 <RadioButton
                   value={'woman'}
                   size={18}
                   label={'女'}
                   color={Colors.magenta}
-                  labelStyle={{color: Colors.magenta}}
+                  labelStyle={{ color: Colors.magenta }}
                   marginL-16
                 />
                 <RadioButton
@@ -327,17 +327,17 @@ const Edituser = ({navigation, route}) => {
                   size={18}
                   label={'保密'}
                   color={Colors.orange30}
-                  labelStyle={{color: Colors.orange30}}
+                  labelStyle={{ color: Colors.orange30 }}
                   marginL-16
                 />
               </RadioGroup>
-              <View style={{display: sexshow ? 'flex' : 'none'}}>
+              <View style={{ display: sexshow ? 'flex' : 'none' }}>
                 <Button
                   label={'保存'}
                   size={Button.sizes.small}
                   borderRadius={8}
                   backgroundColor={Colors.Primary}
-                  onPress={() => submitData({sex: usersex})}
+                  onPress={() => submitData({ sex: usersex })}
                 />
               </View>
             </View>
@@ -369,7 +369,9 @@ const Edituser = ({navigation, route}) => {
                 .then(image => {
                   setAvatarfile(image);
                 })
-                .finally(setShowDialog(false));
+                .finally(() => {
+                  setShowDialog(false)
+                });
             },
           },
           {
@@ -392,7 +394,9 @@ const Edituser = ({navigation, route}) => {
                 .then(image => {
                   setAvatarfile(image);
                 })
-                .finally(setShowDialog(false));
+                .finally(() => {
+                  setShowDialog(false);
+                });
             },
           },
         ]}
@@ -409,7 +413,7 @@ const Edituser = ({navigation, route}) => {
   );
 };
 const styles = StyleSheet.create({
-  image: {width: 60, height: 60, borderRadius: 8, marginRight: 12},
+  image: { width: 60, height: 60, borderRadius: 8, marginRight: 12 },
   input: {
     width: 200,
   },

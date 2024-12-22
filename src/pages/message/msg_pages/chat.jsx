@@ -1326,7 +1326,9 @@ const Chat = ({ navigation, route }) => {
                   return;
                 }
                 ImagePicker.openCamera({
+                  cropping: true,
                   mediaType: 'photo',
+                  cropperActiveWidgetColor: Colors.Primary,
                 })
                   .then(image => {
                     sendMediaMsg([image], 'camera');
@@ -1336,7 +1338,7 @@ const Chat = ({ navigation, route }) => {
               <View
                 flexS
                 center
-                backgroundColor={Colors.success}
+                backgroundColor={Colors.grey40}
                 style={styles.otherBut}>
                 <FontAwesome name="camera" color={Colors.white} size={20} />
               </View>
@@ -1365,7 +1367,7 @@ const Chat = ({ navigation, route }) => {
               <View
                 flexS
                 center
-                backgroundColor={Colors.blue30}
+                backgroundColor={Colors.blue40}
                 style={styles.otherBut}>
                 <FontAwesome
                   name="video-camera"
@@ -1375,6 +1377,43 @@ const Chat = ({ navigation, route }) => {
               </View>
               <Text marginT-4 text90L grey30>
                 录像
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              flexS
+              centerH
+              marginL-16
+              onPress={() => {
+                if (!accessFolder) {
+                  showToast('请授予媒体使用权限', 'warning');
+                  dispatch(requestFolderPermission());
+                  return;
+                }
+                ImagePicker.openPicker({
+                  cropping: true,
+                  mediaType: 'photo',
+                  cropperActiveWidgetColor: Colors.Primary,
+                })
+                  .then(image => {
+                    sendMediaMsg([image], 'camera');
+                  })
+                  .finally(() => {
+                    setShowMore(false);
+                  });
+              }}>
+              <View
+                flexS
+                center
+                backgroundColor={Colors.cyan40}
+                style={styles.otherBut}>
+                <FontAwesome
+                  name="image"
+                  color={Colors.white}
+                  size={24}
+                />
+              </View>
+              <Text marginT-4 text90L grey30>
+                图库
               </Text>
             </TouchableOpacity>
             <TouchableOpacity

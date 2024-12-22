@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,10 +10,10 @@ import {
   TextField,
   Button,
 } from 'react-native-ui-lib';
-import {StyleSheet} from 'react-native';
-import {useSelector, useDispatch} from 'react-redux';
-import {useToast} from '../../../components/commom/Toast';
-import {getFavoritesDetail, updateFavorites} from '../../../api/music';
+import { StyleSheet } from 'react-native';
+import { useSelector, useDispatch } from 'react-redux';
+import { useToast } from '../../../components/commom/Toast';
+import { getFavoritesDetail, updateFavorites } from '../../../api/music';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import BaseSheet from '../../../components/commom/BaseSheet';
 import {
@@ -21,13 +21,13 @@ import {
   requestFolderPermission,
 } from '../../../stores/store-slice/permissionStore';
 import ImagePicker from 'react-native-image-crop-picker';
-import {UploadFile} from '../../../api/upload';
-import {getfileFormdata} from '../../../utils/base';
+import { UploadFile } from '../../../api/upload';
+import { getfileFormdata } from '../../../utils/base';
 
-const EditFavorites = ({navigation, route}) => {
-  const {favoritesId} = route.params || {};
+const EditFavorites = ({ navigation, route }) => {
+  const { favoritesId } = route.params || {};
 
-  const {showToast} = useToast();
+  const { showToast } = useToast();
   const dispatch = useDispatch();
 
   const userInfo = useSelector(state => state.userStore.userInfo);
@@ -35,7 +35,7 @@ const EditFavorites = ({navigation, route}) => {
   const accessFolder = useSelector(state => state.permissionStore.accessFolder);
 
   // baseConfig
-  const {THUMBNAIL_URL} = useSelector(
+  const { THUMBNAIL_URL } = useSelector(
     state => state.baseConfigStore.baseConfig,
   );
 
@@ -49,10 +49,10 @@ const EditFavorites = ({navigation, route}) => {
   const getFavorites = async f_id => {
     setLoading(true);
     try {
-      const res = await getFavoritesDetail({id: f_id, is_find_music: false});
+      const res = await getFavoritesDetail({ id: f_id, is_find_music: false });
       if (res.success) {
         setFavoritesForm(res.data);
-        const {favorites_name, favorites_remark, favorites_cover, is_public} =
+        const { favorites_name, favorites_remark, favorites_cover, is_public } =
           res.data;
         setFavoritesName(favorites_name);
         setFavoritesRemark(favorites_remark);
@@ -87,7 +87,7 @@ const EditFavorites = ({navigation, route}) => {
     try {
       // 修改头像
       if (THUMBNAIL_URL + favoritesForm.favorites_cover !== coverUri) {
-        const res = await UploadFile(fileData, () => {}, {
+        const res = await UploadFile(fileData, () => { }, {
           uid: userInfo.id,
           fileType: 'image',
           useType: 'music',
@@ -156,7 +156,7 @@ const EditFavorites = ({navigation, route}) => {
                 </Text>
               </View>
               <View marginR-12>
-                <Image source={{uri: coverUri}} style={styles.image} />
+                <Image source={{ uri: coverUri }} style={styles.image} />
               </View>
               <FontAwesome name="angle-right" color={Colors.grey50} size={26} />
             </Card>
@@ -254,7 +254,9 @@ const EditFavorites = ({navigation, route}) => {
                 .then(image => {
                   setCoverfile(image);
                 })
-                .finally(setShowDialog(false));
+                .finally(() => {
+                  setShowDialog(false)
+                });
             },
           },
           {
@@ -274,7 +276,9 @@ const EditFavorites = ({navigation, route}) => {
                 .then(image => {
                   setCoverfile(image);
                 })
-                .finally(setShowDialog(false));
+                .finally(() => {
+                  setShowDialog(false)
+                });
             },
           },
         ]}

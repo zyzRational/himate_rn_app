@@ -1,6 +1,7 @@
-import {pinyin} from 'pinyin-pro';
+import { pinyin } from 'pinyin-pro';
 import RNFetchBlob from 'rn-fetch-blob';
-import {Colors} from 'react-native-ui-lib';
+import { Colors } from 'react-native-ui-lib';
+import { Platform } from 'react-native';
 
 /* 判断是否为空对象 */
 export const isEmptyObject = obj => {
@@ -129,6 +130,7 @@ export const getfileFormdata = (doName, fileInfo) => {
       .substring(2)}.${ext}`,
     data: RNFetchBlob.wrap(fileInfo.path),
   };
+
   return {
     file,
     type,
@@ -186,8 +188,9 @@ export const getRecordfileFormdata = (doName, filePath) => {
     filename: `${doName}_${type}_${Math.random()
       .toString(16)
       .substring(2)}.${ext}`,
-    data: RNFetchBlob.wrap(filePath),
+    data: Platform.OS === 'ios' ? filePath : RNFetchBlob.wrap(filePath),
   };
+
   return {
     file,
     type,

@@ -1,14 +1,19 @@
 import RNFS from 'react-native-fs';
-import {CameraRoll} from '@react-native-camera-roll/camera-roll';
-import {displayName as appDisplayName} from '../../app.json';
+import { CameraRoll } from '@react-native-camera-roll/camera-roll';
+import { displayName as appDisplayName } from '../../app.json';
+import { Platform } from 'react-native';
+
 /* 下载文件 */
 export const DownloadFile = async (
   fileUrl,
   fileName,
-  progressCallback = () => {},
+  progressCallback = () => { },
   isInCameraRoll = true,
 ) => {
-  const path = RNFS.DownloadDirectoryPath + `/${appDisplayName}`;
+  let path = RNFS.DownloadDirectoryPath + `/${appDisplayName}`;
+  if (Platform.OS === 'ios') {
+    path = RNFS.DocumentDirectoryPath;
+  }
   const isDirExists = await RNFS.exists(path);
   if (!isDirExists) {
     RNFS.mkdir(path)

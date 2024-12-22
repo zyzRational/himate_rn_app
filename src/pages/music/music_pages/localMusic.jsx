@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,21 +8,21 @@ import {
   Button,
   LoaderScreen,
 } from 'react-native-ui-lib';
-import {FlatList, StyleSheet, Modal} from 'react-native';
-import {useToast} from '../../../components/commom/Toast';
+import { FlatList, StyleSheet, Platform, Modal } from 'react-native';
+import { useToast } from '../../../components/commom/Toast';
 import RNFS from 'react-native-fs';
 import MusicList from '../../../components/music/MusicList';
-import {useRealm} from '@realm/react';
-import {v4 as uuid} from 'uuid';
-import {fullHeight, statusBarHeight} from '../../../styles';
+import { useRealm } from '@realm/react';
+import { v4 as uuid } from 'uuid';
+import { fullHeight, statusBarHeight } from '../../../styles';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import BaseDialog from '../../../components/commom/BaseDialog';
-import {requestFolderPermission} from '../../../stores/store-slice/permissionStore';
-import {useSelector, useDispatch} from 'react-redux';
+import { requestFolderPermission } from '../../../stores/store-slice/permissionStore';
+import { useSelector, useDispatch } from 'react-redux';
 
-const LocalMusic = ({navigation}) => {
-  const {showToast} = useToast();
+const LocalMusic = ({ navigation }) => {
+  const { showToast } = useToast();
   const realm = useRealm();
   const dispatch = useDispatch();
 
@@ -93,7 +93,10 @@ const LocalMusic = ({navigation}) => {
   // 扫描目录
   const [nowDirPath, setNowDirPath] = useState('');
   const scanDir = path => {
-    const directory = path || RNFS.ExternalStorageDirectoryPath;
+    let directory = path || RNFS.ExternalStorageDirectoryPath;
+    if (Platform.OS === 'ios') {
+      directory = path || RNFS.LibraryDirectoryPath
+    }
     const scanDirectory = async dirPath => {
       try {
         const files = await RNFS.readDir(dirPath);
@@ -255,7 +258,7 @@ const LocalMusic = ({navigation}) => {
                   </Text>
                 </View>
               }
-              renderItem={({item, index}) => (
+              renderItem={({ item, index }) => (
                 <View marginT-8 row centerV paddingH-12>
                   <Checkbox
                     marginR-12
