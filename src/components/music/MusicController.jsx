@@ -160,7 +160,6 @@ const MusicCtrlProvider = props => {
       return;
     }
     const localMusic = deepClone(music);
-    console.log('开始播放音乐', localMusic);
     for (const key in localMusic) {
       if (localMusic[key] === null) {
         delete localMusic[key];

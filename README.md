@@ -10,7 +10,9 @@
 
 ### 平台适配
 
-全力适配Android平台，ios暂未做适配，无法正常使用。
+已适配Android，ios端
+
+已知问题：ios不能播放.ogg格式音频，同时安卓无法播放ios默认的.m4a格式音频，ios部分UI有压缩。
 
 
 
@@ -19,19 +21,12 @@
 #### 项目环境
 
 - nodejs > 18
-- java JDK17
+- android端  java JDK17  android SDK 34
+- ios端  Homebrew  ruby  CocoaPods
 
 
 
 #### 运行项目
-
-如果使用Android14运行先进行如下修改
-
-```java
-./node_modules/react-native-musicontrol/android/java/com/tanguyantoine/react/MusicControlModule.java:204: 
-原代码：context.registerReceiver(receiver, filter);
-修改为：context.registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED);
-```
 
 配置项目环境：项目目录.env文件
 
@@ -66,12 +61,12 @@ COULD_URL=获取所有服务接口
 
 **注意**
 
-.env文件主要用于作为配置示例，不建议直接配置.env文件作为您的项目环境，建议新建如.env.dev或.env.prod这样的多个.env文件进行多环境配置，若配置不生效可尝试使用其它命名，同时注意添加到.gitignore，以免造成隐私泄露。
+.env文件主要用于作为配置示例，不建议直接配置.env文件作为您的项目环境，建议新建如.env.local这样的多个.env文件进行多环境配置，若配置不生效可尝试使用其它命名，同时注意添加到.gitignore，以免造成隐私泄露。
 
-然后使用例如以下命令启动Metro
+然后使用例如以下命令启动Metro，或自行配置启动命令
 
 ```
-yarn start:dev 或 yarn start:prod
+yarn start:dev
 ```
 
 安装项目依赖
@@ -80,13 +75,41 @@ yarn start:dev 或 yarn start:prod
 yarn
 ```
 
-启动安卓模拟器后或连接真机后使用以下命令启动项目
+##### android端
+
+启动安卓模拟器后或连接真机后使用以下命令启动项目，推荐使用Android Studio打开android文件夹并运行
 
 ```
 yarn android
 ```
 
+如果使用Android14运行先进行如下修改
+
+```java
+./node_modules/react-native-musicontrol/android/java/com/tanguyantoine/react/MusicControlModule.java:204: 
+原代码：context.registerReceiver(receiver, filter);
+修改为：context.registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED);
+```
+
+##### ios端
+
+进入 项目目录/ios 文件夹下使用以下命令安装项目依赖
+
+```
+pod install
+```
+
+启动ios模拟器后或连接真机后使用以下命令启动项目，推荐使用Xcode打开/ios/himate.xcworkspace文件夹并运行
+
+```
+yarn ios
+```
+
+
+
 #### 构建安装包
+
+##### android端
 
 ```
 cd android
@@ -117,6 +140,10 @@ RELEASE_KEY_PASSWORD=
 ./gradlew assembleRelease
 ```
 构建完成的安装包位于：项目目录\android\app\build\outputs\apk\release
+
+##### ios端
+
+使用xcode 设备选择Any ios Device (arm64) 打开Product ---> Archive 进行构建，前提是你拥有Provisioning Profile描述文件。
 
 ### 其它
 

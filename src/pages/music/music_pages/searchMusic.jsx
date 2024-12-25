@@ -19,7 +19,7 @@ const SearchMusic = ({navigation}) => {
         album: keyword,
       });
       if (res.success) {
-        console.log(res.data.list);
+        // console.log(res.data.list);
         setMusic(res.data.list);
       }
     } catch (error) {
