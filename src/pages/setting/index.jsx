@@ -53,7 +53,6 @@ const Setting = ({navigation}) => {
   ];
 
   // 获取颜色
-  const [selfcolor, setSelfcolor] = useState('');
   const [showDialog, setShowDialog] = useState(false);
 
   /* 消息提示类型 */
@@ -78,6 +77,8 @@ const Setting = ({navigation}) => {
       console.log(error);
     }
   };
+
+  // 设置静态资源地址
   const settingStaticUrl = value => {
     const newUrlInfo = deepClone(baseConfig);
     if (value) {
@@ -88,6 +89,7 @@ const Setting = ({navigation}) => {
     }
     dispatch(setBaseConfig(newUrlInfo));
   };
+
   useEffect(() => {
     getBaseUrlInfo();
   }, []);
@@ -232,10 +234,10 @@ const Setting = ({navigation}) => {
               setShowDialog(false);
             }}
           />
-          <View flexS row centerV paddingH-30>
+          <View flexS row centerV paddingH-24>
             <Text>自定义主题色</Text>
             <ColorPicker
-              colors={[Colors.Primary, Colors.black]}
+              colors={[Colors.Primary]}
               initialColor={Colors.Primary}
               value={Colors.Primary}
               onDismiss={() => console.log('取消')}
@@ -243,9 +245,6 @@ const Setting = ({navigation}) => {
                 dispatch(setPrimaryColor(color));
                 showToast('设置成功！', 'success');
                 setShowDialog(false);
-              }}
-              onValueChange={(value, colorInfo) => {
-                setSelfcolor(value);
               }}
             />
           </View>

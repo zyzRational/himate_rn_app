@@ -1,7 +1,7 @@
-import { pinyin } from 'pinyin-pro';
+import {pinyin} from 'pinyin-pro';
 import RNFetchBlob from 'rn-fetch-blob';
-import { Colors } from 'react-native-ui-lib';
-import { Platform } from 'react-native';
+import {Colors} from 'react-native-ui-lib';
+import {Platform} from 'react-native';
 
 /* 判断是否为空对象 */
 export const isEmptyObject = obj => {
@@ -216,6 +216,13 @@ export const createRandomLetters = count => {
     result += characters.charAt(Math.floor(Math.random() * charactersLength));
   }
   return result;
+};
+
+// 生成随机整数
+export const getRandomInt = (min, max) => {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 };
 
 /* 格式化秒数 */

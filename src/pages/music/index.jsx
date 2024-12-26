@@ -30,7 +30,12 @@ import {
 import BaseDialog from '../../components/commom/BaseDialog';
 import {useRealm} from '@realm/react';
 import dayjs from 'dayjs';
-import {setCloseTime} from '../../stores/store-slice/musicStore';
+import {
+  setCloseTime,
+  setIsRandomPlay,
+  setRandomNum,
+} from '../../stores/store-slice/musicStore';
+import {getMusicList} from '../../api/music';
 
 const Music = ({navigation}) => {
   const {showToast} = useToast();
@@ -39,6 +44,7 @@ const Music = ({navigation}) => {
 
   const userInfo = useSelector(state => state.userStore.userInfo);
   const isClosed = useSelector(state => state.musicStore.isClosed);
+  const randomNum = useSelector(state => state.musicStore.randomNum);
 
   // baseConfig
   const {STATIC_URL, THUMBNAIL_URL} = useSelector(
@@ -48,10 +54,12 @@ const Music = ({navigation}) => {
   useEffect(() => {
     getUserFavoritesList(userInfo?.id);
     getDefaultFavoritesCount(userInfo?.id);
+    getAllMusicList();
     const unsubscribe = navigation.addListener('focus', () => {
       if (userInfo?.id) {
         getUserFavoritesList(userInfo.id);
         getDefaultFavoritesCount(userInfo.id);
+        getAllMusicList();
         if (realm) {
           getLocalMusicInfo();
         }
@@ -213,6 +221,24 @@ const Music = ({navigation}) => {
     }
   }, [isClosed]);
 
+  /* 随机播放 */
+  const [showRandomDialog, setShowRandomDialog] = useState(false);
+  const [randomSwitch, setRandomSwitch] = useState(false);
+
+  // 获取所有歌曲数
+  const [allMusicNum, setAllMusicNum] = useState(1);
+  const getAllMusicList = async () => {
+    try {
+      const res = await getMusicList();
+      if (res.success) {
+        setAllMusicNum(res.data.count);
+        dispatch(setRandomNum({min: 1, max: res.data.count}));
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <View top padding-16 height={fullHeight}>
       <Card
@@ -229,8 +255,8 @@ const Music = ({navigation}) => {
           <TextField readOnly placeholder={'搜索你想找的音乐'} />
         </View>
       </Card>
-      <Card marginT-16>
-        <View row centerV paddingH-16 paddingV-16>
+      <Card marginT-16 padding-12>
+        <View row centerV marginB-12>
           <View>
             <Image
               source={{uri: STATIC_URL + userInfo?.user_avatar}}
@@ -239,7 +265,7 @@ const Music = ({navigation}) => {
           </View>
           <View marginL-12 flexG>
             <View row centerV>
-              <Text grey20 text70BL>
+              <Text grey20 text70BO>
                 {userInfo?.user_name}
               </Text>
               <View flexS row center marginL-6>
@@ -264,18 +290,40 @@ const Music = ({navigation}) => {
               )}
             </Text>
           </View>
-          <View marginL-12 flexG right>
+        </View>
+        <View paddingT-12 row centerV style={styles.funBox}>
+          <View width={'50%'} center>
             <TouchableOpacity
               centerV
-              padding-4
+              row
+              onPress={() => {
+                setShowRandomDialog(true);
+              }}>
+              <MaterialIcons
+                name="library-music"
+                color={randomSwitch ? Colors.Primary : Colors.grey50}
+                size={20}
+              />
+              <Text text80 marginL-4 grey30>
+                随机播放
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <View width={'50%'} center style={styles.rightBox}>
+            <TouchableOpacity
+              row
+              centerV
               onPress={() => {
                 setShowAlarmDialog(true);
               }}>
               <MaterialIcons
                 name="access-alarm"
                 color={alarmSwitch ? Colors.Primary : Colors.grey50}
-                size={24}
+                size={20}
               />
+              <Text text80 marginL-4 grey30>
+                定时关闭
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -298,7 +346,7 @@ const Music = ({navigation}) => {
                   size={22}
                 />
                 <View row bottom>
-                  <Text marginT-6 text70 grey20>
+                  <Text marginT-6 text70BO grey20>
                     {item.title}
                   </Text>
                   <Text text90L grey40 marginL-4 marginB-2>
@@ -531,7 +579,6 @@ const Music = ({navigation}) => {
               minimumTrackTintColor={Colors.Primary}
               minimumValue={0}
               maximumValue={120}
-              useGap={true}
               onValueChange={value => {
                 setAlarmTime(value);
                 if (alarmSwitch) {
@@ -540,6 +587,54 @@ const Music = ({navigation}) => {
               }}
               value={alarmTime}
               step={1}
+            />
+          </View>
+        </Card>
+      </Dialog>
+      <Dialog
+        visible={showRandomDialog}
+        useSafeArea={true}
+        onDismiss={() => setShowRandomDialog(false)}
+        width={'90%'}
+        panDirection={PanningProvider.Directions.DOWN}>
+        <Card flexS padding-16>
+          <View row centerV>
+            <Text text70BL marginR-12>
+              随机播放
+            </Text>
+            <Switch
+              onColor={Colors.Primary}
+              offColor={Colors.grey50}
+              value={randomSwitch}
+              onValueChange={value => {
+                if (value) {
+                  dispatch(setIsRandomPlay(value));
+                  showToast('随机播放已开启', 'success');
+                } else {
+                  dispatch(setRandomNum({min: 1, max: allMusicNum}));
+                  dispatch(setIsRandomPlay(value));
+                }
+                setRandomSwitch(value);
+              }}
+            />
+          </View>
+          <View marginT-12>
+            <Text text90L grey30 marginV-6>
+              将在曲库中第{randomNum.min}-{randomNum.max}首歌曲之间随机播放
+            </Text>
+            <Slider
+              thumbTintColor={Colors.Primary}
+              minimumTrackTintColor={Colors.Primary}
+              minimumValue={1}
+              maximumValue={allMusicNum}
+              initialMinimumValue={randomNum?.min}
+              initialMaximumValue={randomNum?.max}
+              useGap={true}
+              useRange={true}
+              step={1}
+              onRangeChange={values => {
+                dispatch(setRandomNum(values));
+              }}
             />
           </View>
         </Card>
@@ -564,6 +659,14 @@ const styles = StyleSheet.create({
   },
   delBox: {
     color: Colors.$backgroundNeutral,
+  },
+  funBox: {
+    borderTopWidth: 1,
+    borderColor: Colors.grey80,
+  },
+  rightBox: {
+    borderLeftWidth: 1,
+    borderColor: Colors.grey80,
   },
 });
 export default Music;

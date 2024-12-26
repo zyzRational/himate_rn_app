@@ -1,14 +1,19 @@
 import * as React from 'react';
 import {StyleSheet} from 'react-native';
 import {View, TouchableOpacity, Text, Colors} from 'react-native-ui-lib';
-import {fullWidth} from '../../styles';
+import {fullWidth, fullHeight} from '../../styles';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 
 const BaseTopBar = props => {
-  const {Routes = [], FocusIndex = 0, OnChangeIndex = () => {}} = props;
+  const {
+    Routes = [],
+    FocusIndex = 0,
+    OnChangeIndex = () => {},
+    HeightScale = 0.84,
+  } = props;
 
   return (
-    <View width={fullWidth}>
+    <View width={fullWidth} height={fullHeight * HeightScale}>
       <View row spread backgroundColor="white" style={styles.topStyle}>
         {Routes.map((item, index) => {
           return (

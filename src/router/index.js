@@ -17,6 +17,7 @@ import {
   setNotSaveMsg,
   setIsEncryptMsg,
   setIsMusicApp,
+  setIsFastStatic,
 } from '../stores/store-slice/settingStore';
 import {checkPermissions} from '../stores/store-slice/permissionStore';
 import {initNotRemindSessionIds} from '../stores/store-slice/chatMsgStore';
@@ -50,6 +51,7 @@ const RootView = () => {
     const notSaveMsg = await getStorage('setting', 'notSaveMsg');
     const isEncryptMsg = await getStorage('setting', 'isEncryptMsg');
     const isMusicApp = await getStorage('setting', 'isMusicApp');
+    const isFastStatic = await getStorage('setting', 'isFastStatic');
 
     dispatch(setPrimaryColor(PrimaryColor));
     dispatch(setToastType(ToastType));
@@ -59,6 +61,7 @@ const RootView = () => {
     dispatch(setNotSaveMsg(notSaveMsg));
     dispatch(setIsEncryptMsg(isEncryptMsg));
     dispatch(setIsMusicApp(isMusicApp));
+    dispatch(setIsFastStatic(isFastStatic));
     dispatch(checkPermissions());
   };
 
@@ -97,9 +100,13 @@ const RootView = () => {
     settingInit().finally(() => {
       if (isEmptyObject(baseConfig)) {
         getBaseConfig()
-          .then(data => {
-            if (data) {
-              dispatch(setBaseConfig(data));
+          .then(async config => {
+            if (config) {
+              const isFastStatic = await getStorage('setting', 'isFastStatic');
+              if (isFastStatic) {
+                config.STATIC_URL = config.FAST_STATIC_URL;
+              }
+              dispatch(setBaseConfig(config));
               checkIsLogin(userToken).finally(() => setLoading(false));
             } else {
               setLoading(false);

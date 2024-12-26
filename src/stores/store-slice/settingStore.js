@@ -42,7 +42,7 @@ export const settingSlice = createSlice({
     },
     setIsFastStatic: (state, action) => {
       state.isFastStatic = action.payload ?? false;
-      // addStorage('setting', 'isFastStatic', state.isFastStatic);
+      addStorage('setting', 'isFastStatic', state.isFastStatic);
     },
     setIsMusicApp: (state, action) => {
       state.isMusicApp = action.payload ?? false;

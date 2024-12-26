@@ -15,15 +15,22 @@ import {AnimatedCircularProgress} from 'react-native-circular-progress';
 import {fullHeight, statusBarHeight} from '../../styles';
 import AudioRecorderPlayer from 'react-native-audio-recorder-player';
 import MarqueeText from 'react-native-marquee';
-import {formatMilliseconds, isEmptyObject, deepClone} from '../../utils/base';
+import {
+  formatMilliseconds,
+  isEmptyObject,
+  deepClone,
+  getRandomInt,
+} from '../../utils/base';
 import {
   setPlayingMusic,
   removePlayList,
   setIsClosed,
+  addPlayList,
 } from '../../stores/store-slice/musicStore';
 import {useToast} from '../commom/Toast';
 import {useRealm} from '@realm/react';
 import MusicControl, {Command} from 'react-native-music-control';
+import {getMusicList} from '../../api/music';
 
 export const MusicCtrlContext = React.createContext();
 export const useMusicCtrl = () => React.useContext(MusicCtrlContext);
@@ -41,6 +48,8 @@ const MusicCtrlProvider = props => {
   const playList = useSelector(state => state.musicStore.playList);
   const playingMusic = useSelector(state => state.musicStore.playingMusic);
   const closeTime = useSelector(state => state.musicStore.closeTime);
+  const randomNum = useSelector(state => state.musicStore.randomNum);
+  const isRandomPlay = useSelector(state => state.musicStore.isRandomPlay);
 
   const [musicModalVisible, setMusicModalVisible] = React.useState(false);
   const [listModalVisible, setListModalVisible] = React.useState(false);
@@ -65,7 +74,9 @@ const MusicCtrlProvider = props => {
     }
     if (playbackMeta.isFinished) {
       restMusicStatus().then(() => {
-        if (playList.length > 0) {
+        if (isRandomPlay) {
+          getRandMusic();
+        } else if (playList.length > 0) {
           if (playType === 'single') {
             dispatch(setPlayingMusic(playList[playingIndex]));
           }
@@ -202,7 +213,7 @@ const MusicCtrlProvider = props => {
       album: album,
       duration: duration, // (Seconds)
       color: 0x0000ff, // Android Only - Notification Color
-      colorized: true, // Android 8+ Only - Notification Color extracted from the artwork. Set to false to use the color property instead
+      //colorized: true, // Android 8+ Only - Notification Color extracted from the artwork. Set to false to use the color property instead
       date: Date.now().toString(), // , // Release Date (RFC 3339) - Android Only
       isLiveStream: true, // iOS Only (Boolean), Show or hide Live Indicator instead of seekbar on lock screen for live streams. Default value is false.
     });
@@ -258,6 +269,30 @@ const MusicCtrlProvider = props => {
       clearTimeout(timer);
     }
   }, [closeTime]);
+
+  // 获取随机歌曲
+  const getRandMusic = async () => {
+    const index = getRandomInt(randomNum.min, randomNum.max);
+    try {
+      const res = await getMusicList({pageNum: index, pageSize: 1});
+      if (res.success) {
+        if (res.data.list.length > 0) {
+          const music = res.data.list[0];
+          dispatch(setPlayingMusic(music));
+          dispatch(addPlayList([music]));
+        }
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  // 随机播放
+  React.useEffect(() => {
+    if (isRandomPlay && playList.length === 0) {
+      getRandMusic();
+    }
+  }, [isRandomPlay]);
 
   // 是否播放新的音乐
   React.useEffect(() => {

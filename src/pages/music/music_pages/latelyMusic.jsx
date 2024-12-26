@@ -12,7 +12,7 @@ const LatelyMusic = ({navigation}) => {
 
   // 获取最近播放的音乐记录
   const getLocalMusic = async () => {
-    const music = realm.objects('MusicInfo').toJSON();
+    const music = realm.objects('MusicInfo').toJSON().reverse();
     setLocalMusic(music);
   };
 
