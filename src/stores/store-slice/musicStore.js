@@ -71,15 +71,6 @@ export const musicSlice = createSlice({
     setRandomNum: (state, action) => {
       state.randomNum = action.payload || {min: 1, max: 1};
     },
-    resetMusicStore: state => {
-      state.playingMusic = {};
-      state.playList = [];
-      state.showMusicCtrl = false;
-      state.closeTime = 0;
-      state.isClosed = false;
-      state.randomNum = {min: 1, max: 1};
-      state.isRandomPlay = false;
-    },
   },
 });
 
@@ -94,7 +85,6 @@ export const {
   setIsClosed,
   setIsRandomPlay,
   setRandomNum,
-  resetMusicStore,
 } = musicSlice.actions;
 
 export default musicSlice.reducer;

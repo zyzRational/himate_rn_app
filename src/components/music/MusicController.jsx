@@ -96,7 +96,6 @@ const MusicCtrlProvider = props => {
           }
         } else {
           dispatch(setPlayingMusic({}));
-          MusicControl.stopControl();
         }
       });
     }
@@ -153,6 +152,7 @@ const MusicCtrlProvider = props => {
 
   // 重置音乐播放所有状态
   const restMusicStatus = async () => {
+    MusicControl.stopControl();
     setAudioPlayprogress({});
     setProgressNum(0);
     setAudioIsPlaying(false);
