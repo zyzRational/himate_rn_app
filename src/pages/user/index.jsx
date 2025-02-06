@@ -88,7 +88,7 @@ const User = ({navigation}) => {
     setShowProgress(true);
     const res = await DownloadFile(
       STATIC_URL + newAppInfo.app_fileName,
-      appName + newAppInfo.app_version + '.apk',
+      appName + '_' + newAppInfo.app_version + '.apk',
       progress => {
         const progressPercent = Math.round(
           (progress.bytesWritten / progress.contentLength) * 100,
@@ -284,7 +284,7 @@ const User = ({navigation}) => {
             </Card>
           </Dialog>
 
-          <Modal visible={avatarShow} transparent={true} >
+          <Modal visible={avatarShow} transparent={true}>
             <ImageViewer
               imageUrls={[{url: STATIC_URL + userInfo.user_avatar}]}
               onClick={() => {

@@ -29,7 +29,7 @@ const ChatHistory = ({navigation, route}) => {
 
   return (
     <View flexG paddingH-16 paddingT-16>
-      <Card>
+      <Card enableShadow={false}>
         <ListItem
           ItemName={'创建群聊'}
           IconName={'group'}
@@ -43,7 +43,7 @@ const ChatHistory = ({navigation, route}) => {
           }}
         />
       </Card>
-      <Card marginT-16>
+      <Card marginT-16 enableShadow={false}>
         <ListItem
           ItemName={'查找历史消息'}
           IconName={'search'}

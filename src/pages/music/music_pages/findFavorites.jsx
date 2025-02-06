@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
     width: '86%',
     overflow: 'hidden',
     backgroundColor: Colors.white,
-    borderRadius: 8,
+    borderRadius: 12,
     height: 42,
     flexDirection: 'row',
     paddingHorizontal: 12,

@@ -19,6 +19,7 @@ import {
   setIsMusicApp,
   setIsFastStatic,
 } from '../stores/store-slice/settingStore';
+import {resetMusicStore} from '../stores/store-slice/musicStore';
 import {checkPermissions} from '../stores/store-slice/permissionStore';
 import {initNotRemindSessionIds} from '../stores/store-slice/chatMsgStore';
 import {getUserdetail} from '../api/user';
@@ -63,6 +64,7 @@ const RootView = () => {
     dispatch(setIsMusicApp(isMusicApp));
     dispatch(setIsFastStatic(isFastStatic));
     dispatch(checkPermissions());
+    dispatch(resetMusicStore());
   };
 
   /* 是否登录 */
@@ -155,7 +157,7 @@ const RootView = () => {
       />
       {loading ? (
         <LoaderScreen
-          message={appDisplayName + ' 准备中...'}
+          message={appDisplayName + ' 初始化中...'}
           color={themeColor}
         />
       ) : (

@@ -583,7 +583,7 @@ const MusicCtrlProvider = props => {
                 <AntDesign name="close" color={Colors.white} size={24} />
               </TouchableOpacity>
               {playingMusic?.id ? (
-                <View>
+                <View marginL-12>
                   <Text white text70BO marginT-12>
                     当前播放
                   </Text>
