@@ -147,6 +147,8 @@ RELEASE_KEY_PASSWORD=
 
 ### 其它
 
-后端服务详见https://gitee.com/zyz1720/himate_nest_sever
+后端服务：https://gitee.com/zyz1720/himate_nest_sever
 
-后台管理详见https://gitee.com/zyz1720/himate_vue_backend
+后台管理：https://gitee.com/zyz1720/himate_vue_backend
+
+项目演示：https://www.bilibili.com/video/BV1gBcVeEErs
