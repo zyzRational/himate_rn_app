@@ -13,7 +13,7 @@ export const chatMsgSlice = createSlice({
     setChatMsg: (state, action) => {
       state.msgData = action.payload ?? {};
     },
-    setsocketState: (state, action) => {
+    setSocketState: (state, action) => {
       state.socketReady = action.payload ?? false;
     },
     setNowSessionId: (state, action) => {
@@ -42,7 +42,7 @@ export const chatMsgSlice = createSlice({
 
 export const {
   setChatMsg,
-  setsocketState,
+  setSocketState,
   setNowSessionId,
   setNotRemindSessionIds,
   initNotRemindSessionIds,

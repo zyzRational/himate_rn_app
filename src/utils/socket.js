@@ -1,7 +1,7 @@
 import React, {createContext, useContext, useState, useEffect} from 'react';
 import {io} from 'socket.io-client';
 import {useDispatch, useSelector} from 'react-redux';
-import {setsocketState} from '../stores/store-slice/chatMsgStore';
+import {setSocketState} from '../stores/store-slice/chatMsgStore';
 import {isEmptyObject} from './base';
 
 export const SocketContext = createContext();
@@ -31,7 +31,7 @@ const SocketProvider = props => {
       setSocket(Socket);
       clearInterval(timer);
       console.log('soket已连接', Socket.id);
-      dispatch(setsocketState(true));
+      dispatch(setSocketState(true));
       Socket.emit(
         'message',
         {
@@ -49,7 +49,7 @@ const SocketProvider = props => {
     /* 断线重连 */
     Socket?.on('connect_error', res => {
       console.log('Socket error', res);
-      dispatch(setsocketState(false));
+      dispatch(setSocketState(false));
       timer = setInterval(() => {
         Socket.connect();
       }, 5000);
@@ -58,9 +58,7 @@ const SocketProvider = props => {
 
   useEffect(() => {
     if (userToken && !isEmptyObject(baseConfig) && !socketReady) {
-      setTimeout(() => {
-        socketInit(baseConfig?.SOCKET_URL, userToken);
-      }, 2000);
+      socketInit(baseConfig?.SOCKET_URL, userToken);
     }
   }, [userToken, baseConfig]);
 

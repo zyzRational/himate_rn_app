@@ -435,7 +435,7 @@ const MusicList = props => {
                   onPress={() => {
                     OnPress(item);
                     dispatch(setPlayingMusic(item));
-                    dispatch(addPlayList([item]));
+                    dispatch(unshiftPlayList([item]));
                   }}>
                   <View row spread centerV>
                     <View width={'80%'}>
