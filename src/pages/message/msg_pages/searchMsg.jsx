@@ -197,7 +197,7 @@ const SearchMsg = ({navigation, route}) => {
   };
 
   return (
-    <>
+    <View>
       <View padding-12 flexS width={'100%'}>
         <TextField
           containerStyle={styles.input}
@@ -208,7 +208,7 @@ const SearchMsg = ({navigation, route}) => {
           }}
         />
       </View>
-      <View>
+      <View height={'92%'}>
         <FlatList
           data={msgList}
           renderItem={renderMsgItem}
@@ -222,7 +222,7 @@ const SearchMsg = ({navigation, route}) => {
           }
         />
       </View>
-    </>
+    </View>
   );
 };
 const styles = StyleSheet.create({

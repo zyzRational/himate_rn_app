@@ -2,7 +2,7 @@
 
 ### 简介
 
-使用react native 0.75.4 开发的一款轻量的聊天和音乐播放器软件。
+使用react native 0.75.5 开发的一款轻量的聊天和音乐播放器软件。
 
 如何使用react native：https://reactnative.dev/
 
