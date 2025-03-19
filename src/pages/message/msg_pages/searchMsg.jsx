@@ -1,5 +1,5 @@
 import React from 'react';
-import {FlatList, StyleSheet} from 'react-native';
+import { FlatList, StyleSheet } from 'react-native';
 import {
   View,
   Text,
@@ -9,16 +9,17 @@ import {
   TextField,
 } from 'react-native-ui-lib';
 import dayjs from 'dayjs';
-import {useRealm} from '@realm/react';
-import {showMediaType, getLocalUser} from '../../../utils/chatHandle';
-import {useSelector} from 'react-redux';
+import { useRealm } from '@realm/react';
+import { showMediaType, getLocalUser } from '../../../utils/chatHandle';
+import { useSelector } from 'react-redux';
+import { fullHeight, fullWidth } from '../../../styles';
 
-const SearchMsg = ({navigation, route}) => {
-  const {session_id} = route.params || {};
+const SearchMsg = ({ navigation, route }) => {
+  const { session_id } = route.params || {};
   const realm = useRealm();
 
   // baseConfig
-  const {STATIC_URL} = useSelector(state => state.baseConfigStore.baseConfig);
+  const { STATIC_URL } = useSelector(state => state.baseConfigStore.baseConfig);
 
   // 群聊列表
   const [msgList, setMsgList] = React.useState([]);
@@ -132,7 +133,7 @@ const SearchMsg = ({navigation, route}) => {
     }
   };
 
-  const renderMsgItem = ({item}) => {
+  const renderMsgItem = ({ item }) => {
     return (
       <TouchableOpacity
         key={item._id}
@@ -159,15 +160,15 @@ const SearchMsg = ({navigation, route}) => {
                 item.session_id,
               )?.avatar
                 ? STATIC_URL +
-                  matchAvatarAndRemark(
-                    matchInfoList,
-                    item.send_uid,
-                    item.session_id,
-                  )?.avatar
+                matchAvatarAndRemark(
+                  matchInfoList,
+                  item.send_uid,
+                  item.session_id,
+                )?.avatar
                 : STATIC_URL + 'default_empty.png',
             }}
           />
-          <View marginL-10 width={'84%'}>
+          <View marginL-10 width={fullWidth * 0.78}>
             <View flexS row spread>
               <Text text80BO grey30>
                 {setHighlightStyle(
@@ -208,7 +209,7 @@ const SearchMsg = ({navigation, route}) => {
           }}
         />
       </View>
-      <View height={'92%'}>
+      <View height={fullHeight * 0.9}>
         <FlatList
           data={msgList}
           renderItem={renderMsgItem}
@@ -219,6 +220,15 @@ const SearchMsg = ({navigation, route}) => {
                 没有搜索到相关聊天记录~
               </Text>
             </View>
+          }
+          ListFooterComponent={
+            msgList.length > 10 ? (
+              <View marginB-80 padding-12 center>
+                <Text text90L grey40>
+                  已经到底啦 ~
+                </Text>
+              </View>
+            ) : null
           }
         />
       </View>

@@ -82,6 +82,7 @@ import {
 import { cancelNotification } from '../../../utils/MsgNotification';
 import { createRandomSecretKey, encryptAES } from '../../../utils/cryptoHandle';
 import ImageViewer from 'react-native-image-zoom-viewer';
+import 'dayjs/locale/zh-cn';
 
 const audioRecorderPlayer = new AudioRecorderPlayer();
 let recordTimer = null;
@@ -639,7 +640,7 @@ const Chat = ({ navigation, route }) => {
           paddingLeft: 10,
           paddingVertical: 8,
         }}
-        accessoryStyle={{ height: 80, paddingLeft: 26 }}></InputToolbar>
+        accessoryStyle={{ height: 80, paddingLeft: 26 }} />
     );
   };
 
@@ -653,7 +654,7 @@ const Chat = ({ navigation, route }) => {
           borderRadius: 8,
           padding: 8,
           lineHeight: 22,
-        }}></Composer>
+        }} />
     );
   };
 
@@ -715,8 +716,8 @@ const Chat = ({ navigation, route }) => {
         wrapperStyle={{
           backgroundColor: Colors.white,
         }}
-        textStyle={{ color: Colors.grey2030 }}
-        activityIndicatorColor={Colors.Primary}></LoadEarlier>
+        textStyle={{ color: Colors.grey20 }}
+        activityIndicatorColor={Colors.Primary} />
     );
   };
 
@@ -725,8 +726,9 @@ const Chat = ({ navigation, route }) => {
     return (
       <Day
         {...props}
-        containerStyle={{ marginTop: 20, marginBottom: 20 }}
-        textStyle={{ color: Colors.grey40, fontWeight: 400 }}></Day>
+        containerStyle={{ marginTop: 20, marginBottom: 20, }}
+        wrapperStyle={{ backgroundColor: Colors.transparent }}
+        textStyle={{ color: Colors.grey40, fontWeight: 400 }} />
     );
   };
 
@@ -883,6 +885,13 @@ const Chat = ({ navigation, route }) => {
           padding-8
           margin-4
           style={styles.fileContainer}
+          onPress={() => {
+            if (fileMsg.text === 'pdf') {
+              navigation.navigate('PdfView', { url: fileMsg.filePath });
+            } else {
+              showToast('暂不支持该类型文件预览，请长按下载后查看');
+            }
+          }}
           onLongPress={() => {
             Vibration.vibrate(50);
             setIsInCameraRoll(false);
@@ -1488,6 +1497,14 @@ const Chat = ({ navigation, route }) => {
     }
   };
 
+  /* 格式化时间 */
+  const FormatCalendarObj = {
+    sameDay: '[今天] HH:mm',
+    lastDay: '[昨天] HH:mm',
+    lastWeek: '[上周] DDDD HH:mm',
+    sameElse: 'YYYY-MM-DD HH:mm',
+  };
+
   return (
     <>
       <GiftedChat
@@ -1497,8 +1514,11 @@ const Chat = ({ navigation, route }) => {
             ? '您已被禁言!'
             : '开始聊天吧~'
         }
-        dateFormat={'MM-DD HH:mm:ss'}
+        locale={'zh-cn'}
+        dateFormat={'MM/DD HH:mm'}
+        timeFormat={'HH:mm'}
         renderDay={renderDay}
+        dateFormatCalendar={FormatCalendarObj}
         messages={messages}
         text={msgText}
         onInputTextChanged={text => setMsgText(text)}

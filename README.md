@@ -145,6 +145,35 @@ RELEASE_KEY_PASSWORD=
 
 使用xcode 设备选择Any ios Device (arm64) 打开Product ---> Archive 进行构建，前提是你拥有Provisioning Profile描述文件。
 
+
+
+### 优化
+
+1，升级react-native-gifted-chat组件到2.6.5后，新增相对时间计算，但不太符合国内使用习惯可进行如下优化
+
+./node_modules/react-native-gifted-chat/lib/Constant.js
+
+```js
+10:export const DATE_FORMAT = 'MM/DD HH:mm';
+11:export const TIME_FORMAT = 'HH:mm';
+```
+
+./node_modules/react-native-gifted-chat/lib/Day/index.js
+
+```js
+19:const _date = dayjs(createdAt).locale(getLocale());
+        if (!now.isSame(date, 'year'))
+            return _date.format('YYYY MM/DD HH:mm');
+        if (now.diff(date, 'days') < 1)
+            return _date.calendar(now, {
+                sameDay: '[今天] HH:mm',
+                ...dateFormatCalendar,
+            });  
+        return _date.format(dateFormat);
+```
+
+
+
 ### 其它
 
 后端服务：https://gitee.com/zyz1720/himate_nest_sever

@@ -18,6 +18,7 @@ import Grouplist from '../../pages/group/groupList';
 import SearchMsg from '../../pages/message/msg_pages/searchMsg';
 import ChatMsg from '../../pages/user/user_pages/chatMsg';
 import DataManager from '../../pages/user/user_pages/dataManager';
+import BasePdfView from '../../pages/commom/basePdfView';
 
 const Stack = createStackNavigator();
 
@@ -172,6 +173,14 @@ function StackScreen() {
             }}
           />
         </Stack.Group>
+
+        <Stack.Screen
+          name="PdfView"
+          component={BasePdfView}
+          options={({route}) => ({
+            title: 'PDF预览',
+          })}
+        />
       </Stack.Group>
     </Stack.Navigator>
   );

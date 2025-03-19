@@ -1,13 +1,14 @@
 import RNFS from 'react-native-fs';
-import { CameraRoll } from '@react-native-camera-roll/camera-roll';
-import { displayName as appDisplayName } from '../../app.json';
-import { Platform } from 'react-native';
+import {CameraRoll} from '@react-native-camera-roll/camera-roll';
+import {displayName as appDisplayName} from '../../app.json';
+import {Platform} from 'react-native';
+import RNFetchBlob from 'rn-fetch-blob';
 
 /* 下载文件 */
 export const DownloadFile = async (
   fileUrl,
   fileName,
-  progressCallback = () => { },
+  progressCallback = () => {},
   isInCameraRoll = true,
 ) => {
   let path = RNFS.DownloadDirectoryPath + `/${appDisplayName}`;
@@ -59,6 +60,38 @@ export const DownloadFile = async (
         });
     });
   }
+};
+
+/* 下载文件 */
+export const DownloadFile1 = async (
+  fileUrl,
+  fileName,
+  progressCallback = () => {},
+  isInCameraRoll = true,
+) => {
+  const dirs = RNFetchBlob.fs.dirs;
+  console.log(dirs);
+
+  let path = RNFS.DownloadDirectoryPath + `/${appDisplayName}`;
+  if (Platform.OS === 'ios') {
+    path = RNFS.DocumentDirectoryPath;
+  }
+  RNFetchBlob.config({
+    addAndroidDownloads: {
+      useDownloadManager: true,
+      notification: true,
+      mime: 'application/octet-stream',
+      path: path,
+      description: 'File downloaded by download manager.',
+    },
+  })
+    .fetch('GET', fileUrl)
+    .progress(progressCallback)
+    .then(resp => {
+      // the path of downloaded file
+      resp.path();
+      console.log();
+    });
 };
 
 /* 写入文件 */
