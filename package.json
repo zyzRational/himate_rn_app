@@ -8,8 +8,8 @@
     "lint": "eslint .",
     "start": "react-native start",
     "start:clean": "react-native start --reset-cache",
-    "start:dev": "set RN_ENV=local && react-native start --experimental-debugger",
-    "start:prod": "set RN_ENV=prod && react-native start",
+    "start:dev": "set RN_ENV=local&& react-native start --experimental-debugger",
+    "start:prod": "set RN_ENV=prod&& react-native start",
     "test": "jest"
   },
   "dependencies": {
