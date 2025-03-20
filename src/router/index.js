@@ -28,7 +28,6 @@ import {setBaseConfig} from '../stores/store-slice/baseConfigStore';
 import {setErrorMsg} from '../stores/store-slice/errorMsgStore';
 import {getBaseConfig} from '../api/baseConfig';
 import {isEmptyObject} from '../utils/base';
-import 'react-native-gesture-handler';
 import 'react-native-get-random-values';
 
 const RootView = () => {

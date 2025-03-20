@@ -1,27 +1,29 @@
-import React, {useEffect, useState} from 'react';
-import {StyleSheet} from 'react-native';
-import {View, Card, Text, Colors, TextField, Avatar} from 'react-native-ui-lib';
-import {useToast} from '../../../components/commom/Toast';
-import {useSelector, useDispatch} from 'react-redux';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet } from 'react-native';
+import { View, Card, Text, Colors, TextField, Avatar, TouchableOpacity } from 'react-native-ui-lib';
+import { useToast } from '../../../components/commom/Toast';
+import { useSelector } from 'react-redux';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import ListItem from '../../../components/commom/ListItem';
-import {getUserdetail} from '../../../api/user';
-import {addmate, editmate, deletemate, getmateStatus} from '../../../api/mate';
+import { getUserdetail } from '../../../api/user';
+import { addmate, editmate, deletemate, getmateStatus } from '../../../api/mate';
+import { DownloadFile } from '../../../utils/handle/fileHandle';
 import BaseDialog from '../../../components/commom/BaseDialog';
+import ImgModal from '../../../components/commom/ImgModal';
 
-const Mateinfo = ({navigation, route}) => {
-  const {showToast} = useToast();
+const Mateinfo = ({ navigation, route }) => {
+  const { showToast } = useToast();
   const userInfo = useSelector(state => state.userStore.userInfo);
   // baseConfig
-  const {STATIC_URL} = useSelector(state => state.baseConfigStore.baseConfig);
-  const {uid} = route.params || {};
+  const { STATIC_URL } = useSelector(state => state.baseConfigStore.baseConfig);
+  const { uid } = route.params || {};
 
   const [ismate, setIsMate] = useState(false);
   /* 获取用户信息 */
   const [otherUserInfo, setOtherUserInfo] = useState({});
   const getOtherUserInfo = async userId => {
     try {
-      const res = await getUserdetail({id: userId});
+      const res = await getUserdetail({ id: userId });
       if (res.success) {
         setOtherUserInfo(res.data);
       }
@@ -120,6 +122,20 @@ const Mateinfo = ({navigation, route}) => {
     }
   };
 
+  /*   保存头像 */
+  const [avatarUri, setAvatarUri] = useState('');
+  const [avatarVisible, setAvatarVisible] = useState(false);
+  const saveAvatar = async (url, name) => {
+    setAvatarVisible(false);
+    showToast('已开始保存头像...', 'success');
+    const pathRes = await DownloadFile(url, name, () => { }, true);
+    if (pathRes) {
+      showToast('图片已保存到' + pathRes, 'success');
+    } else {
+      showToast('保存失败', 'error');
+    }
+  };
+
   useEffect(() => {
     if (uid) {
       getOtherUserInfo(uid);
@@ -133,14 +149,20 @@ const Mateinfo = ({navigation, route}) => {
     <View padding-16>
       <Card padding-16 enableShadow={false} flexS>
         <View flexS row>
-          <Avatar
-            size={80}
-            source={{
-              uri: otherUserInfo.user_avatar
-                ? STATIC_URL + otherUserInfo.user_avatar
-                : null,
-            }}
-          />
+          <TouchableOpacity
+            onPress={() => {
+              setAvatarUri(STATIC_URL + otherUserInfo.user_avatar);
+              setAvatarVisible(true);
+            }}>
+            <Avatar
+              size={80}
+              source={{
+                uri: otherUserInfo.user_avatar
+                  ? STATIC_URL + otherUserInfo.user_avatar
+                  : null,
+              }}
+            />
+          </TouchableOpacity>
           <View paddingH-16>
             {ismate ? (
               <Text text60 marginB-4>
@@ -154,7 +176,7 @@ const Mateinfo = ({navigation, route}) => {
               账号：{otherUserInfo.self_account}
             </Text>
             <View flexS row>
-              <View>{}</View>
+              <View>{ }</View>
               <View flexS row centerV padding-4 style={styles.tag}>
                 {otherUserInfo?.sex === 'woman' ? (
                   <FontAwesome name="venus" color={Colors.magenta} size={12} />
@@ -295,6 +317,17 @@ const Mateinfo = ({navigation, route}) => {
         Visible={deleteisVisible}
         SetVisible={setDeleteIsVisible}
         MainText={'您确定要删除这个好友吗？'}
+      />
+
+      {/* 图片预览弹窗 */}
+      <ImgModal
+        Uri={avatarUri}
+        Visible={avatarVisible}
+        OnClose={() => {
+          setAvatarVisible(false);
+        }}
+        IsSave={true}
+        OnSave={url => saveAvatar(url, otherUserInfo.user_avatar)}
       />
     </View>
   );

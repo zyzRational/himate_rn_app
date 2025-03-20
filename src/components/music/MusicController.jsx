@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {StyleSheet, ImageBackground, Modal, FlatList} from 'react-native';
+import { StyleSheet, ImageBackground, Modal, FlatList } from 'react-native';
 import {
   Image,
   View,
@@ -8,13 +8,13 @@ import {
   TouchableOpacity,
   Slider,
 } from 'react-native-ui-lib';
-import {useSelector, useDispatch} from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import {AnimatedCircularProgress} from 'react-native-circular-progress';
-import {fullHeight, statusBarHeight} from '../../styles';
+import { AnimatedCircularProgress } from 'react-native-circular-progress';
+import { fullHeight, statusBarHeight } from '../../styles';
 import AudioRecorderPlayer from 'react-native-audio-recorder-player';
-import MarqueeText from 'react-native-marquee';
+import { Marquee } from '@animatereactnative/marquee';
 import {
   formatMilliseconds,
   isEmptyObject,
@@ -27,23 +27,24 @@ import {
   setIsClosed,
   addPlayList,
 } from '../../stores/store-slice/musicStore';
-import {useToast} from '../commom/Toast';
-import {useRealm} from '@realm/react';
-import MusicControl, {Command} from 'react-native-music-control';
-import {getMusicList} from '../../api/music';
+import { useToast } from '../commom/Toast';
+import { useRealm } from '@realm/react';
+import MusicControl, { Command } from 'react-native-music-control';
+import { getMusicList } from '../../api/music';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 export const MusicCtrlContext = React.createContext();
 export const useMusicCtrl = () => React.useContext(MusicCtrlContext);
 const audioPlayer = new AudioRecorderPlayer();
 
 const MusicCtrlProvider = props => {
-  const {children} = props;
-  const {showToast} = useToast();
+  const { children } = props;
+  const { showToast } = useToast();
   const realm = useRealm();
   const dispatch = useDispatch();
   const userInfo = useSelector(state => state.userStore.userInfo);
   // baseConfig
-  const {STATIC_URL} = useSelector(state => state.baseConfigStore.baseConfig);
+  const { STATIC_URL } = useSelector(state => state.baseConfigStore.baseConfig);
   const showMusicCtrl = useSelector(state => state.musicStore.showMusicCtrl);
   const playList = useSelector(state => state.musicStore.playList);
   const playingMusic = useSelector(state => state.musicStore.playingMusic);
@@ -196,14 +197,14 @@ const MusicCtrlProvider = props => {
 
   /* 开启通知栏控件 */
   const startNotification = musicInfo => {
-    const {title, artist, album, duration} = musicInfo;
+    const { title, artist, album, duration } = musicInfo;
     MusicControl.enableControl('play', true);
     MusicControl.enableControl('pause', true);
     MusicControl.enableControl('stop', false);
     MusicControl.enableControl('nextTrack', true);
     MusicControl.enableControl('previousTrack', true);
     MusicControl.enableControl('seek', true);
-    MusicControl.enableControl('closeNotification', true, {when: 'never'});
+    MusicControl.enableControl('closeNotification', true, { when: 'never' });
     MusicControl.enableBackgroundMode(true);
     MusicControl.handleAudioInterruptions(true);
     MusicControl.setNowPlaying({
@@ -274,7 +275,7 @@ const MusicCtrlProvider = props => {
   const getRandMusic = async () => {
     const index = getRandomInt(randomNum.min, randomNum.max);
     try {
-      const res = await getMusicList({pageNum: index, pageSize: 1});
+      const res = await getMusicList({ pageNum: index, pageSize: 1 });
       if (res.success) {
         if (res.data.list.length > 0) {
           const music = res.data.list[0];
@@ -341,7 +342,7 @@ const MusicCtrlProvider = props => {
           <ImageBackground
             blurRadius={40}
             style={styles.ctrlBackImage}
-            source={{uri: STATIC_URL + userInfo?.user_avatar}}
+            source={{ uri: STATIC_URL + userInfo?.user_avatar }}
             resizeMode="cover">
             <View row centerV spread>
               <TouchableOpacity
@@ -360,22 +361,23 @@ const MusicCtrlProvider = props => {
                   lineCap="round">
                   {() => (
                     <Image
-                      source={{uri: STATIC_URL + 'default_music_cover.jpg'}}
+                      source={{ uri: STATIC_URL + 'default_music_cover.jpg' }}
                       style={styles.image}
                     />
                   )}
                 </AnimatedCircularProgress>
-                <View width={210} marginL-12>
-                  <MarqueeText
-                    speed={0.2}
-                    style={{color: Colors.white}}
-                    marqueeOnStart={false}
-                    loop={true}
-                    delay={1000}>
-                    {(playingMusic?.title ?? '还没有要播放的音乐') +
-                      ' - ' +
-                      (playingMusic?.artists?.join('/') || '未知歌手')}
-                  </MarqueeText>
+                <View width={210} marginL-12 centerH>
+                  <GestureHandlerRootView>
+                    <Marquee
+                      speed={0.5}
+                      spacing={10}
+                      style={styles.marquee}
+                    >
+                      <Text> {(playingMusic?.title ?? '还没有要播放的音乐') +
+                        ' - ' +
+                        (playingMusic?.artists?.join('/') || '未知歌手')}</Text>
+                    </Marquee>
+                  </GestureHandlerRootView >
                 </View>
               </TouchableOpacity>
               <View row centerV>
@@ -424,7 +426,7 @@ const MusicCtrlProvider = props => {
           <ImageBackground
             blurRadius={40}
             style={styles.backImage}
-            source={{uri: STATIC_URL + userInfo?.user_avatar}}
+            source={{ uri: STATIC_URL + userInfo?.user_avatar }}
             resizeMode="cover">
             <View padding-12>
               <TouchableOpacity onPress={() => setMusicModalVisible(false)}>
@@ -432,7 +434,7 @@ const MusicCtrlProvider = props => {
               </TouchableOpacity>
               <View row centerV marginT-12>
                 <Image
-                  source={{uri: STATIC_URL + 'default_music_cover.jpg'}}
+                  source={{ uri: STATIC_URL + 'default_music_cover.jpg' }}
                   style={styles.bigImage}
                 />
                 <View paddingH-16 flexS>
@@ -576,7 +578,7 @@ const MusicCtrlProvider = props => {
           <ImageBackground
             blurRadius={40}
             style={styles.listBackImage}
-            source={{uri: STATIC_URL + userInfo?.user_avatar}}
+            source={{ uri: STATIC_URL + userInfo?.user_avatar }}
             resizeMode="cover">
             <View padding-12>
               <TouchableOpacity onPress={() => setListModalVisible(false)}>
@@ -595,7 +597,7 @@ const MusicCtrlProvider = props => {
               <FlatList
                 data={playList}
                 keyExtractor={(item, index) => item + index}
-                renderItem={({item}) => (
+                renderItem={({ item }) => (
                   <View row centerV>
                     <View flexG marginB-6>
                       <TouchableOpacity
@@ -724,6 +726,13 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     borderColor: Colors.white,
     borderWidth: 1,
+  },
+  marquee: {
+    width: 200,
+    height: 20,
+    flex: 1,
+    overflow: 'hidden',
+    alignItems: 'center',
   },
 });
 

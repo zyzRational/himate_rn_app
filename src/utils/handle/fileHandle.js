@@ -67,35 +67,6 @@ export const DownloadFile = async (
   });
 };
 
-/* 下载android安装包 */
-export const downloadApk = async (url, fileName, Callback = () => {}) => {
-  const android = RNFetchBlob.android;
-  // 处理下载路径
-  const dirs = RNFetchBlob.fs.dirs;
-  let path = dirs.DownloadDir + `/${appDisplayName}/${fileName}`;
-  return new Promise(resolve => {
-    RNFetchBlob.config({
-      path: path,
-      fileCache: false,
-    })
-      .fetch('GET', url)
-      .progress((received, total) => {
-        Callback((received / total).toFixed(2) * 100);
-      })
-      .then(res => {
-        android.actionViewIntent(
-          res.path(),
-          'application/vnd.android.package-archive',
-        );
-        resolve(res.path());
-      })
-      .catch(error => {
-        console.log(error);
-        resolve(null);
-      });
-  });
-};
-
 /* 写入文件 */
 export const writeJSONFile = async (jsonData, fileName) => {
   // 将 JSON 数据转换为字符串

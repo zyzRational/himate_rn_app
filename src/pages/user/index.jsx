@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -11,27 +11,27 @@ import {
   Button,
   ProgressBar,
 } from 'react-native-ui-lib';
-import {StyleSheet, Modal, ActivityIndicator, Platform} from 'react-native';
-import {useSelector} from 'react-redux';
-import {useToast} from '../../components/commom/Toast';
+import { StyleSheet, ActivityIndicator, Platform } from 'react-native';
+import { useSelector } from 'react-redux';
+import { useToast } from '../../components/commom/Toast';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import ImageViewer from 'react-native-image-zoom-viewer';
-import {fullWidth} from '../../styles';
-import {DownloadFile, downloadApk} from '../../utils/handle/fileHandle';
+import { DownloadFile } from '../../utils/handle/fileHandle';
 import ListItem from '../../components/commom/ListItem';
-import {getAppPackageDetail} from '../../api/appPackage';
+import { getAppPackageDetail } from '../../api/appPackage';
 import {
   name as appName,
   displayName as appDisplayName,
 } from '../../../app.json';
 import DeviceInfo from 'react-native-device-info';
+import RNFetchBlob from 'rn-fetch-blob';
+import ImgModal from '../../components/commom/ImgModal';
 
-const User = ({navigation}) => {
-  const {showToast} = useToast();
+const User = ({ navigation }) => {
+  const { showToast } = useToast();
   const userInfo = useSelector(state => state.userStore.userInfo);
 
   // baseConfig
-  const {STATIC_URL} = useSelector(state => state.baseConfigStore.baseConfig);
+  const { STATIC_URL } = useSelector(state => state.baseConfigStore.baseConfig);
 
   // 预览头像
   const [avatarShow, setAvatarShow] = useState(false);
@@ -46,9 +46,10 @@ const User = ({navigation}) => {
   // 保存头像
   const saveAvatar = async (url, name) => {
     setAvatarShow(false);
-    const res = await DownloadFile(url, name, () => {}, true);
-    if (res.statusCode === 200) {
-      showToast('保存成功', 'success');
+    showToast('已开始保存头像...', 'success');
+    const pathRes = await DownloadFile(url, name, () => { }, true);
+    if (pathRes) {
+      showToast('图片已保存到' + pathRes, 'success');
     } else {
       showToast('保存失败', 'error');
     }
@@ -63,7 +64,7 @@ const User = ({navigation}) => {
   const checkUpdate = async () => {
     setUpdateLoading(true);
     try {
-      const res = await getAppPackageDetail({app_name: appName});
+      const res = await getAppPackageDetail({ app_name: appName });
       // console.log(res);
 
       if (res.code === 200) {
@@ -86,7 +87,8 @@ const User = ({navigation}) => {
   const [showProgress, setShowProgress] = useState(false);
   const downloadApp = async () => {
     setShowProgress(true);
-    const downloadRes = await downloadApk(
+    const android = RNFetchBlob.android;
+    const downloadRes = await DownloadFile(
       STATIC_URL + newAppInfo.app_fileName,
       appName + '_' + newAppInfo.app_version + '.apk',
       progress => {
@@ -94,11 +96,17 @@ const User = ({navigation}) => {
           setDownloadProgress(progress);
         }
       },
+      false,
+      false,
     );
     setDownloadProgress(0);
     setShowProgress(false);
     if (downloadRes) {
       showToast('安装包下载成功', 'success');
+      android.actionViewIntent(
+        downloadRes,
+        'application/vnd.android.package-archive',
+      );
     } else {
       showToast('安装包下载失败', 'error');
     }
@@ -126,7 +134,7 @@ const User = ({navigation}) => {
                 isShowAvatar();
               }}>
               <Image
-                source={{uri: STATIC_URL + userInfo.user_avatar}}
+                source={{ uri: STATIC_URL + userInfo.user_avatar }}
                 style={styles.image}
               />
             </TouchableOpacity>
@@ -286,25 +294,16 @@ const User = ({navigation}) => {
             </Card>
           </Dialog>
 
-          <Modal visible={avatarShow} transparent={true}>
-            <ImageViewer
-              imageUrls={[{url: STATIC_URL + userInfo.user_avatar}]}
-              onClick={() => {
-                setAvatarShow(false);
-              }}
-              menuContext={{saveToLocal: '保存到本地', cancel: '取消'}}
-              onSave={url => saveAvatar(url, userInfo.user_avatar)}
-              renderFooter={() => {
-                return (
-                  <View flex center row padding-16 style={{width: fullWidth}}>
-                    <Text center grey70 text90>
-                      长按保存图片，单击退出预览
-                    </Text>
-                  </View>
-                );
-              }}
-            />
-          </Modal>
+          {/* 图片预览弹窗 */}
+          <ImgModal
+            Uri={STATIC_URL + userInfo.user_avatar}
+            Visible={avatarShow}
+            OnClose={() => {
+              setAvatarShow(false);
+            }}
+            IsSave={true}
+            OnSave={url => saveAvatar(url, userInfo.user_avatar)}
+          />
         </View>
       ) : (
         <LoaderScreen
