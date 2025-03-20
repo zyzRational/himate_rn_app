@@ -1,7 +1,7 @@
 import notifee, {AndroidImportance} from '@notifee/react-native';
 import Sound from 'react-native-sound';
 
-import {showMediaType} from './chatHandle';
+import {showMediaType} from './handle/chatHandle';
 import {getStorage} from './Storage';
 import {name as appName} from '../../app.json';
 import {store} from '../stores';

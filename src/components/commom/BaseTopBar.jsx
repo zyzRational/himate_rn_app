@@ -38,9 +38,7 @@ const BaseTopBar = props => {
           );
         })}
       </View>
-      <Animated.View entering={FadeIn} exiting={FadeOut}>
-        {Routes[FocusIndex].screen}
-      </Animated.View>
+      <View>{Routes[FocusIndex].screen}</View>
     </View>
   );
 };

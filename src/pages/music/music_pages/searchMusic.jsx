@@ -8,19 +8,24 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 const SearchMusic = ({navigation}) => {
   /* 获取收藏夹列表 */
   const [keyword, setKeyword] = useState('');
-  const [pageNum, setPageNum] = useState(1);
+  const [pageNum, setPageNum] = useState(0);
   const [music, setMusic] = useState([]);
+  const pageSize = 20;
   const getAllMusicList = async () => {
     try {
       const res = await getMusicList({
-        pageSize: pageNum * 20,
+        pageNum,
+        pageSize,
         title: keyword,
         artist: keyword,
         album: keyword,
       });
       if (res.success) {
-        // console.log(res.data.list);
-        setMusic(res.data.list);
+        const {list} = res.data;
+        if (list.length < pageSize && pageNum !== 1) {
+          return;
+        }
+        setMusic(prev => [...prev, ...list]);
       }
     } catch (error) {
       console.log(error);
@@ -28,7 +33,9 @@ const SearchMusic = ({navigation}) => {
   };
 
   useEffect(() => {
-    getAllMusicList();
+    if (pageNum) {
+      getAllMusicList();
+    }
   }, [pageNum]);
 
   return (

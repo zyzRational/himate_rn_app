@@ -21,7 +21,7 @@ import {
   requestFolderPermission,
 } from '../../../stores/store-slice/permissionStore';
 import ImagePicker from 'react-native-image-crop-picker';
-import { UploadFile } from '../../../api/upload';
+import { UploadFile } from '../../../utils/handle/fileHandle';
 import { getfileFormdata } from '../../../utils/base';
 
 const EditFavorites = ({ navigation, route }) => {

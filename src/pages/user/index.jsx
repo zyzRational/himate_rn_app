@@ -11,13 +11,13 @@ import {
   Button,
   ProgressBar,
 } from 'react-native-ui-lib';
-import {StyleSheet, Modal, ActivityIndicator} from 'react-native';
+import {StyleSheet, Modal, ActivityIndicator, Platform} from 'react-native';
 import {useSelector} from 'react-redux';
 import {useToast} from '../../components/commom/Toast';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import ImageViewer from 'react-native-image-zoom-viewer';
 import {fullWidth} from '../../styles';
-import {DownloadFile} from '../../utils/Download';
+import {DownloadFile, downloadApk} from '../../utils/handle/fileHandle';
 import ListItem from '../../components/commom/ListItem';
 import {getAppPackageDetail} from '../../api/appPackage';
 import {
@@ -46,7 +46,7 @@ const User = ({navigation}) => {
   // 保存头像
   const saveAvatar = async (url, name) => {
     setAvatarShow(false);
-    const res = await DownloadFile(url, name);
+    const res = await DownloadFile(url, name, () => {}, true);
     if (res.statusCode === 200) {
       showToast('保存成功', 'success');
     } else {
@@ -86,20 +86,18 @@ const User = ({navigation}) => {
   const [showProgress, setShowProgress] = useState(false);
   const downloadApp = async () => {
     setShowProgress(true);
-    const res = await DownloadFile(
+    const downloadRes = await downloadApk(
       STATIC_URL + newAppInfo.app_fileName,
       appName + '_' + newAppInfo.app_version + '.apk',
       progress => {
-        const progressPercent = Math.round(
-          (progress.bytesWritten / progress.contentLength) * 100,
-        );
-        setDownloadProgress(progressPercent);
+        if (progress) {
+          setDownloadProgress(progress);
+        }
       },
-      false,
     );
     setDownloadProgress(0);
     setShowProgress(false);
-    if (res.statusCode === 200) {
+    if (downloadRes) {
       showToast('安装包下载成功', 'success');
     } else {
       showToast('安装包下载失败', 'error');
@@ -218,6 +216,10 @@ const User = ({navigation}) => {
               IconColor={Colors.violet40}
               RightText={versionName}
               Fun={() => {
+                if (Platform.OS === 'ios') {
+                  showToast('暂不支持ios版本', 'warning');
+                  return;
+                }
                 setShowAppUpate(true);
                 checkUpdate();
               }}
@@ -274,7 +276,7 @@ const User = ({navigation}) => {
               )}
               {showProgress ? (
                 <View marginT-16>
-                  <Text marginB-16>下载中...</Text>
+                  <Text marginB-16>安装包下载中...{downloadProgress}%</Text>
                   <ProgressBar
                     progress={downloadProgress}
                     progressColor={Colors.Primary}

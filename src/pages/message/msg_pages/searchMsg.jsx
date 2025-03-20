@@ -10,7 +10,7 @@ import {
 } from 'react-native-ui-lib';
 import dayjs from 'dayjs';
 import { useRealm } from '@realm/react';
-import { showMediaType, getLocalUser } from '../../../utils/chatHandle';
+import { showMediaType, getLocalUser } from '../../../utils/handle/chatHandle';
 import { useSelector } from 'react-redux';
 import { fullHeight, fullWidth } from '../../../styles';
 

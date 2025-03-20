@@ -31,6 +31,7 @@ const FavoritesList = props => {
         numColumns={2}
         containerWidth={fullWidth - 24}
         keyExtractor={(item, index) => item + index}
+        onEndReachedThreshold={0.6}
         onEndReached={() => {
           OnEndReached();
         }}

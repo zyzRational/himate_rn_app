@@ -1,6 +1,6 @@
-import {deepClone} from './base';
-import {getStorage} from './Storage';
-import {store} from '../stores/index';
+import {deepClone} from '../base';
+import {getStorage} from '../Storage';
+import {store} from '../../stores/index';
 import {getTrueSecretKey, decryptAES} from './cryptoHandle';
 
 const secretStr = store.getState().baseConfigStore.secretStr;

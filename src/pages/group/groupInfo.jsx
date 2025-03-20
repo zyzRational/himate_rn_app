@@ -18,7 +18,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import {useToast} from '../../components/commom/Toast';
 import {getGroupDetail, editGroup, deleteGroup} from '../../api/group';
 import {editGroupMember, deleteGroupMember} from '../../api/groupMember';
-import {UploadFile} from '../../api/upload';
+import {UploadFile} from '../../utils/handle/fileHandle';
 import {useSelector, useDispatch} from 'react-redux';
 import ImagePicker from 'react-native-image-crop-picker';
 import BaseDialog from '../../components/commom/BaseDialog';

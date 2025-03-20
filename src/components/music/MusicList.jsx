@@ -30,7 +30,7 @@ import {
   getFavoritesDetail,
   getFavoritesList,
 } from '../../api/music';
-import {DownloadFile} from '../../utils/Download';
+import {DownloadFile} from '../../utils/handle/fileHandle';
 
 const MusicList = props => {
   const {
@@ -292,25 +292,23 @@ const MusicList = props => {
     for (let i = 0; i < selectedFiles.length; i++) {
       const file = selectedFiles[i];
       setNowFileIndex(i + 1);
-      const res = await DownloadFile(
+      const savePath = await DownloadFile(
         STATIC_URL + file.file_name,
         file.file_name,
         progress => {
-          const progressPercent = Math.round(
-            (progress.bytesWritten / progress.contentLength) * 100,
-          );
-          setDownloadProgress(progressPercent);
+          if (progress) {
+            setDownloadProgress(progress);
+          }
         },
-        false,
       );
       setDownloadProgress(0);
-      if (res.statusCode === 200) {
+      if (savePath) {
         // showToast('保存成功', 'success');
       } else {
         showToast(`第${i + 1}首歌曲下载失败`, 'error');
       }
     }
-    showToast('歌曲下载成功', 'success');
+    showToast('歌曲下载完成', 'success');
     setShowDialog(false);
     setFileNum(1);
     setNowFileIndex(1);
@@ -390,6 +388,7 @@ const MusicList = props => {
           onEndReached={() => {
             OnEndReached();
           }}
+          onEndReachedThreshold={0.6}
           renderItem={({item}) => (
             <View row centerV>
               {isMultiSelect ? (
@@ -667,13 +666,15 @@ const MusicList = props => {
               <Text text70 blue30 marginB-16>
                 {fileNum}
               </Text>
-              个文件，正在下载第{nowFileIndex}
-              个文件...{downloadProgress}%
+              首歌曲，正在下载第{nowFileIndex}
+              首歌曲...
             </Text>
-            <ProgressBar
-              progress={downloadProgress}
-              progressColor={Colors.Primary}
-            />
+            {downloadProgress ? (
+              <ProgressBar
+                progress={downloadProgress}
+                progressColor={Colors.Primary}
+              />
+            ) : null}
           </View>
         </Card>
       </Dialog>

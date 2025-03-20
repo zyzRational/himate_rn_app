@@ -20,12 +20,12 @@ import {
   decryptMsg,
   formatMsg,
   showMediaType,
-} from '../../utils/chatHandle';
+} from '../../utils/handle/chatHandle';
 import {
   onDisplayRealMsg,
   cancelNotification,
   playSystemSound,
-} from '../../utils/MsgNotification';
+} from '../../utils/notification';
 import dayjs from 'dayjs';
 import {
   setChatMsg,

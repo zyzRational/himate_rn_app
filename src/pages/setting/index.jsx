@@ -24,7 +24,7 @@ import {
 import BaseColorPicker from '../../components/setting/BaseColoerPciker';
 import BaseSheet from '../../components/commom/BaseSheet';
 import {addStorage} from '../../utils/Storage';
-import {playSystemSound} from '../../utils/MsgNotification';
+import {playSystemSound} from '../../utils/notification';
 import {displayName as appDisplayName} from '../../../app.json';
 import {setBaseConfig} from '../../stores/store-slice/baseConfigStore';
 import {getBaseConfig} from '../../api/baseConfig';

@@ -1,6 +1,6 @@
 import {createSlice} from '@reduxjs/toolkit';
 import {getBaseConfig} from '../../api/baseConfig';
-import {generateSecretKey} from '../../utils/cryptoHandle';
+import {generateSecretKey} from '../../utils/handle/cryptoHandle';
 
 export const baseConfigSlice = createSlice({
   name: 'baseConfigStore',

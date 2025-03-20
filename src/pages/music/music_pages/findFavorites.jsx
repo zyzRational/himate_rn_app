@@ -7,18 +7,25 @@ import FavoritesList from '../../../components/music/FavoritesList';
 const FindFavorites = ({navigation}) => {
   /* 获取收藏夹列表 */
   const [keyword, setKeyword] = useState('');
-  const [pageNum, setPageNum] = useState(1);
+  const [pageNum, setPageNum] = useState(0);
   const [favoritesList, setFavoritesList] = useState([]);
+  const pageSize = 20;
   const getAllFavoritesList = async () => {
     try {
       const res = await getFavoritesList({
-        pageSize: pageNum * 20,
+        pageNum,
+        pageSize,
         is_public: 1,
         favorites_name: keyword,
       });
       if (res.success) {
-        console.log(res.data.list);
-        setFavoritesList(res.data.list);
+        console.log(res.data);
+
+        const {list} = res.data;
+        if (list.length < pageSize && pageNum !== 1) {
+          return;
+        }
+        setFavoritesList(prev => [...prev, ...list]);
       }
     } catch (error) {
       console.log(error);
@@ -26,7 +33,9 @@ const FindFavorites = ({navigation}) => {
   };
 
   useEffect(() => {
-    getAllFavoritesList();
+    if (pageNum) {
+      getAllFavoritesList();
+    }
   }, [pageNum]);
 
   return (

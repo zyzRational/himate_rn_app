@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -8,21 +8,22 @@ import {
   Button,
   LoaderScreen,
 } from 'react-native-ui-lib';
-import { FlatList, StyleSheet, Platform, Modal } from 'react-native';
-import { useToast } from '../../../components/commom/Toast';
-import RNFS from 'react-native-fs';
+import {FlatList, StyleSheet, Platform, Modal} from 'react-native';
+import {useToast} from '../../../components/commom/Toast';
+import RNFetchBlob from 'rn-fetch-blob';
 import MusicList from '../../../components/music/MusicList';
-import { useRealm } from '@realm/react';
-import { v4 as uuid } from 'uuid';
-import { fullHeight, statusBarHeight } from '../../../styles';
+import {useRealm} from '@realm/react';
+import {v4 as uuid} from 'uuid';
+import {fullHeight, statusBarHeight} from '../../../styles';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import BaseDialog from '../../../components/commom/BaseDialog';
-import { requestFolderPermission } from '../../../stores/store-slice/permissionStore';
-import { useSelector, useDispatch } from 'react-redux';
+import {requestFolderPermission} from '../../../stores/store-slice/permissionStore';
+import {useSelector, useDispatch} from 'react-redux';
+import {audioExtNames} from '../../../constants/baseConst';
 
-const LocalMusic = ({ navigation }) => {
-  const { showToast } = useToast();
+const LocalMusic = ({navigation}) => {
+  const {showToast} = useToast();
   const realm = useRealm();
   const dispatch = useDispatch();
 
@@ -35,21 +36,23 @@ const LocalMusic = ({ navigation }) => {
     setLoading(true);
     const scanDirectory = async Path => {
       try {
-        const files = await RNFS.readDir(Path);
+        const files = await RNFetchBlob.fs.ls(Path);
         if (files.length === 0) {
           return;
         }
         const audioFileList = [];
         for (let i = 0; i < files.length; i++) {
           const file = files[i];
-          if (file.isFile() && isAudioFile(file.name)) {
+          const file_path = Path + '/' + file;
+          const isDir = await isDirectory(file_path);
+          if (!isDir && isAudioFile(file)) {
             audioFileList.push({
               id: uuid(),
-              title: file.name,
-              file_name: `${Path}/${file.name}`,
+              title: file.split('.').shift(),
+              file_name: `${Path}/${file}`,
             });
-          } else if (file.isDirectory() && !file.name.startsWith('.')) {
-            await scanDirectory(file.path);
+          } else if (isDir && !file.startsWith('.')) {
+            await scanDirectory(file_path);
           }
         }
         setAudioFiles(prevItems => {
@@ -66,21 +69,12 @@ const LocalMusic = ({ navigation }) => {
           });
           return [...newItems, ...prevItems];
         });
-      } catch (err) {
-        console.error(err.message, err.code);
+      } catch (error) {
+        console.error(error);
       }
     };
     const isAudioFile = fileName => {
-      const audioExtensions = [
-        '.mp3',
-        '.wav',
-        '.aac',
-        '.m4a',
-        '.flac',
-        '.ogg',
-        '.wma',
-      ]; // Add more extensions as needed
-      return audioExtensions.some(ext => fileName.toLowerCase().endsWith(ext));
+      return audioExtNames.some(ext => fileName.toLowerCase().endsWith(ext));
     };
     dirPathList.forEach(dirPath => {
       scanDirectory(dirPath).finally(() => {
@@ -93,30 +87,47 @@ const LocalMusic = ({ navigation }) => {
   // 扫描目录
   const [nowDirPath, setNowDirPath] = useState('');
   const scanDir = path => {
-    let directory = path || RNFS.ExternalStorageDirectoryPath;
+    let directory = path || RNFetchBlob.fs.dirs.SDCardDir;
     if (Platform.OS === 'ios') {
-      directory = path || RNFS.LibraryDirectoryPath
+      directory = path || RNFetchBlob.fs.dirs.DocumentDir;
     }
     const scanDirectory = async dirPath => {
       try {
-        const files = await RNFS.readDir(dirPath);
+        const files = await RNFetchBlob.fs.ls(dirPath);
         const dirList = [];
-        for (let i = 0; i < files.length; i++) {
-          const file = files[i];
-          if (file.isDirectory() && !file.name.startsWith('.')) {
-            dirList.push({
-              name: file.name,
-              path: file.path,
-            });
+        if (files) {
+          for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const file_path = directory + '/' + file;
+            const isDir = await isDirectory(file_path);
+            if (isDir && !file.startsWith('.')) {
+              dirList.push({
+                name: file,
+                path: file_path,
+              });
+            }
           }
         }
+
         setDirList(dirList);
-      } catch (err) {
-        console.error(err.message, err.code);
+      } catch (error) {
+        showToast('没有权限访问该目录', 'error', true);
+        console.log(error);
       }
     };
     setNowDirPath(directory);
     scanDirectory(directory);
+  };
+
+  // 判断是否是目录
+  const isDirectory = async path => {
+    try {
+      const isDir = await RNFetchBlob.fs.isDir(path);
+      return isDir;
+    } catch (error) {
+      console.log(error);
+      throw new Error(error);
+    }
   };
 
   // 选择目录
@@ -225,7 +236,7 @@ const LocalMusic = ({ navigation }) => {
                   onPress={() => {
                     if (
                       nowDirPath === '' ||
-                      nowDirPath === RNFS.ExternalStorageDirectoryPath
+                      nowDirPath === RNFetchBlob.fs.dirs.SDCardDir
                     ) {
                       showToast('已经是根目录了', 'warning', true);
                       return;
@@ -258,7 +269,7 @@ const LocalMusic = ({ navigation }) => {
                   </Text>
                 </View>
               }
-              renderItem={({ item, index }) => (
+              renderItem={({item, index}) => (
                 <View marginT-8 row centerV paddingH-12>
                   <Checkbox
                     marginR-12

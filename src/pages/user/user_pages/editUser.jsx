@@ -16,7 +16,7 @@ import {
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useToast } from '../../../components/commom/Toast';
 import { getUserdetail, EditUserInfo } from '../../../api/user';
-import { UploadFile } from '../../../api/upload';
+import { UploadFile } from '../../../utils/handle/fileHandle';
 import { useDispatch, useSelector } from 'react-redux';
 import { setUserInfo as setUserData } from '../../../stores/store-slice/userStore';
 import ImagePicker from 'react-native-image-crop-picker';

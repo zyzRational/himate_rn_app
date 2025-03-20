@@ -1,6 +1,6 @@
 import QuickCrypto from 'react-native-quick-crypto';
 import {Buffer} from 'buffer';
-import {createRandomLetters} from './base';
+import {createRandomLetters} from '../base';
 
 // AES加密函数
 export const encryptAES = (text, secretKey) => {

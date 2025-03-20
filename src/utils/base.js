@@ -1,7 +1,7 @@
 import {pinyin} from 'pinyin-pro';
 import RNFetchBlob from 'rn-fetch-blob';
-import {Colors} from 'react-native-ui-lib';
 import {Platform} from 'react-native';
+import {getFileExt} from './handle/fileHandle';
 
 /* 判断是否为空对象 */
 export const isEmptyObject = obj => {
@@ -11,10 +11,7 @@ export const isEmptyObject = obj => {
 // 验证邮箱
 export const ValidateMail = mail => {
   const pattern = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
-  if (pattern.test(mail)) {
-    return true;
-  }
-  return false;
+  return pattern.test(mail);
 };
 
 // 获取首字母
@@ -93,16 +90,6 @@ export const deepClone = (obj, hash = new WeakMap()) => {
 /* 反转字符串 */
 export const reverseString = str => {
   return [...str].reverse().join('');
-};
-
-/* 获取文件扩展名 */
-export const getFileExt = url => {
-  const lastIndex = url.lastIndexOf('.');
-  let ext = '';
-  if (lastIndex > -1 && lastIndex < url.length - 1) {
-    ext = url.slice(lastIndex + 1);
-  }
-  return ext;
 };
 
 /*  获取文件来自react-native-image-crop-picker */
@@ -250,66 +237,4 @@ export const formatMilliseconds = ms => {
 
   // 返回格式化的时间字符串
   return `${formattedMinutes}:${formattedSeconds}`;
-};
-
-/* 获取文件名 */
-export const getFileName = url => {
-  // 使用最后一个'/'作为分隔符来分割字符串
-  try {
-    const parts = url?.split('/');
-    // parts数组的最后一个元素是文件名
-    const fileName = parts[parts.length - 1];
-    return fileName;
-  } catch (error) {
-    console.log(error);
-    return '';
-  }
-};
-
-/* 获取文件图标颜色 */
-export const getFileColor = ext => {
-  const textTypes = [
-    'txt',
-    'md',
-    'text',
-    'js',
-    'json',
-    'xml',
-    'html',
-    'css',
-    'java',
-    'c',
-    'cpp',
-    'h',
-    'py',
-    'php',
-    'rb',
-    'go',
-    'bash',
-    'zsh',
-    'yaml',
-    'yml',
-  ];
-  const docTypes = ['doc', 'docx'];
-  const excelTypes = ['xls', 'xlsx'];
-  const pptTypes = ['ppt', 'pptx'];
-  const pdfTypes = ['pdf'];
-
-  let color = Colors.yellow40;
-  if (textTypes.includes(ext)) {
-    color = Colors.grey40;
-  }
-  if (docTypes.includes(ext)) {
-    color = Colors.blue40;
-  }
-  if (excelTypes.includes(ext)) {
-    color = Colors.green40;
-  }
-  if (pptTypes.includes(ext)) {
-    color = Colors.orange40;
-  }
-  if (pdfTypes.includes(ext)) {
-    color = Colors.red40;
-  }
-  return color;
 };

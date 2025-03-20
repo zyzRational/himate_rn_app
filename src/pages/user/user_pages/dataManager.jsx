@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   FlatList,
   StyleSheet,
@@ -20,7 +20,7 @@ import {
   Badge,
   ProgressBar,
 } from 'react-native-ui-lib';
-import { useSelector, useDispatch } from 'react-redux';
+import {useSelector, useDispatch} from 'react-redux';
 import {
   getUserUploadFiles,
   getUserMsgList,
@@ -28,38 +28,47 @@ import {
   delUserUploadFiles,
 } from '../../../api/dataManager';
 import dayjs from 'dayjs';
-import { getFileColor, getFileExt, getFileName } from '../../../utils/base';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import BaseSheet from '../../../components/commom/BaseSheet';
-import { useToast } from '../../../components/commom/Toast';
-import { DownloadFile } from '../../../utils/Download';
-import { requestFolderPermission } from '../../../stores/store-slice/permissionStore';
+import {useToast} from '../../../components/commom/Toast';
+import {DownloadFile} from '../../../utils/handle/fileHandle';
+import {requestFolderPermission} from '../../../stores/store-slice/permissionStore';
 import DocumentPicker from 'react-native-document-picker';
-import { getDocumentfileFormdata } from '../../../utils/base';
-import { UploadFile } from '../../../api/upload';
-import { useRealm } from '@realm/react';
-import { setLocalMsg, getLocalUser, formatMsg } from '../../../utils/chatHandle';
+import {getDocumentfileFormdata} from '../../../utils/base';
+import {
+  UploadFile,
+  getFileColor,
+  getFileExt,
+  getFileName,
+} from '../../../utils/handle/fileHandle';
+import {useRealm} from '@realm/react';
+import {
+  setLocalMsg,
+  getLocalUser,
+  formatMsg,
+} from '../../../utils/handle/chatHandle';
 import BaseDialog from '../../../components/commom/BaseDialog';
-import { getStorage } from '../../../utils/Storage';
-import VideoPlayer from 'react-native-video-controls';
+import {getStorage} from '../../../utils/Storage';
+// import VideoPlayer from 'react-native-video-controls';
 import ImageViewer from 'react-native-image-zoom-viewer';
-import { fullWidth } from '../../../styles';
+import {fullWidth} from '../../../styles';
 import Clipboard from '@react-native-clipboard/clipboard';
 import BaseTopBar from '../../../components/commom/BaseTopBar';
+import VideoPlayer from 'react-native-video-player';
 
-const DataManager = ({ navigation, route }) => {
+const DataManager = ({navigation, route}) => {
   const userInfo = useSelector(state => state.userStore.userInfo);
   const accessFolder = useSelector(state => state.permissionStore.accessFolder);
 
   // baseConfig
-  const { STATIC_URL, THUMBNAIL_URL } = useSelector(
+  const {STATIC_URL, THUMBNAIL_URL} = useSelector(
     state => state.baseConfigStore.baseConfig,
   );
 
   const dispatch = useDispatch();
   const realm = useRealm();
 
-  const { showToast } = useToast();
+  const {showToast} = useToast();
 
   const [loading, setLoading] = useState(false);
   const getFilesList = async (uid, type) => {
@@ -142,9 +151,9 @@ const DataManager = ({ navigation, route }) => {
     } else if (file.file_type === 'video' || file.file_type === 'audio') {
       setModalVisible(true);
     } else if (file.file_type === 'other' && file.file_name.endsWith('.pdf')) {
-      navigation.navigate('PdfView', { url });
+      navigation.navigate('PdfView', {url});
     } else {
-      showToast('暂不支持预览，请下载后查看');
+      showToast('暂不支持预览，请下载后查看', 'warning');
     }
   };
 
@@ -311,8 +320,8 @@ const DataManager = ({ navigation, route }) => {
                   item.chat_type === 'group'
                     ? '群聊'
                     : item.chat_type === 'personal'
-                      ? '私聊'
-                      : '未知'
+                    ? '私聊'
+                    : '未知'
                 }
               />
               <View marginL-6>
@@ -322,12 +331,12 @@ const DataManager = ({ navigation, route }) => {
                     item.msg_type === 'text'
                       ? '文字'
                       : item.msg_type === 'image'
-                        ? '图片'
-                        : item.msg_type === 'audio'
-                          ? '语音'
-                          : item.msg_type === 'video'
-                            ? '视频'
-                            : '未知'
+                      ? '图片'
+                      : item.msg_type === 'audio'
+                      ? '语音'
+                      : item.msg_type === 'video'
+                      ? '视频'
+                      : '未知'
                   }
                 />
               </View>
@@ -338,8 +347,8 @@ const DataManager = ({ navigation, route }) => {
                     item.msg_status === 'unread'
                       ? '未读'
                       : item.msg_status === 'read'
-                        ? '已读'
-                        : '未知'
+                      ? '已读'
+                      : '未知'
                   }
                 />
               </View>
@@ -375,7 +384,7 @@ const DataManager = ({ navigation, route }) => {
           </Text>
         </View>
       }
-      renderItem={({ item, index }) => renderItem(item, index)}
+      renderItem={({item, index}) => renderItem(item, index)}
       ListFooterComponent={<View marginB-140 />}
     />
   );
@@ -404,7 +413,7 @@ const DataManager = ({ navigation, route }) => {
             </Text>
           </View>
         }
-        renderItem={({ item, index }) => renderItem(item, index)}
+        renderItem={({item, index}) => renderItem(item, index)}
       />
       {groupAvaterFilesList.length > 0 ? (
         <View padding-6>
@@ -417,7 +426,7 @@ const DataManager = ({ navigation, route }) => {
           setAvatarPageNum(prev => prev + 1);
         }}
         keyExtractor={(item, index) => item + index}
-        renderItem={({ item, index }) => renderItem(item, index)}
+        renderItem={({item, index}) => renderItem(item, index)}
       />
     </View>
   );
@@ -456,7 +465,7 @@ const DataManager = ({ navigation, route }) => {
           </Text>
         </View>
       }
-      renderItem={({ item, index }) => renderMsgItem(item, index)}
+      renderItem={({item, index}) => renderMsgItem(item, index)}
       ListFooterComponent={<View marginB-140 />}
     />
   );
@@ -478,7 +487,7 @@ const DataManager = ({ navigation, route }) => {
           </Text>
         </View>
       }
-      renderItem={({ item, index }) => renderItem(item, index)}
+      renderItem={({item, index}) => renderItem(item, index)}
       ListFooterComponent={<View marginB-140 />}
     />
   );
@@ -523,25 +532,23 @@ const DataManager = ({ navigation, route }) => {
     setIsDownload(true);
     setShowDialog(true);
     setShowActionSheet(false);
-    const res = await DownloadFile(
+    const savepath = await DownloadFile(
       savePath,
       getFileName(savePath),
       progress => {
-        const progressPercent = Math.round(
-          (progress.bytesWritten / progress.contentLength) * 100,
-        );
-        setProgress(progressPercent);
+        if (progress) {
+          setProgress(progress);
+        }
       },
       isInCameraRoll,
     );
     setProgress(0);
-    if (res.statusCode === 200) {
-      showToast('保存成功', 'success');
-      setShowDialog(false);
+    if (savepath) {
+      showToast('文件已保存到' + savepath, 'success');
     } else {
       showToast('保存失败', 'error');
-      setShowDialog(false);
     }
+    setShowDialog(false);
   };
 
   /*  保存多个文件 */
@@ -583,25 +590,24 @@ const DataManager = ({ navigation, route }) => {
     for (let i = 0; i < selectedFiles.length; i++) {
       const file = selectedFiles[i];
       setNowFileIndex(i + 1);
-      const res = await DownloadFile(
+      const savePath = await DownloadFile(
         STATIC_URL + file.file_name,
         file.file_name,
         progress => {
-          const progressPercent = Math.round(
-            (progress.bytesWritten / progress.contentLength) * 100,
-          );
-          setProgress(progressPercent);
+          if (progress) {
+            setProgress(progress);
+          }
         },
         file.file_type === 'image' || file.file_type === 'video',
       );
       setProgress(0);
-      if (res.statusCode === 200) {
+      if (savePath) {
         // showToast('保存成功', 'success');
       } else {
-        showToast(`第${i + 1}个文件保存失败`, 'error');
+        showToast(`第${i + 1}个文件下载失败`, 'error');
       }
     }
-    showToast('文件保存成功', 'success');
+    showToast('文件下载完成', 'success');
     setShowDialog(false);
     setFileNum(1);
     setSelectedFileItem([]);
@@ -742,10 +748,10 @@ const DataManager = ({ navigation, route }) => {
 
   /* 顶部导航栏 */
   const routes = [
-    { key: 'chat', title: '聊天文件', screen: ChatFilesScreen },
-    { key: 'avatar', title: '头像文件', screen: AvaterFilesScreen },
-    { key: 'upload', title: '文件存储', screen: UploadFilesScreen },
-    { key: 'msg', title: '聊天消息', screen: MsgFilesScreen },
+    {key: 'chat', title: '聊天文件', screen: ChatFilesScreen},
+    {key: 'avatar', title: '头像文件', screen: AvaterFilesScreen},
+    {key: 'upload', title: '文件存储', screen: UploadFilesScreen},
+    {key: 'msg', title: '聊天消息', screen: MsgFilesScreen},
   ];
 
   return (
@@ -951,9 +957,11 @@ const DataManager = ({ navigation, route }) => {
                 {fileNum}
               </Text>
               个文件，正在{isDownload ? '保存' : '上传'}第{nowFileIndex}
-              个文件...{progress}%
+              个文件...
             </Text>
-            <ProgressBar progress={progress} progressColor={Colors.Primary} />
+            {progress ? (
+              <ProgressBar progress={progress} progressColor={Colors.Primary} />
+            ) : null}
           </View>
         </Card>
       </Dialog>
@@ -979,24 +987,35 @@ const DataManager = ({ navigation, route }) => {
           setFullscreenUri(null);
           setModalVisible(!modalVisible);
         }}>
-        <VideoPlayer
-          source={{ uri: fullscreenUri }}
+        {/* <VideoPlayer
+          source={{uri: fullscreenUri}}
           toggleResizeModeOnFullscreen={false}
           disableFullscreen={true}
           onBack={() => {
             setFullscreenUri(null);
             setModalVisible(!modalVisible);
           }}
+        /> */}
+        <VideoPlayer
+          endWithThumbnail
+          thumbnail={{
+            uri: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/BigBuckBunny.jpg',
+          }}
+          source={{
+            uri: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+          }}
+          onError={e => console.log(e)}
+          showDuration={true}
         />
       </Modal>
       {/* 图片预览 */}
       <Modal visible={imageShow} transparent={true}>
         <ImageViewer
-          imageUrls={[{ url: fullscreenUri }]}
+          imageUrls={[{url: fullscreenUri}]}
           onClick={() => {
             setImageShow(false);
           }}
-          menuContext={{ saveToLocal: '退出预览', cancel: '取消' }}
+          menuContext={{saveToLocal: '退出预览', cancel: '取消'}}
           onSave={() => {
             setImageShow(false);
           }}
@@ -1009,7 +1028,7 @@ const DataManager = ({ navigation, route }) => {
             </View>
           )}
           renderFooter={() => (
-            <View flex center row padding-16 style={{ width: fullWidth }}>
+            <View flex center row padding-16 style={{width: fullWidth}}>
               <Text center grey70 text90>
                 单击退出预览
               </Text>
@@ -1022,7 +1041,7 @@ const DataManager = ({ navigation, route }) => {
 };
 
 const styles = StyleSheet.create({
-  image: { width: 50, height: 50, borderRadius: 4, marginRight: 12 },
+  image: {width: 50, height: 50, borderRadius: 4, marginRight: 12},
   fileIcon: {
     width: 50,
     height: 50,

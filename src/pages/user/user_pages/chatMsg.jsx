@@ -5,13 +5,13 @@ import {requestFolderPermission} from '../../../stores/store-slice/permissionSto
 import {useToast} from '../../../components/commom/Toast';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import {useRealm} from '@realm/react';
-import {encryptAES, decryptAES} from '../../../utils/cryptoHandle';
+import {encryptAES, decryptAES} from '../../../utils/handle/cryptoHandle';
 import {useSelector, useDispatch} from 'react-redux';
 import BaseDialog from '../../../components/commom/BaseDialog';
 import PasswordEye from '../../../components/aboutInput/PasswordEye';
-import {writeJSONFile, readJSONFile} from '../../../utils/Download';
+import {writeJSONFile, readJSONFile} from '../../../utils/handle/fileHandle';
 import DocumentPicker from 'react-native-document-picker';
-import {setLocalMsg} from '../../../utils/chatHandle';
+import {setLocalMsg} from '../../../utils/handle/chatHandle';
 
 const ChatMsg = ({navigation, route}) => {
   const {session_id} = route.params || {};
