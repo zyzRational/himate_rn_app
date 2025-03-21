@@ -1,4 +1,5 @@
-import {createSlice} from '@reduxjs/toolkit';
+import {createSlice, createAsyncThunk} from '@reduxjs/toolkit';
+import {getMusicDetail} from '../../api/music';
 
 export const musicSlice = createSlice({
   name: 'musicStore',
@@ -11,11 +12,18 @@ export const musicSlice = createSlice({
     randomNum: {min: 1, max: 1},
     isRandomPlay: false,
   },
+  extraReducers: builder => {
+    builder
+      .addCase(setPlayingMusic.fulfilled, (state, action) => {
+        state.playingMusic = action.payload || {};
+        state.playingMusic.playtime = Date.now();
+      })
+      .addCase(setPlayingMusic.rejected, (state, action) => {
+        state.playingMusic = action.payload || {};
+        state.playingMusic.playtime = Date.now();
+      });
+  },
   reducers: {
-    setPlayingMusic: (state, action) => {
-      state.playingMusic = action.payload || {};
-      state.playingMusic.playtime = Date.now();
-    },
     setPlayList: (state, action) => {
       if (action.payload?.length > 0) {
         state.playList = action.payload;
@@ -74,8 +82,28 @@ export const musicSlice = createSlice({
   },
 });
 
+export const setPlayingMusic = createAsyncThunk(
+  'music/fetchMusicDetail',
+  async (music, {rejectWithValue}) => {
+    try {
+      const {id} = music;
+      if (typeof id === 'string') {
+        return music;
+      }
+      const response = await getMusicDetail({id});
+      if (response.code === 200) {
+        return response.data;
+      } else {
+        return music;
+      }
+    } catch (error) {
+      console.log(error);
+      return rejectWithValue(music); // 错误处理
+    }
+  },
+);
+
 export const {
-  setPlayingMusic,
   setPlayList,
   addPlayList,
   unshiftPlayList,

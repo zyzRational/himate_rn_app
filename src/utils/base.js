@@ -3,6 +3,11 @@ import RNFetchBlob from 'rn-fetch-blob';
 import {Platform} from 'react-native';
 import {getFileExt} from './handle/fileHandle';
 
+// 判断是否为空字符串
+export const isEmptyString = str => {
+  return str === null || str === undefined || str === '' || str.trim() === '';
+};
+
 /* 判断是否为空对象 */
 export const isEmptyObject = obj => {
   return Object.keys(obj).length === 0 && obj.constructor === Object;

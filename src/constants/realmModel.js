@@ -63,3 +63,18 @@ export class LocalMusic extends Realm.Object {
     },
   };
 }
+
+export class LocalLyric extends Realm.Object {
+  static schema = {
+    name: 'LocalLyric',
+    primaryKey: 'music_id',
+    properties: {
+      music_id: 'int',
+      music_name: 'string',
+      music_lyric: 'string',
+      music_trans: 'string',
+      music_yrc: 'string',
+      music_roma: 'string',
+    },
+  };
+}

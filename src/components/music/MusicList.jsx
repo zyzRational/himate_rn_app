@@ -21,6 +21,7 @@ import {
   setPlayList,
   addPlayList,
   unshiftPlayList,
+  fetchMusicDetail,
 } from '../../stores/store-slice/musicStore';
 import {useToast} from '../commom/Toast';
 import {isEmptyObject} from '../../utils/base';

@@ -1,50 +1,39 @@
 import * as React from 'react';
-import { StyleSheet, ImageBackground, Modal, FlatList } from 'react-native';
-import {
-  Image,
-  View,
-  Text,
-  Colors,
-  TouchableOpacity,
-  Slider,
-} from 'react-native-ui-lib';
-import { useSelector, useDispatch } from 'react-redux';
+import {StyleSheet, ImageBackground} from 'react-native';
+import {Image, View, Text, Colors, TouchableOpacity} from 'react-native-ui-lib';
+import {useSelector, useDispatch} from 'react-redux';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import AntDesign from 'react-native-vector-icons/AntDesign';
-import { AnimatedCircularProgress } from 'react-native-circular-progress';
-import { fullHeight, statusBarHeight } from '../../styles';
+import {AnimatedCircularProgress} from 'react-native-circular-progress';
+import {fullWidth} from '../../styles';
 import AudioRecorderPlayer from 'react-native-audio-recorder-player';
-import { Marquee } from '@animatereactnative/marquee';
-import {
-  formatMilliseconds,
-  isEmptyObject,
-  deepClone,
-  getRandomInt,
-} from '../../utils/base';
+import {Marquee} from '@animatereactnative/marquee';
+import {isEmptyObject, deepClone, getRandomInt} from '../../utils/base';
 import {
   setPlayingMusic,
   removePlayList,
   setIsClosed,
   addPlayList,
 } from '../../stores/store-slice/musicStore';
-import { useToast } from '../commom/Toast';
-import { useRealm } from '@realm/react';
-import MusicControl, { Command } from 'react-native-music-control';
-import { getMusicList } from '../../api/music';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import {useToast} from '../commom/Toast';
+import {useRealm} from '@realm/react';
+import MusicControl, {Command} from 'react-native-music-control';
+import {getMusicList} from '../../api/music';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import LyricModal from './LyricModal';
+import ToBePlayedModal from './ToBePlayedModal';
 
 export const MusicCtrlContext = React.createContext();
 export const useMusicCtrl = () => React.useContext(MusicCtrlContext);
 const audioPlayer = new AudioRecorderPlayer();
 
 const MusicCtrlProvider = props => {
-  const { children } = props;
-  const { showToast } = useToast();
+  const {children} = props;
+  const {showToast} = useToast();
   const realm = useRealm();
   const dispatch = useDispatch();
   const userInfo = useSelector(state => state.userStore.userInfo);
   // baseConfig
-  const { STATIC_URL } = useSelector(state => state.baseConfigStore.baseConfig);
+  const {STATIC_URL} = useSelector(state => state.baseConfigStore.baseConfig);
   const showMusicCtrl = useSelector(state => state.musicStore.showMusicCtrl);
   const playList = useSelector(state => state.musicStore.playList);
   const playingMusic = useSelector(state => state.musicStore.playingMusic);
@@ -62,11 +51,10 @@ const MusicCtrlProvider = props => {
   const [playType, setPlayType] = React.useState('order'); // 列表播放类型 single order random
 
   audioPlayer.addPlayBackListener(playbackMeta => {
-    // console.log(value);
+    setAudioPlayprogress(playbackMeta);
     MusicControl.updatePlayback({
       elapsedTime: Math.round(playbackMeta.currentPosition / 1000),
     });
-    setAudioPlayprogress(playbackMeta);
     const num = Math.round(
       (playbackMeta.currentPosition / playbackMeta.duration) * 100,
     );
@@ -197,14 +185,14 @@ const MusicCtrlProvider = props => {
 
   /* 开启通知栏控件 */
   const startNotification = musicInfo => {
-    const { title, artist, album, duration } = musicInfo;
+    const {title, artist, album, duration} = musicInfo;
     MusicControl.enableControl('play', true);
     MusicControl.enableControl('pause', true);
     MusicControl.enableControl('stop', false);
     MusicControl.enableControl('nextTrack', true);
     MusicControl.enableControl('previousTrack', true);
     MusicControl.enableControl('seek', true);
-    MusicControl.enableControl('closeNotification', true, { when: 'never' });
+    MusicControl.enableControl('closeNotification', true, {when: 'never'});
     MusicControl.enableBackgroundMode(true);
     MusicControl.handleAudioInterruptions(true);
     MusicControl.setNowPlaying({
@@ -275,7 +263,7 @@ const MusicCtrlProvider = props => {
   const getRandMusic = async () => {
     const index = getRandomInt(randomNum.min, randomNum.max);
     try {
-      const res = await getMusicList({ pageNum: index, pageSize: 1 });
+      const res = await getMusicList({pageNum: index, pageSize: 1});
       if (res.success) {
         if (res.data.list.length > 0) {
           const music = res.data.list[0];
@@ -334,6 +322,26 @@ const MusicCtrlProvider = props => {
     }
   }, [playingMusic, realm]);
 
+  // 加载音乐名
+  const renderMarquee = music => {
+    const {title, artists} = music;
+    const musicText =
+      (title ?? '还没有要播放的音乐') +
+      ' - ' +
+      (artists?.join('/') || '未知歌手');
+    const speed = musicText.length > 16 ? 0.4 : 0;
+    const spacing = musicText.length > 16 ? fullWidth * 0.2 : fullWidth * 0.6;
+    return (
+      <Marquee
+        key={title}
+        speed={speed}
+        spacing={spacing}
+        style={styles.marquee}>
+        <Text white>{musicText}</Text>
+      </Marquee>
+    );
+  };
+
   return (
     <MusicCtrlContext.Provider value={{}}>
       {children}
@@ -342,319 +350,125 @@ const MusicCtrlProvider = props => {
           <ImageBackground
             blurRadius={40}
             style={styles.ctrlBackImage}
-            source={{ uri: STATIC_URL + userInfo?.user_avatar }}
+            source={{uri: STATIC_URL + userInfo?.user_avatar}}
             resizeMode="cover">
-            <View row centerV spread>
-              <TouchableOpacity
-                row
-                centerV
-                onPress={() => {
-                  setMusicModalVisible(true);
-                }}>
-                <AnimatedCircularProgress
-                  key={playingMusic}
-                  size={47}
-                  width={3}
-                  fill={progressNum}
-                  tintColor={Colors.red40}
-                  rotation={0}
-                  lineCap="round">
-                  {() => (
-                    <Image
-                      source={{ uri: STATIC_URL + 'default_music_cover.jpg' }}
-                      style={styles.image}
-                    />
-                  )}
-                </AnimatedCircularProgress>
-                <View width={210} marginL-12 centerH>
-                  <GestureHandlerRootView>
-                    <Marquee
-                      speed={0.5}
-                      spacing={10}
-                      style={styles.marquee}
-                    >
-                      <Text> {(playingMusic?.title ?? '还没有要播放的音乐') +
-                        ' - ' +
-                        (playingMusic?.artists?.join('/') || '未知歌手')}</Text>
-                    </Marquee>
-                  </GestureHandlerRootView >
-                </View>
-              </TouchableOpacity>
-              <View row centerV>
+            <GestureHandlerRootView>
+              <View row centerV spread>
                 <TouchableOpacity
-                  style={styles.musicBut}
+                  row
+                  centerV
                   onPress={() => {
-                    playOrPauseRemote();
+                    setMusicModalVisible(true);
                   }}>
-                  {audioIsPlaying ? (
-                    <FontAwesome
-                      name="pause-circle"
-                      color={Colors.white}
-                      size={30}
-                    />
-                  ) : (
-                    <FontAwesome
-                      name="play-circle-o"
-                      color={Colors.white}
-                      size={30}
-                    />
-                  )}
+                  <View marginR-6>
+                    <AnimatedCircularProgress
+                      key={playingMusic}
+                      size={47}
+                      width={3}
+                      fill={progressNum}
+                      tintColor={Colors.red40}
+                      rotation={0}
+                      lineCap="round">
+                      {() => (
+                        <Image
+                          source={{
+                            uri:
+                              STATIC_URL +
+                              (playingMusic?.musicMore?.music_cover ||
+                                'default_music_cover.jpg'),
+                          }}
+                          style={styles.image}
+                        />
+                      )}
+                    </AnimatedCircularProgress>
+                  </View>
+
+                  <View centerV>{renderMarquee(playingMusic)}</View>
                 </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.musicBut}
-                  marginL-6
-                  marginR-12
-                  onPress={() => setListModalVisible(true)}>
-                  <FontAwesome name="bars" color={Colors.white} size={22} />
-                </TouchableOpacity>
+                <View row centerV>
+                  <TouchableOpacity
+                    style={styles.musicBut}
+                    onPress={() => {
+                      playOrPauseRemote();
+                    }}>
+                    {audioIsPlaying ? (
+                      <FontAwesome
+                        name="pause-circle"
+                        color={Colors.white}
+                        size={30}
+                      />
+                    ) : (
+                      <FontAwesome
+                        name="play-circle-o"
+                        color={Colors.white}
+                        size={30}
+                      />
+                    )}
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.musicBut}
+                    marginL-6
+                    marginR-12
+                    onPress={() => setListModalVisible(true)}>
+                    <FontAwesome name="bars" color={Colors.white} size={22} />
+                  </TouchableOpacity>
+                </View>
               </View>
-            </View>
+            </GestureHandlerRootView>
           </ImageBackground>
         </View>
       ) : null}
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={musicModalVisible}
-        statusBarTranslucent
-        onRequestClose={() => {
-          setMusicModalVisible(!musicModalVisible);
-        }}>
-        <View
-          height={fullHeight + statusBarHeight}
-          backgroundColor={Colors.hyalineGrey}>
-          <ImageBackground
-            blurRadius={40}
-            style={styles.backImage}
-            source={{ uri: STATIC_URL + userInfo?.user_avatar }}
-            resizeMode="cover">
-            <View padding-12>
-              <TouchableOpacity onPress={() => setMusicModalVisible(false)}>
-                <AntDesign name="close" color={Colors.white} size={24} />
-              </TouchableOpacity>
-              <View row centerV marginT-12>
-                <Image
-                  source={{ uri: STATIC_URL + 'default_music_cover.jpg' }}
-                  style={styles.bigImage}
-                />
-                <View paddingH-16 flexS>
-                  <Text text60BO white>
-                    {playingMusic?.title ?? '还没有要播放的音乐 ~'}
-                  </Text>
-                  <Text marginT-8 white>
-                    {playingMusic?.artists?.join(' / ') || '未知歌手'}
-                  </Text>
-                </View>
-              </View>
-              {playingMusic?.sampleRate ? (
-                <View marginT-16 row centerV spread>
-                  <Text white text100L>
-                    采样率：{playingMusic.sampleRate} Hz
-                  </Text>
-                  <Text white text100L>
-                    比特率：{playingMusic.bitrate} Hz
-                  </Text>
-                </View>
-              ) : null}
-              <View marginT-16>
-                <Slider
-                  value={audioPlayprogress?.currentPosition ?? 0}
-                  minimumValue={0}
-                  maximumValue={audioPlayprogress?.duration ?? 100}
-                  maximumTrackTintColor={Colors.white}
-                  thumbTintColor={Colors.Primary}
-                  minimumTrackTintColor={Colors.Primary}
-                  onValueChange={value => {
-                    audioPlayer.seekToPlayer(value);
-                  }}
-                />
-                <View row centerV spread marginT-4>
-                  <Text text90L white>
-                    {formatMilliseconds(
-                      audioPlayprogress?.currentPosition ?? 0,
-                    )}
-                  </Text>
-                  <Text text90L white>
-                    {formatMilliseconds(audioPlayprogress?.duration ?? 0)}
-                  </Text>
-                </View>
-              </View>
-              <View row centerV spread marginT-16 paddingH-16>
-                <TouchableOpacity
-                  style={styles.musicBut}
-                  onPress={() => {
-                    setPlayType(prev => {
-                      if (prev === 'order') {
-                        showToast('随机播放', 'success');
-                        return 'random';
-                      }
-                      if (prev === 'random') {
-                        showToast('单曲循环', 'success');
-                        return 'single';
-                      }
-                      if (prev === 'single') {
-                        showToast('顺序播放', 'success');
-                        return 'order';
-                      }
-                    });
-                  }}>
-                  {playType === 'order' ? (
-                    <FontAwesome
-                      name="long-arrow-right"
-                      color={Colors.white}
-                      size={20}
-                    />
-                  ) : playType === 'random' ? (
-                    <FontAwesome
-                      name="refresh"
-                      color={Colors.white}
-                      size={20}
-                    />
-                  ) : playType === 'single' ? (
-                    <FontAwesome name="repeat" color={Colors.white} size={20} />
-                  ) : null}
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.musicBut}
-                  onPress={() => {
-                    previousRemote();
-                  }}>
-                  <FontAwesome
-                    name="step-backward"
-                    color={Colors.white}
-                    size={24}
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => {
-                    playOrPauseRemote();
-                  }}>
-                  {audioIsPlaying ? (
-                    <FontAwesome
-                      name="pause-circle"
-                      color={Colors.white}
-                      size={60}
-                    />
-                  ) : (
-                    <FontAwesome
-                      name="play-circle"
-                      color={Colors.white}
-                      size={60}
-                    />
-                  )}
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.musicBut}
-                  onPress={() => {
-                    nextRemote();
-                  }}>
-                  <FontAwesome
-                    name="step-forward"
-                    color={Colors.white}
-                    size={24}
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.musicBut}
-                  onPress={() => setListModalVisible(true)}>
-                  <FontAwesome name="bars" color={Colors.white} size={20} />
-                </TouchableOpacity>
-              </View>
-            </View>
-          </ImageBackground>
-        </View>
-      </Modal>
-      <Modal
-        animationType="fade"
-        statusBarTranslucent
-        transparent={true}
-        visible={listModalVisible}
-        onRequestClose={() => {
-          setListModalVisible(!listModalVisible);
-        }}>
-        <View
-          height={fullHeight + statusBarHeight}
-          backgroundColor={Colors.hyalineGrey}>
-          <ImageBackground
-            blurRadius={40}
-            style={styles.listBackImage}
-            source={{ uri: STATIC_URL + userInfo?.user_avatar }}
-            resizeMode="cover">
-            <View padding-12>
-              <TouchableOpacity onPress={() => setListModalVisible(false)}>
-                <AntDesign name="close" color={Colors.white} size={24} />
-              </TouchableOpacity>
-              {playingMusic?.id ? (
-                <View marginL-12>
-                  <Text white text70BO marginT-12>
-                    当前播放
-                  </Text>
-                  <Text white text80BO marginB-12 flexG>
-                    {playingMusic.title}
-                  </Text>
-                </View>
-              ) : null}
-              <FlatList
-                data={playList}
-                keyExtractor={(item, index) => item + index}
-                renderItem={({ item }) => (
-                  <View row centerV>
-                    <View flexG marginB-6>
-                      <TouchableOpacity
-                        onPress={() => {
-                          dispatch(setPlayingMusic(item));
-                        }}
-                        flexS
-                        centerV
-                        style={styles.playingStyle}
-                        backgroundColor={
-                          playingMusic?.id === item.id
-                            ? Colors.hyalineGrey
-                            : 'transparent'
-                        }
-                        padding-12>
-                        <View row spread centerV>
-                          <View width={'86%'}>
-                            <Text text80BO white>
-                              {item.title}
-                            </Text>
-                            <Text text90L white marginT-4>
-                              {(item?.artists && item.artists?.length > 0
-                                ? item.artists.join('/')
-                                : '未知歌手') +
-                                ' - ' +
-                                (item?.album ?? '未知专辑')}
-                            </Text>
-                          </View>
-                          <TouchableOpacity
-                            style={styles.musicBut}
-                            onPress={() => {
-                              dispatch(removePlayList([item]));
-                            }}>
-                            <AntDesign
-                              name="close"
-                              color={Colors.white}
-                              size={20}
-                            />
-                          </TouchableOpacity>
-                        </View>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                )}
-                ListEmptyComponent={
-                  <View marginT-16 center>
-                    <Text text90L white>
-                      还没有要播放的音乐~
-                    </Text>
-                  </View>
-                }
-                ListFooterComponent={<View marginB-140 />}
-              />
-            </View>
-          </ImageBackground>
-        </View>
-      </Modal>
+      <LyricModal
+        Visible={musicModalVisible}
+        OnClose={() => setMusicModalVisible(false)}
+        Music={playingMusic}
+        IsPlaying={audioIsPlaying}
+        PlayMode={playType}
+        PlayProgress={audioPlayprogress}
+        OnSliderChange={value => {
+          audioPlayer.seekToPlayer(value);
+        }}
+        OnChangeMode={() => {
+          setPlayType(prev => {
+            if (prev === 'order') {
+              showToast('随机播放', 'success');
+              return 'random';
+            }
+            if (prev === 'random') {
+              showToast('单曲循环', 'success');
+              return 'single';
+            }
+            if (prev === 'single') {
+              showToast('顺序播放', 'success');
+              return 'order';
+            }
+          });
+        }}
+        OnBackWard={() => {
+          previousRemote();
+        }}
+        OnPlay={() => {
+          playOrPauseRemote();
+        }}
+        OnForWard={() => {
+          nextRemote();
+        }}
+        OnMain={() => {
+          setListModalVisible(true);
+        }}
+      />
+      <ToBePlayedModal
+        Visible={listModalVisible}
+        OnClose={() => setListModalVisible(false)}
+        Music={playingMusic}
+        List={playList}
+        OnPressItem={item => {
+          dispatch(setPlayingMusic(item));
+        }}
+        OnPressRemove={item => {
+          dispatch(removePlayList([item]));
+        }}
+      />
     </MusicCtrlContext.Provider>
   );
 };
@@ -667,12 +481,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  playingStyle: {
-    borderRadius: 12,
-  },
-  marqueeText: {
-    maxWidth: 240,
-  },
+
   ctrlBackImage: {
     width: '100%',
     height: '100%',
@@ -680,30 +489,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     elevation: 2,
   },
-  backImage: {
-    width: '100%',
-    height: fullHeight * 0.42,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    overflow: 'hidden',
-    elevation: 2,
-  },
-  listBackImage: {
-    width: '100%',
-    height: fullHeight * 0.8,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    overflow: 'hidden',
-    elevation: 2,
-  },
+
   CtrlContainer: {
     position: 'absolute',
     backgroundColor: 'transparent',
@@ -720,19 +506,11 @@ const styles = StyleSheet.create({
     borderColor: Colors.white,
     borderWidth: 1,
   },
-  bigImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    borderColor: Colors.white,
-    borderWidth: 1,
-  },
   marquee: {
-    width: 200,
-    height: 20,
     flex: 1,
+    width: fullWidth * 0.56,
+    paddingTop: 14,
     overflow: 'hidden',
-    alignItems: 'center',
   },
 });
 

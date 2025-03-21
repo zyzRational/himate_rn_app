@@ -25,3 +25,7 @@ export const editDefaultFavorites = data =>
 // 音乐列表
 export const getMusicList = data =>
   instance.get('api/music/list', {params: data});
+
+// 音乐详情
+export const getMusicDetail = data =>
+  instance.get('api/music/detail', {params: data});

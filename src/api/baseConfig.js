@@ -1,6 +1,7 @@
 import axios from 'axios';
 import {
   COULD_URL,
+  COULD_SECRET,
   BASE_URL,
   STATIC_URL,
   SOCKET_URL,
@@ -8,22 +9,19 @@ import {
   MSG_SECRET,
 } from '@env';
 
-const reqSecret =
-  '96cae35ce8a9b0244178bf28e4966c2ce1b8385723a96a6b838858cdd6ca0a1e';
-
 /* 获取baseUrl */
 export const getBaseConfig = async () => {
   if (COULD_URL) {
     try {
       const response = await axios.get(COULD_URL, {
         headers: {
-          Authorization: reqSecret,
+          Authorization: COULD_SECRET,
         },
       });
-      // console.log(response.data);
+      const {data} = response;
       return {
-        ...response.data,
-        THUMBNAIL_URL: response.data?.BASE_URL + 'Thumbnail/',
+        ...data,
+        THUMBNAIL_URL: data?.BASE_URL + 'Thumbnail/',
       };
     } catch (error) {
       console.log(error);
