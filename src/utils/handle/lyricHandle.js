@@ -1,3 +1,5 @@
+import {isEmptyString} from '../base';
+
 export const parserLrc = lrc => {
   const lines = lrc.split('\n');
   return lines
@@ -13,20 +15,44 @@ export const parserLrc = lrc => {
       }
       return null;
     })
-    .filter(line => line !== null);
+    .filter(line => line !== null && !isEmptyString(line.text));
 };
 
 export const formatLrc = Music => {
-  const lyricKeys = ['music_lyric', 'music_trans', 'music_yrc', 'music_roma'];
-  let lyric = [];
-  for (const key in Music) {
-    if (Object.prototype.hasOwnProperty.call(Music, key)) {
-      const element = Music[key];
-      if (lyricKeys.includes(key)) {
-        lyric = parserLrc(element);
-      }
-    }
-  }
+  const {music_lyric, music_trans, music_yrc, music_roma} = Music;
 
-  return lyric;
+  const lyric = parserLrc(music_lyric);
+  const transLyrics = parserLrc(music_trans);
+  const romaLyrics = parserLrc(music_roma);
+
+  // console.log(lyric, transLyrics, romaLyrics);
+
+  // 将歌词数组转换为以 time 为键的对象
+  const transLyricsMap = transLyrics.reduce((map, _lyric) => {
+    map[_lyric.time] = _lyric.text;
+    return map;
+  }, {});
+
+  const romaLyricsMap = romaLyrics.reduce((map, _lyric) => {
+    map[_lyric.time] = _lyric.text;
+    return map;
+  }, {});
+
+  // 合并歌词
+  const mergedLyrics = lyric.map(zhLyric => {
+    const transText = transLyricsMap[zhLyric.time] || '';
+    const romaText = romaLyricsMap[zhLyric.time] || '';
+    return {
+      time: zhLyric.time,
+      lyric: zhLyric.text,
+      trans: transText,
+      roma: romaText,
+    };
+  });
+
+  return {
+    Lyrics: mergedLyrics,
+    haveTrans: transLyrics.length > 0,
+    haveRoma: romaLyrics.length > 0,
+  };
 };

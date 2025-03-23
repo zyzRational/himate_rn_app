@@ -2,9 +2,9 @@ import * as React from 'react';
 import {StyleSheet, ImageBackground} from 'react-native';
 import {Image, View, Text, Colors, TouchableOpacity} from 'react-native-ui-lib';
 import {useSelector, useDispatch} from 'react-redux';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import AntDesign from 'react-native-vector-icons/AntDesign';
 import {AnimatedCircularProgress} from 'react-native-circular-progress';
-import {fullWidth} from '../../styles';
+import {fullHeight, fullWidth} from '../../styles';
 import AudioRecorderPlayer from 'react-native-audio-recorder-player';
 import {Marquee} from '@animatereactnative/marquee';
 import {isEmptyObject, deepClone, getRandomInt} from '../../utils/base';
@@ -127,6 +127,10 @@ const MusicCtrlProvider = props => {
 
   /* 下一曲 */
   const nextRemote = () => {
+    if (isRandomPlay) {
+      getRandMusic();
+      return;
+    }
     if (playingIndex === playList.length - 1) {
       dispatch(setPlayingMusic(playList[0]));
       showToast('已经是最后一首了~', 'warning');
@@ -134,8 +138,10 @@ const MusicCtrlProvider = props => {
     }
     if (playList.length > 0) {
       dispatch(setPlayingMusic(playList[playingIndex + 1]));
+      return;
     } else {
       showToast('没有要播放的音乐~', 'warning');
+      return;
     }
   };
 
@@ -185,7 +191,7 @@ const MusicCtrlProvider = props => {
 
   /* 开启通知栏控件 */
   const startNotification = musicInfo => {
-    const {title, artist, album, duration} = musicInfo;
+    const {title, artist, album, duration, musicMore} = musicInfo;
     MusicControl.enableControl('play', true);
     MusicControl.enableControl('pause', true);
     MusicControl.enableControl('stop', false);
@@ -197,7 +203,7 @@ const MusicCtrlProvider = props => {
     MusicControl.handleAudioInterruptions(true);
     MusicControl.setNowPlaying({
       title: title,
-      artwork: STATIC_URL + userInfo?.user_avatar, // URL or RN's image require()
+      artwork: STATIC_URL + (musicMore?.music_cover || userInfo?.user_avatar), // URL or RN's image require()
       artist: artist,
       album: album,
       duration: duration, // (Seconds)
@@ -392,16 +398,16 @@ const MusicCtrlProvider = props => {
                       playOrPauseRemote();
                     }}>
                     {audioIsPlaying ? (
-                      <FontAwesome
-                        name="pause-circle"
+                      <AntDesign
+                        name="pausecircleo"
                         color={Colors.white}
-                        size={30}
+                        size={24}
                       />
                     ) : (
-                      <FontAwesome
-                        name="play-circle-o"
+                      <AntDesign
+                        name="playcircleo"
                         color={Colors.white}
-                        size={30}
+                        size={24}
                       />
                     )}
                   </TouchableOpacity>
@@ -410,7 +416,11 @@ const MusicCtrlProvider = props => {
                     marginL-6
                     marginR-12
                     onPress={() => setListModalVisible(true)}>
-                    <FontAwesome name="bars" color={Colors.white} size={22} />
+                    <AntDesign
+                      name="menuunfold"
+                      color={Colors.white}
+                      size={22}
+                    />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -431,15 +441,15 @@ const MusicCtrlProvider = props => {
         OnChangeMode={() => {
           setPlayType(prev => {
             if (prev === 'order') {
-              showToast('随机播放', 'success');
+              showToast('随机播放', 'success', true);
               return 'random';
             }
             if (prev === 'random') {
-              showToast('单曲循环', 'success');
+              showToast('单曲循环', 'success', true);
               return 'single';
             }
             if (prev === 'single') {
-              showToast('顺序播放', 'success');
+              showToast('顺序播放', 'success', true);
               return 'order';
             }
           });
@@ -509,7 +519,7 @@ const styles = StyleSheet.create({
   marquee: {
     flex: 1,
     width: fullWidth * 0.56,
-    paddingTop: 14,
+    paddingTop: fullHeight * 0.016,
     overflow: 'hidden',
   },
 });

@@ -144,12 +144,12 @@ const SearchMsg = ({ navigation, route }) => {
         row
         centerV
         onPress={() => {
-          navigation.navigate('Chat', {
-            session_id: item.session_id,
-            chat_type: item.chat_type,
-            to_remark: getChatRemark(item),
-            clientMsgId: item.clientMsg_id,
-          });
+          // navigation.navigate('Chat', {
+          //   session_id: item.session_id,
+          //   chat_type: item.chat_type,
+          //   to_remark: getChatRemark(item),
+          //   searchMsg_cid: item.clientMsg_id,
+          // });
         }}>
         <View flexS row centerV>
           <Avatar

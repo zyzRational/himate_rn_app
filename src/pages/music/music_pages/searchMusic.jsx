@@ -57,7 +57,11 @@ const SearchMusic = ({navigation}) => {
             label={'搜索'}
             link
             linkColor={Colors.Primary}
-            onPress={() => getAllMusicList()}
+            onPress={() => {
+              setPageNum(1);
+              setMusic([]);
+              getAllMusicList();
+            }}
           />
         </Card>
         <View marginT-12>

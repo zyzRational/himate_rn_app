@@ -20,6 +20,7 @@ import {FlatList, StyleSheet, Vibration} from 'react-native';
 import {useSelector, useDispatch} from 'react-redux';
 import {useToast} from '../../components/commom/Toast';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import AntDesign from 'react-native-vector-icons/AntDesign';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {fullHeight, fullWidth} from '../../styles';
 import {
@@ -419,7 +420,7 @@ const Music = ({navigation}) => {
               <Text text90L grey40 marginR-4>
                 新建歌单
               </Text>
-              <FontAwesome name="plus-circle" color={Colors.grey40} size={15} />
+              <AntDesign name="pluscircleo" color={Colors.grey40} size={13} />
             </TouchableOpacity>
           </View>
         </View>

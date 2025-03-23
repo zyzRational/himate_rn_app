@@ -19,7 +19,7 @@ const FindFavorites = ({navigation}) => {
         favorites_name: keyword,
       });
       if (res.success) {
-        console.log(res.data);
+        // console.log(res.data);
 
         const {list} = res.data;
         if (list.length < pageSize && pageNum !== 1) {

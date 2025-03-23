@@ -40,7 +40,6 @@ instance.interceptors.response.use(
     }
   },
 
-  // 服务器状态码不是2开头的情况
   function (error) {
     console.log(error);
 

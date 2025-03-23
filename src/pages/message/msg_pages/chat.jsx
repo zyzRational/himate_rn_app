@@ -1,20 +1,19 @@
-import React, { useEffect, useCallback, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Vibration, Modal } from 'react-native';
+import React, {useEffect, useCallback, useState, useRef} from 'react';
+import {ActivityIndicator, StyleSheet, Vibration, Modal} from 'react-native';
 import {
   View,
   Button,
   Text,
   Colors,
   TouchableOpacity,
-  AnimatedScanner,
   Card,
   Slider,
   LoaderScreen,
   Avatar,
-  Image,
 } from 'react-native-ui-lib';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import AntDesign from 'react-native-vector-icons/AntDesign';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import {
   GiftedChat,
   Bubble,
@@ -27,11 +26,11 @@ import {
 } from 'react-native-gifted-chat';
 import Clipboard from '@react-native-clipboard/clipboard';
 import ImagePicker from 'react-native-image-crop-picker';
-import { useSelector, useDispatch } from 'react-redux';
-import { useSocket } from '../../../utils/socket';
-import { getSessionDetail } from '../../../api/session';
-import { useToast } from '../../../components/commom/Toast';
-import { useRealm } from '@realm/react';
+import {useSelector, useDispatch} from 'react-redux';
+import {useSocket} from '../../../utils/socket';
+import {getSessionDetail} from '../../../api/session';
+import {useToast} from '../../../components/commom/Toast';
+import {useRealm} from '@realm/react';
 import {
   formatMsg,
   formatJoinUser,
@@ -40,15 +39,14 @@ import {
   getLocalUser,
   addOrUpdateLocalUser,
 } from '../../../utils/handle/chatHandle';
-import { setIsPlaySound } from '../../../stores/store-slice/settingStore';
-import { setNowSessionId } from '../../../stores/store-slice/chatMsgStore';
+import {setIsPlaySound} from '../../../stores/store-slice/settingStore';
+import {setNowSessionId} from '../../../stores/store-slice/chatMsgStore';
 import {
   deepClone,
   getfileFormdata,
   getDocumentfileFormdata,
   createRandomNumber,
   getRecordfileFormdata,
-  formatSeconds,
 } from '../../../utils/base';
 import {
   UploadFile,
@@ -56,7 +54,6 @@ import {
   getFileExt,
   getFileColor,
 } from '../../../utils/handle/fileHandle';
-import Video from 'react-native-video';
 import DocumentPicker from 'react-native-document-picker';
 import AudioRecorderPlayer from 'react-native-audio-recorder-player';
 import {
@@ -71,33 +68,40 @@ import Animated, {
   withTiming,
   withSpring,
   runOnJS,
+  Easing,
+  FadeInDown,
+  FadeOutDown,
 } from 'react-native-reanimated';
-import { fullWidth, fullHeight } from '../../../styles';
-import { DownloadFile } from '../../../utils/handle/fileHandle';
+import {fullWidth, fullHeight} from '../../../styles';
+import {DownloadFile} from '../../../utils/handle/fileHandle';
 import BaseSheet from '../../../components/commom/BaseSheet';
 import {
   requestCameraPermission,
   requestMicrophonePermission,
   requestFolderPermission,
 } from '../../../stores/store-slice/permissionStore';
-import { cancelNotification } from '../../../utils/notification';
+import {cancelNotification} from '../../../utils/notification';
 import {
   createRandomSecretKey,
   encryptAES,
 } from '../../../utils/handle/cryptoHandle';
 import VideoModal from '../../../components/commom/VideoModal';
 import ImgModal from '../../../components/commom/ImgModal';
+import VideoMsg from '../../../components/message/VideoMsg';
+import ImageMsg from '../../../components/message/ImageMsg';
 import 'dayjs/locale/zh-cn';
 
 const audioRecorderPlayer = new AudioRecorderPlayer();
 let recordTimer = null;
 
-const Chat = ({ navigation, route }) => {
-  const { session_id, chat_type, clientMsgId } = route.params;
+const Chat = ({navigation, route}) => {
+  const {session_id, chat_type, searchMsg_cid} = route.params;
+
+  const flatListRef = useRef(null);
 
   const dispatch = useDispatch();
-  const { showToast } = useToast();
-  const { socket } = useSocket();
+  const {showToast} = useToast();
+  const {socket} = useSocket();
   const realm = useRealm();
   const userInfo = useSelector(state => state.userStore.userInfo);
   const acceptMsgData = useSelector(state => state.chatMsgStore.msgData);
@@ -111,7 +115,7 @@ const Chat = ({ navigation, route }) => {
   const accessFolder = useSelector(state => state.permissionStore.accessFolder);
 
   // baseConfig
-  const { STATIC_URL, THUMBNAIL_URL } = useSelector(
+  const {STATIC_URL, THUMBNAIL_URL} = useSelector(
     state => state.baseConfigStore.baseConfig,
   );
   const isEncryptMsg = useSelector(state => state.settingStore.isEncryptMsg);
@@ -134,7 +138,6 @@ const Chat = ({ navigation, route }) => {
     return () => {
       dispatch(setIsPlaySound(true));
       dispatch(setNowSessionId(''));
-      setSearchMsgCId(null);
       audioRecorderPlayer.stopPlayer();
       audioRecorderPlayer.removePlayBackListener();
       return unsubscribe;
@@ -148,7 +151,7 @@ const Chat = ({ navigation, route }) => {
   const [sId, setSId] = useState(null); // session id
   const [jionUsers, setJionUsers] = useState(getLocalUser(realm) || []);
   const getUnreadMsg = async (sessionId, chatType, user_info) => {
-    const { id: userId, user_name, user_avatar } = user_info || {};
+    const {id: userId, user_name, user_avatar} = user_info || {};
     try {
       const unreadRes = await getSessionDetail({
         session_id: sessionId,
@@ -156,7 +159,7 @@ const Chat = ({ navigation, route }) => {
         msg_status: 'unread',
       });
       if (unreadRes.success) {
-        const { id, msgs, mate, group } = unreadRes.data;
+        const {id, msgs, mate, group} = unreadRes.data;
         setSId(id);
 
         //将消息格式化，向服务器发送已读消息
@@ -245,7 +248,6 @@ const Chat = ({ navigation, route }) => {
   const addMsg = (msgList, userList, userId, isNew = true) => {
     setMessages(previousMessages => {
       const newList = deepClone(msgList);
-
       const needList = [];
       newList?.forEach(msg => {
         if (!previousMessages.find(item => item._id === msg._id)) {
@@ -313,7 +315,7 @@ const Chat = ({ navigation, route }) => {
     };
     // 加密消息
     if (isEncryptMsg) {
-      const { secret, trueSecret } = createRandomSecretKey(secretStr);
+      const {secret, trueSecret} = createRandomSecretKey(secretStr);
       baseMsg.msg_secret = secret;
       baseMsg.msgdata = JSON.stringify(encryptAES(message, trueSecret));
     }
@@ -393,7 +395,6 @@ const Chat = ({ navigation, route }) => {
       const message = messages[i];
       const msgType = message?.msg_type;
       let msgContent = message.text;
-
       if (msgType && msgType !== 'text') {
         setNowSendId(message._id);
         const res = await UploadFile(
@@ -401,7 +402,7 @@ const Chat = ({ navigation, route }) => {
           value => {
             setUploadProgress(value);
           },
-          { uid: userInfo?.id, fileType: msgType, useType: 'chat' },
+          {uid: userInfo?.id, fileType: msgType, useType: 'chat'},
         );
         setNowSendId(null);
         removeUploadIds(message._id);
@@ -432,17 +433,15 @@ const Chat = ({ navigation, route }) => {
   const [page, setPage] = useState(1);
   const [localMsgList, setLocalMsgList] = useState([]);
   const [localMsgCount, setLocalMsgCount] = useState(0);
-  const [flatListRef, setFlatListRef] = useState(null);
   const [loadingMsg, setLoadingMsg] = useState(false); // 加载显示
   const [startIndex, setStartIndex] = useState(0); // 开始索引
   const [lastMsg, setLastMsg] = useState(null); // 结束索引的消息
-  const [searchMsgCId, setSearchMsgCId] = useState(clientMsgId); // 搜索消息id
-  const getNowPageMsg = (list, newpage) => {
+  const getNowPageMsg = (list, newpage, cid) => {
     setLoadingMsg(true);
     const endIndex = newpage * 100;
-    if (searchMsgCId) {
+    if (cid) {
       for (let i = 0; i < list.length; i++) {
-        if (list[i] && list[i].clientMsg_id === searchMsgCId) {
+        if (list[i] && list[i].clientMsg_id === cid) {
           setStartIndex(i);
           setPage(Math.floor(i / 100) + 1);
           break;
@@ -516,9 +515,14 @@ const Chat = ({ navigation, route }) => {
   useEffect(() => {
     if (localMsgList.length > 0 && jionUsers.length > 0 && userInfo) {
       // console.log('加载历史消息:', localMsgList);
-      addMsg(getNowPageMsg(localMsgList, page), jionUsers, userInfo.id, false);
+      addMsg(
+        getNowPageMsg(localMsgList, page, searchMsg_cid),
+        jionUsers,
+        userInfo.id,
+        false,
+      );
     }
-  }, [page, localMsgList, jionUsers, userInfo]);
+  }, [page, localMsgList, jionUsers, userInfo, searchMsg_cid]);
 
   /* 监听接受的消息 */
   useEffect(() => {
@@ -526,7 +530,7 @@ const Chat = ({ navigation, route }) => {
       if (acceptMsgData.session_id !== session_id) {
         return;
       }
-      const { id: msgId, send_uid, isReSend } = acceptMsgData || {};
+      const {id: msgId, send_uid, isReSend} = acceptMsgData || {};
       const msg = formatMsg(acceptMsgData);
       if (isLoadingComplete && (send_uid !== userInfo.id || isReSend)) {
         addMsg([msg], jionUsers, userInfo.id);
@@ -579,58 +583,9 @@ const Chat = ({ navigation, route }) => {
     return (
       <Send
         {...props}
-        containerStyle={{
-          backgroundColor: Colors.Primary,
-          borderRadius: 8,
-          margin: 8,
-          height: 30,
-        }}
+        containerStyle={styles.sendContainerStyle}
         label="发送"
-        textStyle={{
-          color: Colors.white,
-          fontSize: 14,
-          position: 'relative',
-          top: 4,
-        }}
-      />
-    );
-  };
-
-  /* 自定义左侧按钮 */
-  const [showMore, setShowMore] = useState(false);
-  const renderActions = () => {
-    return (
-      <Button
-        marginB-10
-        size={Button.sizes.medium}
-        round
-        text40
-        outlineColor={Colors.Primary}
-        outline
-        center
-        iconSource={() => (
-          <FontAwesome
-            style={{ transform: [{ rotate: `${showMore ? '45deg' : '0deg'}` }] }}
-            name="plus"
-            color={Colors.Primary}
-            size={18}
-          />
-        )}
-        onPress={() => {
-          if (showMore) {
-            setShowMore(false);
-          } else {
-            if (uploadIds.length > 0) {
-              showToast('请先等待当前消息发送完成!', 'warning');
-              return;
-            }
-            if (userInGroupInfo.member_status === 'forbidden') {
-              showToast('你已被禁言，无法使用!', 'error');
-              return;
-            }
-            setShowMore(true);
-          }
-        }}
+        textStyle={styles.sendTextStyle}
       />
     );
   };
@@ -640,29 +595,18 @@ const Chat = ({ navigation, route }) => {
     return (
       <InputToolbar
         {...props}
-        containerStyle={{
-          paddingRight: 6,
-          paddingLeft: 10,
-          paddingVertical: 8,
-        }}
-        accessoryStyle={{ height: 80, paddingLeft: 26 }}
+        containerStyle={styles.inputToolbarContainerStyle}
+        accessoryStyle={[
+          styles.inputToolbarAccessoryStyle,
+          {height: showMore ? 80 : 0},
+        ]}
       />
     );
   };
 
   /* 自定义输入框 */
   const renderComposer = props => {
-    return (
-      <Composer
-        {...props}
-        textInputStyle={{
-          backgroundColor: Colors.$backgroundNeutral,
-          borderRadius: 8,
-          padding: 8,
-          lineHeight: 22,
-        }}
-      />
-    );
+    return <Composer {...props} textInputStyle={styles.textInputStyle} />;
   };
 
   /* 点击头像 */
@@ -676,6 +620,7 @@ const Chat = ({ navigation, route }) => {
   const [msgText, setMsgText] = useState('');
   const onLongPressAvatar = User => {
     if (chat_type === 'group') {
+      Vibration.vibrate(50);
       setMsgText(prevText => prevText + `@${User.name} `);
     }
   };
@@ -688,7 +633,8 @@ const Chat = ({ navigation, route }) => {
         row
         centerV
         backgroundColor={Colors.white}
-        padding-12
+        paddingH-12
+        paddingV-6
         onPress={() => {
           setMsgText(prevText => prevText + item.member_remark + ' ');
           setShowMebers(false);
@@ -723,7 +669,7 @@ const Chat = ({ navigation, route }) => {
         wrapperStyle={{
           backgroundColor: Colors.white,
         }}
-        textStyle={{ color: Colors.grey20 }}
+        textStyle={{color: Colors.grey20}}
         activityIndicatorColor={Colors.Primary}
       />
     );
@@ -734,9 +680,9 @@ const Chat = ({ navigation, route }) => {
     return (
       <Day
         {...props}
-        containerStyle={{ marginTop: 20, marginBottom: 20 }}
-        wrapperStyle={{ backgroundColor: Colors.transparent }}
-        textStyle={{ color: Colors.grey40, fontWeight: 400 }}
+        containerStyle={styles.DayContainerStyle}
+        wrapperStyle={{backgroundColor: Colors.transparent}}
+        textStyle={styles.DayTextStyle}
       />
     );
   };
@@ -749,9 +695,11 @@ const Chat = ({ navigation, route }) => {
         clientMsg_id: String(message._id),
         session_id: session_id,
         send_uid: userInfo.id,
+        text: message.text,
         chat_type: chat_type,
         msg_type: message.msg_type || 'text',
         msg_status: 'unread',
+        createdAt: message.createdAt,
         status: 'failed',
       };
       setLocalMsg(realm, [newMsg]);
@@ -762,7 +710,7 @@ const Chat = ({ navigation, route }) => {
           <Text text100L white center>
             <FontAwesome
               name="exclamation-circle"
-              color={Colors.white}
+              color={Colors.error}
               size={11}
             />
             &nbsp;未发送
@@ -771,7 +719,7 @@ const Chat = ({ navigation, route }) => {
       );
     }
     if (message.msg_type && message.msg_type !== 'text') {
-      if (nowSendId === message._id) {
+      if (uploadIds.includes(message._id) && nowSendId === message._id) {
         return (
           <View flexG row center marginT-4>
             <ActivityIndicator color={Colors.Primary} size={14} />
@@ -781,7 +729,7 @@ const Chat = ({ navigation, route }) => {
           </View>
         );
       }
-      if (uploadIds.includes(message._id)) {
+      if (uploadIds.includes(message._id) && nowSendId !== message._id) {
         return (
           <View flexG row center marginT-4>
             <Text marginL-4 grey30 text100L>
@@ -853,36 +801,16 @@ const Chat = ({ navigation, route }) => {
   /*自定义系统消息 */
   const renderSystemMessage = props => {
     return (
-      <>
-        {downloadProgress > 0 ? (
-          <View center padding-4>
-            <Text text90L grey40>
-              {props.currentMessage.text + downloadProgress + '%'}
-            </Text>
-          </View>
-        ) : null}
-      </>
+      <View center padding-4>
+        <Text text90L grey40>
+          {props.currentMessage.text}
+        </Text>
+      </View>
     );
   };
 
   /* 跳转到指定消息 */
-  const onMessagePress = message => {
-    if (lastMsg && message.clientMsg_id === lastMsg.clientMsg_id) {
-      setLoadingMsg(false);
-    }
-    if (searchMsgCId) {
-      if (message.clientMsg_id === searchMsgCId) {
-        setTimeout(() => {
-          flatListRef?.scrollToIndex({
-            index: startIndex,
-            animated: true, // 滚动时是否使用动画
-            viewOffset: 0, // 相对于指定item顶部的偏移量，默认为0
-          });
-          setSearchMsgCId(null);
-        }, 100);
-      }
-    }
-  };
+  useEffect(() => {}, [flatListRef?.current]);
 
   /* 自定义文件消息 */
   const renderFileMessage = props => {
@@ -896,7 +824,7 @@ const Chat = ({ navigation, route }) => {
           style={styles.fileContainer}
           onPress={() => {
             if (fileMsg.text === 'pdf') {
-              navigation.navigate('PdfView', { url: fileMsg.filePath });
+              navigation.navigate('PdfView', {url: fileMsg.filePath});
             } else {
               showToast('暂不支持该类型文件预览，请长按下载后查看', 'warning');
             }
@@ -919,10 +847,7 @@ const Chat = ({ navigation, route }) => {
       );
     }
     return (
-      <View
-        onLayout={() => {
-          onMessagePress(props.currentMessage);
-        }}>
+      <View>
         <MessageText {...props} />
       </View>
     );
@@ -932,136 +857,53 @@ const Chat = ({ navigation, route }) => {
   const [imageShow, setImageShow] = useState(false);
   const [nowImage, setNowImage] = useState('');
   const renderMessageImage = props => {
+    const curMsg = props.currentMessage;
     return (
-      <TouchableOpacity
-        onPress={() => {
+      <ImageMsg
+        Msg={curMsg}
+        OnPress={() => {
           setImageShow(true);
-          setNowImage(props.currentMessage?.originalImage);
+          setNowImage(curMsg?.originalImage);
         }}
-        onLongPress={() => {
+        OnLongPress={() => {
           Vibration.vibrate(50);
           setIsInCameraRoll(true);
-          setSavePath(props.currentMessage?.originalImage);
+          setSavePath(curMsg?.originalImage);
           setShowActionSheet(true);
-        }}>
-        {props.currentMessage._id === nowSendId ||
-          uploadIds.includes(props.currentMessage._id) ? (
-          <AnimatedScanner
-            progress={
-              props.currentMessage._id === nowSendId ? uploadProgress : 0
-            }
-            duration={1200}
-            backgroundColor={Colors.white}
-            opacity={0.5}
-          />
-        ) : null}
-        <Image
-          style={styles.image}
-          source={{ uri: props.currentMessage.image }}
-        />
-      </TouchableOpacity>
+        }}
+        UploadIds={uploadIds}
+        NowSendId={nowSendId}
+        UploadProgress={uploadProgress}
+      />
     );
   };
 
   /* 处理视频状态 */
   const [modalVisible, setModalVisible] = useState(false);
   const [fullscreenUri, setFullscreenUri] = useState(null);
-  const [successVideoIds, setSuccessVideoIds] = useState([]);
-  const [videoDuration, setVideoDuration] = useState([]);
-  const [ErrorVideoIds, setErrorVideoIds] = useState([]);
-  const handleVideoLoad = useCallback((videoMsg, duration) => {
-    setSuccessVideoIds(prevs => {
-      if (prevs.includes(videoMsg.clientMsg_id)) {
-        return prevs;
-      } else {
-        return [...prevs, videoMsg.clientMsg_id];
-      }
-    });
-    setVideoDuration(prevs => {
-      if (prevs.find(item => item.cMsgId === videoMsg.clientMsg_id)) {
-        return prevs;
-      } else {
-        return [...prevs, { cMsgId: videoMsg.clientMsg_id, duration }];
-      }
-    });
-  }, []);
 
   /* 自定义视频消息 */
   const renderMessageVideo = props => {
     const videoMsg = props.currentMessage;
-    if (videoMsg.video) {
+    if (videoMsg?.video) {
       return (
         <View padding-4>
-          <Video
-            style={styles.video}
-            source={{ uri: videoMsg.video }}
-            resizeMode="cover"
-            paused={true}
-            bufferConfig={{
-              minBufferMs: 190,
-              maxBufferMs: 200,
-              bufferForPlaybackMs: 180,
-              bufferForPlaybackAfterRebufferMs: 180,
+          <VideoMsg
+            Msg={videoMsg}
+            OnPress={() => {
+              setFullscreenUri(videoMsg.video);
+              setModalVisible(true);
             }}
-            onLoad={e => {
-              // console.log('onLoad', e);
-              handleVideoLoad(videoMsg, e.duration);
+            OnLongPress={() => {
+              Vibration.vibrate(50);
+              setIsInCameraRoll(true);
+              setSavePath(videoMsg.video);
+              setShowActionSheet(true);
             }}
-            onBuffer={e => {
-              // console.log('onBuffer', e);
-            }}
-            onError={error => {
-              // console.log('onError', error);
-              setErrorVideoIds(prevs => {
-                if (prevs.includes(videoMsg.clientMsg_id)) {
-                  return prevs;
-                } else {
-                  return [...prevs, videoMsg.clientMsg_id];
-                }
-              });
-            }}
+            UploadIds={uploadIds}
+            NowSendId={nowSendId}
+            UploadProgress={uploadProgress}
           />
-          {successVideoIds.includes(videoMsg.clientMsg_id) ? (
-            <TouchableOpacity
-              style={styles.videoControl}
-              onLongPress={() => {
-                Vibration.vibrate(50);
-                setIsInCameraRoll(true);
-                setSavePath(videoMsg.video);
-                setShowActionSheet(true);
-              }}
-              onPress={() => {
-                setFullscreenUri(videoMsg.video);
-                setModalVisible(true);
-              }}>
-              <AntDesign name="playcircleo" color={Colors.white} size={32} />
-              <Text style={styles.videoTime}>
-                {formatSeconds(
-                  videoDuration.find(
-                    item => item.cMsgId === videoMsg.clientMsg_id,
-                  ).duration,
-                )}
-              </Text>
-            </TouchableOpacity>
-          ) : ErrorVideoIds.includes(videoMsg.clientMsg_id) ? (
-            <View style={styles.videoControl}>
-              <Text text90L white>
-                视频加载失败
-              </Text>
-            </View>
-          ) : (
-            <View style={styles.videoControl}>
-              <ActivityIndicator color={Colors.white} />
-            </View>
-          )}
-          {videoMsg._id === nowSendId || uploadIds.includes(videoMsg._id) ? (
-            <AnimatedScanner
-              progress={videoMsg._id === nowSendId ? uploadProgress : 0}
-              duration={1200}
-              backgroundColor={Colors.white}
-              opacity={0.7}
-            />
-          ) : null}
         </View>
       );
     }
@@ -1071,9 +913,8 @@ const Chat = ({ navigation, route }) => {
   const [audioIsPlaying, setAudioIsPlaying] = useState(false);
   const [nowReadyAudioId, setNowReadyAudioId] = useState(null);
   const [audioPlayprogress, setAudioPlayprogress] = useState({});
-
   const playAudio = audioMsg => {
-    const { clientMsg_id, audio } = audioMsg;
+    const {clientMsg_id, audio} = audioMsg;
     if (nowReadyAudioId === clientMsg_id) {
       return;
     } else {
@@ -1097,7 +938,7 @@ const Chat = ({ navigation, route }) => {
     const audioMsg = props.currentMessage;
     if (audioMsg.audio) {
       return (
-        <Animated.View style={{ ...styles.audioBut, width }}>
+        <Animated.View style={{...styles.audioBut, width}}>
           <TouchableOpacity
             onPress={() => playAudio(audioMsg)}
             onLongPress={() => {
@@ -1258,6 +1099,7 @@ const Chat = ({ navigation, route }) => {
       });
   };
 
+  // 手势动画
   const gesture = Gesture.Pan()
     .activateAfterLongPress(1000)
     .minDistance(10)
@@ -1266,7 +1108,7 @@ const Chat = ({ navigation, route }) => {
       recorderVisible.value = true;
       runOnJS(startRecord)();
     })
-    .onUpdate(({ translationX, translationY }) => {
+    .onUpdate(({translationX, translationY}) => {
       // console.log('onUpdate', translationX, translationY);
       if (
         translationX > 0 &&
@@ -1292,21 +1134,67 @@ const Chat = ({ navigation, route }) => {
       isSureSend.value = false;
       runOnJS(setRecordFlag)('');
     })
-    .onEnd(({ velocityX, velocityY }) => {
+    .onEnd(({velocityX, velocityY}) => {
       // console.log('onEnd', velocityX, velocityY);
       recorderVisible.value = false;
       runOnJS(stopRecord)();
     });
 
-  /* 自定义下方内容 */
-  const AnimatedAccessoryStyles = useAnimatedStyle(() => {
+  /* 自定义左侧按钮 */
+  const [showMore, setShowMore] = useState(false);
+  const rotate = useSharedValue('0deg');
+
+  const rotateAnimatedStyle = useAnimatedStyle(() => {
     return {
-      opacity: withTiming(showMore ? 1 : 0),
+      transform: [{rotate: rotate.value}],
     };
   });
-  const renderAccessory = props => {
+
+  useEffect(() => {
+    if (showMore) {
+      rotate.value = withTiming('45deg', {
+        easing: Easing.linear,
+        duration: 300,
+      });
+      if (uploadIds.length > 0) {
+        showToast('请先等待当前消息发送完成!', 'warning');
+        return;
+      }
+      if (userInGroupInfo.member_status === 'forbidden') {
+        showToast('你已被禁言，无法使用!', 'error');
+        return;
+      }
+    } else {
+      rotate.value = withTiming('0deg', {
+        easing: Easing.linear,
+        duration: 300,
+      });
+    }
+  }, [showMore]);
+
+  const renderActions = () => {
     return (
-      <Animated.View style={AnimatedAccessoryStyles}>
+      <View flexS center style={{marginBottom: fullHeight * 0.008}}>
+        <TouchableOpacity
+          onPress={() => {
+            setShowMore(!showMore);
+          }}>
+          <Animated.View style={rotateAnimatedStyle}>
+            <Ionicons
+              name="add-circle-outline"
+              color={Colors.Primary}
+              size={34}
+            />
+          </Animated.View>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
+  /* 自定义下方内容 */
+  const renderAccessory = props => {
+    return showMore ? (
+      <Animated.View entering={FadeInDown} exiting={FadeOutDown}>
         <View flexS row paddingT-8 paddingH-8 spread>
           <TouchableOpacity
             flexS
@@ -1449,7 +1337,7 @@ const Chat = ({ navigation, route }) => {
                   allowMultiSelection: true,
                 })
                   .then(medias => {
-                    console.log('文件:', medias);
+                    // console.log('文件:', medias);
                     sendMediaMsg(medias, 'folder');
                   })
                   .finally(() => {
@@ -1474,7 +1362,7 @@ const Chat = ({ navigation, route }) => {
           </View>
         </View>
       </Animated.View>
-    );
+    ) : null;
   };
 
   /* 其他状态 */
@@ -1516,7 +1404,7 @@ const Chat = ({ navigation, route }) => {
   return (
     <>
       <GiftedChat
-        messageContainerRef={Ref => setFlatListRef(Ref)}
+        messageContainerRef={flatListRef}
         placeholder={
           userInGroupInfo.member_status === 'forbidden'
             ? '您已被禁言!'
@@ -1554,11 +1442,11 @@ const Chat = ({ navigation, route }) => {
         renderBubble={renderBubble}
         renderTicks={renderTicks}
         renderSend={renderSend}
-        renderTime={() => { }}
+        renderTime={() => {}}
         renderActions={renderActions}
         renderInputToolbar={renderInputToolbar}
         renderComposer={renderComposer}
-        renderAccessory={showMore ? renderAccessory : null}
+        renderAccessory={renderAccessory}
         renderMessageImage={renderMessageImage}
         renderMessageVideo={renderMessageVideo}
         renderMessageAudio={renderMessageAudio}
@@ -1566,17 +1454,7 @@ const Chat = ({ navigation, route }) => {
         renderMessageText={renderFileMessage}
         onSend={msgs => onSend(msgs)}
         shouldUpdateMessage={(curProps, nextProps) => {
-          const clientMsg_id = curProps.currentMessage.clientMsg_id;
-          const message_id = curProps.currentMessage._id;
-          return (
-            successVideoIds.length ||
-            successVideoIds.includes(clientMsg_id) ||
-            ErrorVideoIds.includes(clientMsg_id) > 0 ||
-            nowSendId === message_id ||
-            uploadIds.includes(message_id) ||
-            nowReadyAudioId !== null ||
-            downloadProgress > 0
-          );
+          return nowReadyAudioId !== null;
         }}
         textInputProps={{
           readOnly: userInGroupInfo.member_status === 'forbidden',
@@ -1614,7 +1492,8 @@ const Chat = ({ navigation, route }) => {
         OnError={e => {
           showToast('视频加载失败', 'error');
           console.log(e);
-        }} />
+        }}
+      />
 
       {/* 语音录制弹窗 */}
       <Animated.View style={[AnimatedRadioStyles, styles.radioTips]}>
@@ -1681,11 +1560,11 @@ const Chat = ({ navigation, route }) => {
           <FlatList
             data={groupMembers}
             keyExtractor={(item, index) => item + index}
-            renderItem={({ item, index }) => renderMemberList(item, index)}
+            renderItem={({item, index}) => renderMemberList(item, index)}
           />
         </View>
       </Modal>
-      {loadingMsg && searchMsgCId ? (
+      {loadingMsg && searchMsg_cid ? (
         <LoaderScreen
           message={'跳转中...'}
           color={Colors.Primary}
@@ -1698,6 +1577,32 @@ const Chat = ({ navigation, route }) => {
 };
 
 const styles = StyleSheet.create({
+  sendContainerStyle: {
+    backgroundColor: Colors.Primary,
+    borderRadius: 8,
+    margin: 8,
+    height: 30,
+  },
+  sendTextStyle: {
+    color: Colors.white,
+    fontSize: 14,
+    position: 'relative',
+    top: fullHeight * 0.006,
+  },
+  inputToolbarContainerStyle: {
+    paddingRight: 6,
+    paddingLeft: 10,
+    paddingVertical: 8,
+  },
+  textInputStyle: {
+    backgroundColor: Colors.$backgroundNeutral,
+    borderRadius: 8,
+    padding: 8,
+    lineHeight: 22,
+  },
+  inputToolbarAccessoryStyle: {paddingLeft: 26},
+  DayContainerStyle: {marginVertical: 20},
+  DayTextStyle: {color: Colors.grey40, fontWeight: 'normal'},
   rightLine: {
     borderRightColor: Colors.grey40,
   },
@@ -1710,38 +1615,6 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 8,
-  },
-  image: {
-    width: 150,
-    height: 100,
-    borderRadius: 12,
-    margin: 3,
-    resizeMode: 'cover',
-  },
-  video: {
-    width: 150,
-    height: 270,
-    borderRadius: 12,
-    backgroundColor: 'transparent',
-    overflow: 'hidden',
-  },
-  videoControl: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    position: 'absolute',
-    alignItems: 'center',
-    justifyContent: 'center',
-    top: 4,
-    left: 4,
-    borderRadius: 12,
-  },
-  videoTime: {
-    position: 'absolute',
-    bottom: 8,
-    right: 8,
-    color: Colors.white,
-    fontSize: 12,
   },
   sureBut: {
     position: 'absolute',
@@ -1815,7 +1688,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
   },
-
 });
 
 export default Chat;

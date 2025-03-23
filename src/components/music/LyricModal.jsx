@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {StyleSheet, Modal, ImageBackground} from 'react-native';
 import {useSelector} from 'react-redux';
 import {
@@ -10,10 +10,11 @@ import {
   Slider,
   Carousel,
 } from 'react-native-ui-lib';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import AntDesign from 'react-native-vector-icons/AntDesign';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import {fullHeight, fullWidth, statusBarHeight} from '../../styles';
-import {formatMilliseconds} from '../../utils/base';
+import {formatMilliseconds, isEmptyString} from '../../utils/base';
+import Animated, {FadeInUp, FadeOutDown} from 'react-native-reanimated';
 import LrcView from './LrcView';
 
 const LyricModal = props => {
@@ -37,6 +38,7 @@ const LyricModal = props => {
   const userInfo = useSelector(state => state.userStore.userInfo);
 
   const {musicMore} = Music || {};
+  const [nowLyric, setNowLyric] = useState('');
 
   return (
     <Modal
@@ -55,11 +57,15 @@ const LyricModal = props => {
             uri: STATIC_URL + (musicMore?.music_cover || userInfo?.user_avatar),
           }}
           resizeMode="cover">
-          <TouchableOpacity paddingT-48 paddingL-16 onPress={OnClose}>
+          <TouchableOpacity paddingT-48 paddingL-22 onPress={OnClose}>
             <AntDesign name="close" color={Colors.white} size={24} />
           </TouchableOpacity>
           <Carousel
-            // onChangePage={onChangePage}
+            pageControlPosition={Carousel.pageControlPositions.UNDER}
+            pageControlProps={{
+              color: Colors.white,
+              inactiveColor: Colors.hyalineWhite,
+            }}
             pageWidth={fullWidth}
             itemSpacings={0}
             containerMarginHorizontal={0}
@@ -81,16 +87,26 @@ const LyricModal = props => {
                     <Text text50BO white>
                       {Music?.title ?? '还没有要播放的音乐 ~'}
                     </Text>
-                    <Text marginT-8 white text70>
+                    <Text marginT-6 white text70>
                       {Music?.artists?.join(' / ') || '未知歌手'}
                     </Text>
                   </View>
                   <TouchableOpacity style={styles.musicBut}>
-                    <AntDesign name="hearto" color={Colors.white} size={20} />
+                    <AntDesign name="hearto" color={Colors.white} size={22} />
                   </TouchableOpacity>
                 </View>
+                {isEmptyString(nowLyric) ? null : (
+                  <Animated.View
+                    entering={FadeInUp}
+                    exiting={FadeOutDown}
+                    key={nowLyric}>
+                    <Text numberOfLines={1} width={fullWidth * 0.8} grey60>
+                      {nowLyric}
+                    </Text>
+                  </Animated.View>
+                )}
                 {Music?.sampleRate ? (
-                  <View marginT-24 row centerV spread>
+                  <View marginT-12 row centerV spread>
                     <Text white text100L>
                       采样率：{Music.sampleRate} Hz
                     </Text>
@@ -106,10 +122,13 @@ const LyricModal = props => {
                     maximumValue={PlayProgress?.duration ?? 100}
                     maximumTrackTintColor={Colors.white}
                     thumbTintColor={Colors.Primary}
+                    thumbStyle={styles.thumbStyle}
+                    trackStyle={styles.trackStyle}
+                    disableActiveStyling={true}
                     minimumTrackTintColor={Colors.Primary}
                     onValueChange={OnSliderChange}
                   />
-                  <View row centerV spread marginT-4>
+                  <View row centerV spread>
                     <Text text90L white>
                       {formatMilliseconds(PlayProgress?.currentPosition ?? 0)}
                     </Text>
@@ -118,63 +137,55 @@ const LyricModal = props => {
                     </Text>
                   </View>
                 </View>
-                <View row centerV spread marginT-16 paddingH-16>
+                <View row centerV spread marginT-16>
                   <TouchableOpacity
                     style={styles.musicBut}
                     onPress={OnChangeMode}>
                     {PlayMode === 'order' ? (
-                      <FontAwesome
-                        name="long-arrow-right"
-                        color={Colors.white}
-                        size={20}
-                      />
+                      <Ionicons name="repeat" color={Colors.white} size={30} />
                     ) : PlayMode === 'random' ? (
-                      <FontAwesome
-                        name="refresh"
-                        color={Colors.white}
-                        size={20}
-                      />
+                      <Ionicons name="shuffle" color={Colors.white} size={30} />
                     ) : PlayMode === 'single' ? (
-                      <FontAwesome
-                        name="repeat"
-                        color={Colors.white}
-                        size={20}
-                      />
+                      <Ionicons name="reload" color={Colors.white} size={24} />
                     ) : null}
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.musicBut}
                     onPress={OnBackWard}>
-                    <FontAwesome
-                      name="step-backward"
+                    <Ionicons
+                      name="play-skip-back-sharp"
                       color={Colors.white}
                       size={24}
                     />
                   </TouchableOpacity>
                   <TouchableOpacity onPress={OnPlay}>
                     {IsPlaying ? (
-                      <FontAwesome
-                        name="pause-circle"
+                      <Ionicons
+                        name="pause-circle-outline"
                         color={Colors.white}
-                        size={60}
+                        size={64}
                       />
                     ) : (
-                      <FontAwesome
-                        name="play-circle"
+                      <Ionicons
+                        name="play-circle-outline"
                         color={Colors.white}
-                        size={60}
+                        size={64}
                       />
                     )}
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.musicBut} onPress={OnForWard}>
-                    <FontAwesome
-                      name="step-forward"
+                    <Ionicons
+                      name="play-skip-forward-sharp"
                       color={Colors.white}
                       size={24}
                     />
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.musicBut} onPress={OnMain}>
-                    <FontAwesome name="bars" color={Colors.white} size={20} />
+                    <AntDesign
+                      name="menu-fold"
+                      color={Colors.white}
+                      size={20}
+                    />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -182,7 +193,11 @@ const LyricModal = props => {
             <View>
               <LrcView
                 Music={musicMore}
+                Cover={
+                  STATIC_URL + (musicMore?.music_cover || userInfo?.user_avatar)
+                }
                 CurrentTime={PlayProgress?.currentPosition}
+                OnLyricsChange={setNowLyric}
               />
             </View>
           </Carousel>
@@ -215,9 +230,18 @@ const styles = StyleSheet.create({
   bigImage: {
     width: fullWidth * 0.86,
     height: fullWidth * 0.86,
-    borderRadius: 40,
+    borderRadius: 20,
     borderColor: Colors.white,
     borderWidth: 1,
+  },
+  trackStyle: {
+    height: 3,
+  },
+  thumbStyle: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    borderWidth: 2,
   },
 });
 

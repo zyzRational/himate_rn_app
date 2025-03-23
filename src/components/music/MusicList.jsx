@@ -21,7 +21,6 @@ import {
   setPlayList,
   addPlayList,
   unshiftPlayList,
-  fetchMusicDetail,
 } from '../../stores/store-slice/musicStore';
 import {useToast} from '../commom/Toast';
 import {isEmptyObject} from '../../utils/base';
@@ -418,9 +417,7 @@ const MusicList = props => {
                 flexG
                 marginB-6
                 enableShadow={false}
-                backgroundColor={
-                  playingMusic?.id === item.id ? Colors.blue80 : Colors.white
-                }>
+                backgroundColor={Colors.white}>
                 <TouchableOpacity
                   flexS
                   centerV
@@ -439,10 +436,27 @@ const MusicList = props => {
                   }}>
                   <View row spread centerV>
                     <View width={'80%'}>
-                      <Text text80BO grey10>
+                      <Text
+                        text80BO
+                        grey10
+                        numberOfLines={1}
+                        color={
+                          playingMusic?.id === item.id
+                            ? Colors.Primary
+                            : Colors.grey10
+                        }>
                         {item.title}
                       </Text>
-                      <Text text90L grey30 marginT-4>
+                      <Text
+                        text90L
+                        grey30
+                        marginT-4
+                        numberOfLines={1}
+                        color={
+                          playingMusic?.id === item.id
+                            ? Colors.Primary
+                            : Colors.grey10
+                        }>
                         {(item.artists && item.artists?.length > 0
                           ? item.artists.join('/')
                           : '未知歌手') +
@@ -457,10 +471,10 @@ const MusicList = props => {
                           dispatch(addPlayList([item]));
                           showToast('已添加到播放列表', 'success');
                         }}>
-                        <FontAwesome
-                          name="plus-circle"
+                        <AntDesign
+                          name="pluscircleo"
                           color={Colors.grey50}
-                          size={24}
+                          size={20}
                         />
                       </TouchableOpacity>
                       {isMultiSelect || IsLocal ? null : (
@@ -471,8 +485,8 @@ const MusicList = props => {
                             setNowMusic(item);
                             setModalVisible(true);
                           }}>
-                          <FontAwesome
-                            name="th-list"
+                          <AntDesign
+                            name="menuunfold"
                             color={Colors.grey50}
                             size={20}
                           />

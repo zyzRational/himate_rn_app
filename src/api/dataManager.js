@@ -2,11 +2,11 @@ import instance from '../utils/request/http';
 
 // 获取用户上传的文件列表
 export const getUserUploadFiles = data =>
-  instance.get('api/upload/list', {params: data});
+  instance.get('api/file/list', {params: data});
 
 // 删除用户上传的文件
 export const delUserUploadFiles = data =>
-  instance.delete('api/upload/del', {params: data});
+  instance.delete('api/file/del', {params: data});
 
 // 获取用户所有消息
 export const getUserMsgList = data =>

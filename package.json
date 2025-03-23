@@ -33,6 +33,7 @@
     "react-native-blob-util": "^0.21.2",
     "react-native-bootsplash": "^6.2.6",
     "react-native-circular-progress": "^1.4.1",
+    "react-native-compressor": "^1.11.0",
     "react-native-device-info": "^13.0.0",
     "react-native-document-picker": "^9.3.1",
     "react-native-dotenv": "^3.4.11",
