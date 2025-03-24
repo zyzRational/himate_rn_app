@@ -15,7 +15,9 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import {fullHeight, fullWidth, statusBarHeight} from '../../styles';
 import {formatMilliseconds, isEmptyString} from '../../utils/base';
 import Animated, {FadeInUp, FadeOutDown} from 'react-native-reanimated';
+import {getColors} from 'react-native-image-colors';
 import LrcView from './LrcView';
+import KeepAwake from '@sayem314/react-native-keep-awake';
 
 const LyricModal = props => {
   const {
@@ -40,6 +42,15 @@ const LyricModal = props => {
   const {musicMore} = Music || {};
   const [nowLyric, setNowLyric] = useState('');
 
+  React.useEffect(() => {
+    getColors(STATIC_URL + musicMore?.music_cover, {
+      fallback: '#ffffff',
+      cache: false,
+    }).then(res => {
+      console.log(res);
+    });
+  }, [musicMore]);
+
   return (
     <Modal
       animationType="fade"
@@ -47,11 +58,12 @@ const LyricModal = props => {
       visible={Visible}
       statusBarTranslucent
       onRequestClose={OnClose}>
+      <KeepAwake />
       <View
         height={fullHeight + statusBarHeight}
         backgroundColor={Colors.hyalineGrey}>
         <ImageBackground
-          blurRadius={40}
+          blurRadius={50}
           style={styles.backImage}
           source={{
             uri: STATIC_URL + (musicMore?.music_cover || userInfo?.user_avatar),

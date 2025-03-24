@@ -7,12 +7,10 @@ import {
   Colors,
   TouchableOpacity,
   Card,
-  Slider,
   LoaderScreen,
   Avatar,
 } from 'react-native-ui-lib';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import AntDesign from 'react-native-vector-icons/AntDesign';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {
   GiftedChat,
@@ -89,6 +87,7 @@ import VideoModal from '../../../components/commom/VideoModal';
 import ImgModal from '../../../components/commom/ImgModal';
 import VideoMsg from '../../../components/message/VideoMsg';
 import ImageMsg from '../../../components/message/ImageMsg';
+import AudioMsg from '../../../components/message/AudioMsg';
 import 'dayjs/locale/zh-cn';
 
 const audioRecorderPlayer = new AudioRecorderPlayer();
@@ -655,10 +654,20 @@ const Chat = ({navigation, route}) => {
   /* 选择@对象 */
   const [showMebers, setShowMebers] = useState(false);
   useEffect(() => {
-    if (chat_type === 'group' && msgText.endsWith('@')) {
-      setShowMebers(true);
-    }
+    handleTextChange(msgText);
   }, [msgText]);
+
+  // 处理文本变化
+  const handleTextChange = text => {
+    if (chat_type === 'group' && msgText.endsWith('@')) {
+      // 检查是否输入了@
+      const lastAtPos = text.lastIndexOf('@');
+      const lastSpacePos = text.lastIndexOf(' ');
+      if (lastAtPos >= 0 && (lastSpacePos < lastAtPos || lastSpacePos === -1)) {
+        setShowMebers(true);
+      }
+    }
+  };
 
   /* 加载更多 */
   const renderLoadEarlier = props => {
@@ -920,7 +929,6 @@ const Chat = ({navigation, route}) => {
     } else {
       audioRecorderPlayer.stopPlayer();
     }
-    width.value = withSpring('auto');
     setNowReadyAudioId(clientMsg_id);
     audioRecorderPlayer
       .startPlayer(audio)
@@ -933,84 +941,38 @@ const Chat = ({navigation, route}) => {
       });
   };
 
-  const width = useSharedValue('auto');
   const renderMessageAudio = props => {
     const audioMsg = props.currentMessage;
-    if (audioMsg.audio) {
+    if (audioMsg?.audio) {
       return (
-        <Animated.View style={{...styles.audioBut, width}}>
-          <TouchableOpacity
-            onPress={() => playAudio(audioMsg)}
-            onLongPress={() => {
-              Vibration.vibrate(50);
-              setSavePath(audioMsg.audio);
-              setIsInCameraRoll(false);
-              setShowActionSheet(true);
-            }}
-            row
-            centerV
-            paddingV-6
-            paddingH-12>
-            {nowReadyAudioId === audioMsg.clientMsg_id ? (
-              <>
-                {audioIsPlaying ? (
-                  <TouchableOpacity
-                    onPress={() => {
-                      audioRecorderPlayer
-                        .pausePlayer()
-                        .then(() => setAudioIsPlaying(false));
-                    }}>
-                    <AntDesign
-                      name="pausecircle"
-                      color={
-                        audioMsg.user._id === 1 ? Colors.Primary : Colors.grey10
-                      }
-                      size={20}
-                    />
-                  </TouchableOpacity>
-                ) : (
-                  <TouchableOpacity
-                    onPress={() => {
-                      audioRecorderPlayer
-                        .startPlayer()
-                        .then(() => setAudioIsPlaying(true));
-                    }}>
-                    <AntDesign
-                      name="playcircleo"
-                      color={
-                        audioMsg.user._id === 1 ? Colors.Primary : Colors.grey10
-                      }
-                      size={20}
-                    />
-                  </TouchableOpacity>
-                )}
-                <View row centerV marginL-8>
-                  <View style={styles.audioProgress}>
-                    <Slider
-                      thumbStyle={styles.audioThumb}
-                      value={audioPlayprogress?.currentPosition}
-                      minimumValue={0}
-                      maximumValue={audioPlayprogress?.duration}
-                      minimumTrackTintColor={Colors.Primary}
-                      onValueChange={value => {
-                        audioRecorderPlayer.seekToPlayer(value);
-                      }}
-                    />
-                  </View>
-                  <Text marginL-4 grey30 text90L>
-                    {Math.round(audioPlayprogress?.duration / 1000)}s
-                  </Text>
-                </View>
-              </>
-            ) : (
-              <FontAwesome
-                name="volume-down"
-                color={audioMsg.user._id === 1 ? Colors.Primary : Colors.grey10}
-                size={24}
-              />
-            )}
-          </TouchableOpacity>
-        </Animated.View>
+        <AudioMsg
+          Msg={audioMsg}
+          OnPress={() => {
+            playAudio(audioMsg);
+          }}
+          OnLongPress={() => {
+            Vibration.vibrate(50);
+            setSavePath(audioMsg.audio);
+            setIsInCameraRoll(false);
+            setShowActionSheet(true);
+          }}
+          NowReadyAudioId={nowReadyAudioId}
+          AudioPlayprogress={audioPlayprogress}
+          AudioIsPlaying={audioIsPlaying}
+          OnPause={() => {
+            audioRecorderPlayer
+              .pausePlayer()
+              .then(() => setAudioIsPlaying(false));
+          }}
+          OnPlay={() => {
+            audioRecorderPlayer
+              .resumePlayer()
+              .then(() => setAudioIsPlaying(true));
+          }}
+          OnValueChange={value => {
+            audioRecorderPlayer.seekToPlayer(value);
+          }}
+        />
       );
     }
   };
@@ -1453,9 +1415,6 @@ const Chat = ({navigation, route}) => {
         renderSystemMessage={renderSystemMessage}
         renderMessageText={renderFileMessage}
         onSend={msgs => onSend(msgs)}
-        shouldUpdateMessage={(curProps, nextProps) => {
-          return nowReadyAudioId !== null;
-        }}
         textInputProps={{
           readOnly: userInGroupInfo.member_status === 'forbidden',
         }}
@@ -1643,22 +1602,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0,0,0,0.4)',
-  },
-  audioBut: {
-    backgroundColor: Colors.white,
-    borderRadius: 8,
-    minWidth: 80,
-    justifyContent: 'center',
-    marginVertical: 4,
-  },
-  audioProgress: {
-    width: 50,
-  },
-  audioThumb: {
-    width: 1,
-    backgroundColor: Colors.red30,
-    borderWidth: 1,
-    borderColor: Colors.red30,
   },
   imageContainer: {
     width: '100%',
