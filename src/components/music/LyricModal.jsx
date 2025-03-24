@@ -16,6 +16,7 @@ import {fullHeight, fullWidth, statusBarHeight} from '../../styles';
 import {formatMilliseconds, isEmptyString} from '../../utils/base';
 import Animated, {FadeInUp, FadeOutDown} from 'react-native-reanimated';
 import {getColors} from 'react-native-image-colors';
+import {getWhitenessScore} from '../../utils/handle/colorHandle';
 import LrcView from './LrcView';
 import KeepAwake from '@sayem314/react-native-keep-awake';
 
@@ -47,7 +48,18 @@ const LyricModal = props => {
       fallback: '#ffffff',
       cache: false,
     }).then(res => {
-      console.log(res);
+      if (res.platform === 'android') {
+        const num = getWhitenessScore(res.dominant);
+        num > 87
+          ? Colors.loadColors({lyricColor: Colors.grey10})
+          : Colors.loadColors({lyricColor: Colors.white});
+      }
+      if (res.platform === 'ios') {
+        const num = getWhitenessScore(res.background);
+        num > 87
+          ? Colors.loadColors({lyricColor: Colors.grey10})
+          : Colors.loadColors({lyricColor: Colors.white});
+      }
     });
   }, [musicMore]);
 
@@ -70,12 +82,12 @@ const LyricModal = props => {
           }}
           resizeMode="cover">
           <TouchableOpacity paddingT-48 paddingL-22 onPress={OnClose}>
-            <AntDesign name="close" color={Colors.white} size={24} />
+            <AntDesign name="close" color={Colors.lyricColor} size={24} />
           </TouchableOpacity>
           <Carousel
             pageControlPosition={Carousel.pageControlPositions.UNDER}
             pageControlProps={{
-              color: Colors.white,
+              color: Colors.lyricColor,
               inactiveColor: Colors.hyalineWhite,
             }}
             pageWidth={fullWidth}
@@ -96,15 +108,19 @@ const LyricModal = props => {
               <View padding-26>
                 <View row centerV spread marginT-12>
                   <View flexS>
-                    <Text text50BO white>
+                    <Text text50BO color={Colors.lyricColor}>
                       {Music?.title ?? '还没有要播放的音乐 ~'}
                     </Text>
-                    <Text marginT-6 white text70>
+                    <Text marginT-6 color={Colors.lyricColor} text70>
                       {Music?.artists?.join(' / ') || '未知歌手'}
                     </Text>
                   </View>
                   <TouchableOpacity style={styles.musicBut}>
-                    <AntDesign name="hearto" color={Colors.white} size={22} />
+                    <AntDesign
+                      name="hearto"
+                      color={Colors.lyricColor}
+                      size={22}
+                    />
                   </TouchableOpacity>
                 </View>
                 {isEmptyString(nowLyric) ? null : (
@@ -112,17 +128,20 @@ const LyricModal = props => {
                     entering={FadeInUp}
                     exiting={FadeOutDown}
                     key={nowLyric}>
-                    <Text numberOfLines={1} width={fullWidth * 0.8} grey60>
+                    <Text
+                      numberOfLines={1}
+                      width={fullWidth * 0.8}
+                      color={Colors.lyricColor}>
                       {nowLyric}
                     </Text>
                   </Animated.View>
                 )}
                 {Music?.sampleRate ? (
                   <View marginT-12 row centerV spread>
-                    <Text white text100L>
+                    <Text color={Colors.lyricColor} text100L>
                       采样率：{Music.sampleRate} Hz
                     </Text>
-                    <Text white text100L>
+                    <Text color={Colors.lyricColor} text100L>
                       比特率：{Music.bitrate} Hz
                     </Text>
                   </View>
@@ -132,7 +151,7 @@ const LyricModal = props => {
                     value={PlayProgress?.currentPosition ?? 0}
                     minimumValue={0}
                     maximumValue={PlayProgress?.duration ?? 100}
-                    maximumTrackTintColor={Colors.white}
+                    maximumTrackTintColor={Colors.lyricColor}
                     thumbTintColor={Colors.Primary}
                     thumbStyle={styles.thumbStyle}
                     trackStyle={styles.trackStyle}
@@ -141,10 +160,10 @@ const LyricModal = props => {
                     onValueChange={OnSliderChange}
                   />
                   <View row centerV spread>
-                    <Text text90L white>
+                    <Text text90L color={Colors.lyricColor}>
                       {formatMilliseconds(PlayProgress?.currentPosition ?? 0)}
                     </Text>
-                    <Text text90L white>
+                    <Text text90L color={Colors.lyricColor}>
                       {formatMilliseconds(PlayProgress?.duration ?? 0)}
                     </Text>
                   </View>
@@ -154,11 +173,23 @@ const LyricModal = props => {
                     style={styles.musicBut}
                     onPress={OnChangeMode}>
                     {PlayMode === 'order' ? (
-                      <Ionicons name="repeat" color={Colors.white} size={30} />
+                      <Ionicons
+                        name="repeat"
+                        color={Colors.lyricColor}
+                        size={30}
+                      />
                     ) : PlayMode === 'random' ? (
-                      <Ionicons name="shuffle" color={Colors.white} size={30} />
+                      <Ionicons
+                        name="shuffle"
+                        color={Colors.lyricColor}
+                        size={30}
+                      />
                     ) : PlayMode === 'single' ? (
-                      <Ionicons name="reload" color={Colors.white} size={24} />
+                      <Ionicons
+                        name="reload"
+                        color={Colors.lyricColor}
+                        size={24}
+                      />
                     ) : null}
                   </TouchableOpacity>
                   <TouchableOpacity
@@ -166,7 +197,7 @@ const LyricModal = props => {
                     onPress={OnBackWard}>
                     <Ionicons
                       name="play-skip-back-sharp"
-                      color={Colors.white}
+                      color={Colors.lyricColor}
                       size={24}
                     />
                   </TouchableOpacity>
@@ -174,13 +205,13 @@ const LyricModal = props => {
                     {IsPlaying ? (
                       <Ionicons
                         name="pause-circle-outline"
-                        color={Colors.white}
+                        color={Colors.lyricColor}
                         size={64}
                       />
                     ) : (
                       <Ionicons
                         name="play-circle-outline"
-                        color={Colors.white}
+                        color={Colors.lyricColor}
                         size={64}
                       />
                     )}
@@ -188,14 +219,14 @@ const LyricModal = props => {
                   <TouchableOpacity style={styles.musicBut} onPress={OnForWard}>
                     <Ionicons
                       name="play-skip-forward-sharp"
-                      color={Colors.white}
+                      color={Colors.lyricColor}
                       size={24}
                     />
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.musicBut} onPress={OnMain}>
                     <AntDesign
                       name="menu-fold"
-                      color={Colors.white}
+                      color={Colors.lyricColor}
                       size={20}
                     />
                   </TouchableOpacity>
@@ -243,7 +274,7 @@ const styles = StyleSheet.create({
     width: fullWidth * 0.86,
     height: fullWidth * 0.86,
     borderRadius: 20,
-    borderColor: Colors.white,
+    borderColor: Colors.lyricColor,
     borderWidth: 1,
   },
   trackStyle: {

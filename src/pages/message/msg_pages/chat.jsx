@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-inline-styles */
 import React, {useEffect, useCallback, useState, useRef} from 'react';
 import {ActivityIndicator, StyleSheet, Vibration, Modal} from 'react-native';
 import {
@@ -582,9 +583,19 @@ const Chat = ({navigation, route}) => {
     return (
       <Send
         {...props}
-        containerStyle={styles.sendContainerStyle}
+        containerStyle={{
+          backgroundColor: Colors.Primary,
+          borderRadius: 8,
+          margin: 8,
+          height: 30,
+        }}
         label="发送"
-        textStyle={styles.sendTextStyle}
+        textStyle={{
+          color: Colors.white,
+          fontSize: 14,
+          position: 'relative',
+          top: fullHeight * 0.006,
+        }}
       />
     );
   };
@@ -653,21 +664,23 @@ const Chat = ({navigation, route}) => {
 
   /* 选择@对象 */
   const [showMebers, setShowMebers] = useState(false);
+  const prevMsgTextRef = useRef('');
   useEffect(() => {
-    handleTextChange(msgText);
-  }, [msgText]);
-
-  // 处理文本变化
-  const handleTextChange = text => {
-    if (chat_type === 'group' && msgText.endsWith('@')) {
-      // 检查是否输入了@
-      const lastAtPos = text.lastIndexOf('@');
-      const lastSpacePos = text.lastIndexOf(' ');
-      if (lastAtPos >= 0 && (lastSpacePos < lastAtPos || lastSpacePos === -1)) {
+    if (chat_type === 'group') {
+      if (
+        msgText.endsWith('@') &&
+        msgText.length > prevMsgTextRef.current.length
+      ) {
         setShowMebers(true);
+      } else if (
+        !msgText.endsWith('@') &&
+        prevMsgTextRef.current.endsWith('@')
+      ) {
+        setShowMebers(false);
       }
     }
-  };
+    prevMsgTextRef.current = msgText;
+  }, [msgText]);
 
   /* 加载更多 */
   const renderLoadEarlier = props => {
@@ -1536,18 +1549,6 @@ const Chat = ({navigation, route}) => {
 };
 
 const styles = StyleSheet.create({
-  sendContainerStyle: {
-    backgroundColor: Colors.Primary,
-    borderRadius: 8,
-    margin: 8,
-    height: 30,
-  },
-  sendTextStyle: {
-    color: Colors.white,
-    fontSize: 14,
-    position: 'relative',
-    top: fullHeight * 0.006,
-  },
   inputToolbarContainerStyle: {
     paddingRight: 6,
     paddingLeft: 10,

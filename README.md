@@ -149,7 +149,7 @@ RELEASE_KEY_PASSWORD=
 
 ### 优化
 
-1，升级react-native-gifted-chat组件到2.6.5后，新增相对时间计算，但不太符合国内使用习惯可进行如下优化
+1，升级react-native-gifted-chat组件到2.8.0后，新增相对时间计算，但不太符合国内使用习惯可进行如下优化
 
 ./node_modules/react-native-gifted-chat/lib/Constant.js
 

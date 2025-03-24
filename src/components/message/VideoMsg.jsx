@@ -13,7 +13,7 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import Video from 'react-native-video';
 import {formatSeconds} from '../../utils/base';
 
-const VideoMsg = props => {
+const VideoMsg = React.memo(props => {
   const {
     Msg = '',
     OnPress = () => {},
@@ -89,7 +89,7 @@ const VideoMsg = props => {
       ) : null}
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   video: {

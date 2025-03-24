@@ -7,7 +7,7 @@ import {
   Image,
 } from 'react-native-ui-lib';
 
-const ImageMsg = props => {
+const ImageMsg = React.memo(props => {
   const {
     Msg = {},
     OnPress = () => {},
@@ -30,7 +30,7 @@ const ImageMsg = props => {
       ) : null}
     </TouchableOpacity>
   );
-};
+});
 
 const styles = StyleSheet.create({
   image: {

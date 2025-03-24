@@ -323,6 +323,116 @@ const MusicList = props => {
     }
   }, [userInfo]);
 
+  const renderItem = ({item}) => (
+    <View row centerV>
+      {isMultiSelect ? (
+        <Checkbox
+          marginR-12
+          color={Colors.Primary}
+          size={20}
+          borderRadius={10}
+          value={selectedItems.includes(item.id)}
+          onValueChange={value => {
+            if (value) {
+              setSelectedItems(prevItem => {
+                const newItem = [...prevItem, item.id];
+                return newItem;
+              });
+            } else {
+              setSelectedItems(prevItem => {
+                const newItem = prevItem.filter(id => id !== item.id);
+                return newItem;
+              });
+            }
+          }}
+        />
+      ) : null}
+      <Card
+        flexG
+        marginB-6
+        enableShadow={false}
+        backgroundColor={Colors.white}>
+        <TouchableOpacity
+          flexS
+          centerV
+          padding-12
+          onLongPress={() => {
+            if (IsLocal) {
+              return;
+            }
+            setIsMultiSelect(true);
+            Vibration.vibrate(50);
+          }}
+          onPress={() => {
+            OnPress(item);
+            dispatch(setPlayingMusic(item));
+            dispatch(unshiftPlayList([item]));
+          }}>
+          <View row spread centerV>
+            <View width={'80%'}>
+              <Text
+                text80BO
+                grey10
+                numberOfLines={1}
+                color={
+                  playingMusic?.id === item.id
+                    ? Colors.Primary
+                    : Colors.grey10
+                }>
+                {item.title}
+              </Text>
+              <Text
+                text90L
+                grey30
+                marginT-4
+                numberOfLines={1}
+                color={
+                  playingMusic?.id === item.id
+                    ? Colors.Primary
+                    : Colors.grey10
+                }>
+                {(item.artists && item.artists?.length > 0
+                  ? item.artists.join('/')
+                  : '未知歌手') +
+                  ' - ' +
+                  (item.album ?? '未知专辑')}
+              </Text>
+            </View>
+            <View row bottom centerV spread>
+              <TouchableOpacity
+                style={styles.musicBut}
+                onPress={() => {
+                  dispatch(addPlayList([item]));
+                  showToast('已添加到播放列表', 'success');
+                }}>
+                <AntDesign
+                  name="pluscircleo"
+                  color={Colors.grey50}
+                  size={20}
+                />
+              </TouchableOpacity>
+              {isMultiSelect || IsLocal ? null : (
+                <TouchableOpacity
+                  style={styles.musicBut}
+                  marginL-6
+                  onPress={() => {
+                    setNowMusic(item);
+                    setModalVisible(true);
+                  }}>
+                  <AntDesign
+                    name="menuunfold"
+                    color={Colors.grey50}
+                    size={20}
+                  />
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Card>
+    </View>
+  )
+
   return (
     <View>
       <View row centerV spread>
@@ -389,115 +499,7 @@ const MusicList = props => {
             OnEndReached();
           }}
           onEndReachedThreshold={0.6}
-          renderItem={({item}) => (
-            <View row centerV>
-              {isMultiSelect ? (
-                <Checkbox
-                  marginR-12
-                  color={Colors.Primary}
-                  size={20}
-                  borderRadius={10}
-                  value={selectedItems.includes(item.id)}
-                  onValueChange={value => {
-                    if (value) {
-                      setSelectedItems(prevItem => {
-                        const newItem = [...prevItem, item.id];
-                        return newItem;
-                      });
-                    } else {
-                      setSelectedItems(prevItem => {
-                        const newItem = prevItem.filter(id => id !== item.id);
-                        return newItem;
-                      });
-                    }
-                  }}
-                />
-              ) : null}
-              <Card
-                flexG
-                marginB-6
-                enableShadow={false}
-                backgroundColor={Colors.white}>
-                <TouchableOpacity
-                  flexS
-                  centerV
-                  padding-12
-                  onLongPress={() => {
-                    if (IsLocal) {
-                      return;
-                    }
-                    setIsMultiSelect(true);
-                    Vibration.vibrate(50);
-                  }}
-                  onPress={() => {
-                    OnPress(item);
-                    dispatch(setPlayingMusic(item));
-                    dispatch(unshiftPlayList([item]));
-                  }}>
-                  <View row spread centerV>
-                    <View width={'80%'}>
-                      <Text
-                        text80BO
-                        grey10
-                        numberOfLines={1}
-                        color={
-                          playingMusic?.id === item.id
-                            ? Colors.Primary
-                            : Colors.grey10
-                        }>
-                        {item.title}
-                      </Text>
-                      <Text
-                        text90L
-                        grey30
-                        marginT-4
-                        numberOfLines={1}
-                        color={
-                          playingMusic?.id === item.id
-                            ? Colors.Primary
-                            : Colors.grey10
-                        }>
-                        {(item.artists && item.artists?.length > 0
-                          ? item.artists.join('/')
-                          : '未知歌手') +
-                          ' - ' +
-                          (item.album ?? '未知专辑')}
-                      </Text>
-                    </View>
-                    <View row bottom centerV spread>
-                      <TouchableOpacity
-                        style={styles.musicBut}
-                        onPress={() => {
-                          dispatch(addPlayList([item]));
-                          showToast('已添加到播放列表', 'success');
-                        }}>
-                        <AntDesign
-                          name="pluscircleo"
-                          color={Colors.grey50}
-                          size={20}
-                        />
-                      </TouchableOpacity>
-                      {isMultiSelect || IsLocal ? null : (
-                        <TouchableOpacity
-                          style={styles.musicBut}
-                          marginL-6
-                          onPress={() => {
-                            setNowMusic(item);
-                            setModalVisible(true);
-                          }}>
-                          <AntDesign
-                            name="menuunfold"
-                            color={Colors.grey50}
-                            size={20}
-                          />
-                        </TouchableOpacity>
-                      )}
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              </Card>
-            </View>
-          )}
+          renderItem={renderItem}
           ListEmptyComponent={
             <View marginT-16 center>
               <Text text90L grey40>

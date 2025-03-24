@@ -17,8 +17,10 @@ const LrcView = props => {
   } = props;
   const {showToast} = useToast();
   const [parsedLrc, setParsedLrc] = useState([]);
+  const [parsedYrc, setParsedYrc] = useState([]);
   const flatListRef = useRef(null);
 
+  const [haveYrc, setHaveYrc] = useState(false);
   const [haveTrans, setHaveTrans] = useState(false);
   const [haveRoma, setHaveRoma] = useState(false);
   const [transVisible, setTransVisible] = useState(true);
@@ -47,10 +49,14 @@ const LrcView = props => {
     if (Music && !isEmptyObject(Music)) {
       const {
         Lyrics,
+        yrcLyrics,
+        haveYrc: _haveYrc,
         haveTrans: _haveTrans,
         haveRoma: _haveRoma,
       } = formatLrc(Music);
       setParsedLrc(Lyrics);
+      setParsedYrc(yrcLyrics);
+      setHaveYrc(_haveYrc);
       setHaveRoma(_haveRoma);
       setHaveTrans(_haveTrans);
     }
@@ -83,6 +89,7 @@ const LrcView = props => {
       <LrcItem
         Item={item}
         Index={index}
+        CurrentTime={CurrentTime}
         NowIndex={nowIndex}
         TransVisible={transVisible && haveTrans}
         RomaVisible={romaVisible && haveRoma}
@@ -102,10 +109,18 @@ const LrcView = props => {
           />
         ) : null}
         <View>
-          <Text white text70BO width={fullWidth * 0.78} numberOfLines={1}>
+          <Text
+            color={Colors.lyricColor}
+            text70BO
+            width={fullWidth * 0.78}
+            numberOfLines={1}>
             {Music?.music_name}
           </Text>
-          <Text white marginT-2 width={fullWidth * 0.78} numberOfLines={1}>
+          <Text
+            color={Colors.lyricColor}
+            marginT-2
+            width={fullWidth * 0.78}
+            numberOfLines={1}>
             {Music?.music_singer}
           </Text>
         </View>
@@ -114,9 +129,9 @@ const LrcView = props => {
         {parsedLrc.length ? (
           <FlatList
             ref={flatListRef}
-            data={parsedLrc}
+            data={parsedYrc}
             renderItem={renderItem}
-            keyExtractor={(item, index) => index.toString()}
+            keyExtractor={(item, index) => item.id + index.toString()}
             contentContainerStyle={styles.container}
             getItemLayout={(data, index) => {
               return {
@@ -134,16 +149,16 @@ const LrcView = props => {
           />
         ) : (
           <View height={'100%'} center>
-            <Text white text80>
+            <Text color={Colors.lyricColor} text80>
               此歌曲暂时还没有歌词哦 ~
             </Text>
           </View>
         )}
       </View>
-      {haveRoma || haveTrans ? (
+      {(haveRoma || haveTrans) && parsedLrc.length > 0 ? (
         <View style={styles.switchBut}>
           <TouchableOpacity style={styles.musicBut} onPress={switchLyric}>
-            <Ionicons name="sync-sharp" color={Colors.white} size={20} />
+            <Ionicons name="sync-sharp" color={Colors.lyricColor} size={20} />
           </TouchableOpacity>
         </View>
       ) : null}
@@ -154,12 +169,12 @@ const LrcView = props => {
 const styles = StyleSheet.create({
   lyricText: {
     fontSize: 16,
-    color: Colors.white,
+    color: Colors.lyricColor,
     width: '100%',
   },
   transText: {
     fontSize: 14,
-    color: Colors.white,
+    color: Colors.lyricColor,
     width: '100%',
     marginTop: 10,
   },
@@ -184,19 +199,19 @@ const styles = StyleSheet.create({
   },
   activeLine2: {
     fontSize: 16,
-    color: Colors.white,
+    color: Colors.lyricColor,
     fontWeight: 'bold',
   },
   switchBut: {
     position: 'absolute',
-    width: 32,
-    height: 32,
-    backgroundColor: Colors.hyalineWhite,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
     bottom: 16,
     right: 24,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.hyalineWhite,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   musicBut: {
     width: 30,

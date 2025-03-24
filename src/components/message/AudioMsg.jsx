@@ -10,7 +10,7 @@ import {
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
-const AudioMsg = props => {
+const AudioMsg = React.memo(props => {
   const {
     Msg = {},
     OnPress = () => {},
@@ -79,7 +79,7 @@ const AudioMsg = props => {
       </TouchableOpacity>
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   audioBut: {

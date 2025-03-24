@@ -18,14 +18,61 @@ export const parserLrc = lrc => {
     .filter(line => line !== null && !isEmptyString(line.text));
 };
 
+// 解析歌词函数
+export const parseYrcs = lyricsString => {
+  if (!lyricsString) {
+    return [];
+  }
+
+  // 分割各行
+  const lines = lyricsString.split('\n').filter(line => line.trim());
+
+  return lines
+    .map((line, index) => {
+      // 解析行信息 [startTime,duration]
+      const lineMatch = line.match(/^\[(\d+),(\d+)\]/);
+      if (!lineMatch) {
+        return null;
+      }
+
+      const startTime = parseInt(lineMatch[1], 10);
+      const duration = parseInt(lineMatch[2], 10);
+      const endTime = startTime + duration;
+
+      // 解析每个字
+      const wordRegex =
+        /([\p{Script=Hani}\p{Script=Hira}\p{Script=Kana}])\((\d+),(\d+)\)/gu;
+      const words = [];
+      let match;
+
+      while ((match = wordRegex.exec(line)) !== null) {
+        words.push({
+          char: match[1],
+          startTime: parseInt(match[2], 10),
+          duration: parseInt(match[3], 10),
+          endTime: parseInt(match[2], 10) + parseInt(match[3], 10),
+        });
+      }
+
+      return {
+        id: `${index}-${startTime}`,
+        startTime,
+        duration,
+        endTime,
+        words,
+      };
+    })
+    .filter(line => line !== null);
+};
+
 export const formatLrc = Music => {
   const {music_lyric, music_trans, music_yrc, music_roma} = Music;
 
   const lyric = parserLrc(music_lyric);
   const transLyrics = parserLrc(music_trans);
   const romaLyrics = parserLrc(music_roma);
-
-  // console.log(lyric, transLyrics, romaLyrics);
+  const yrcLyrics = parseYrcs(music_yrc);
+  console.log(lyric, yrcLyrics);
 
   // 将歌词数组转换为以 time 为键的对象
   const transLyricsMap = transLyrics.reduce((map, _lyric) => {
@@ -52,6 +99,8 @@ export const formatLrc = Music => {
 
   return {
     Lyrics: mergedLyrics,
+    yrcLyrics: yrcLyrics,
+    haveYrc: yrcLyrics.length > 0,
     haveTrans: transLyrics.length > 0,
     haveRoma: romaLyrics.length > 0,
   };

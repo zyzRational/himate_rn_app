@@ -17,5 +17,6 @@ export const SystemThemeInit = color => {
     hyalineWhite: 'rgba(255,255,255,0.4)',
     hyalineGrey: 'rgba(0,0,0,0.4)',
     primaryBackground: '#f5f5f5',
+    lyricColor: Colors.white,
   });
 };
