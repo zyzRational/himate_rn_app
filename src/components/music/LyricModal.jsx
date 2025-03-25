@@ -123,7 +123,11 @@ const LyricModal = props => {
                       OnFavorite(Music.id, IsFavorite);
                     }}>
                     {IsFavorite ? (
-                      <AntDesign name="heart" color={Colors.lyricColor} size={22} />
+                      <AntDesign
+                        name="heart"
+                        color={Colors.lyricColor}
+                        size={22}
+                      />
                     ) : (
                       <AntDesign
                         name="hearto"

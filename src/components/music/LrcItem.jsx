@@ -6,246 +6,191 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
-  Easing,
 } from 'react-native-reanimated';
 
-const LrcItem = React.memo(props => {
-  const {
-    Item = {},
-    Index = 0,
-    NowIndex = 0,
-    CurrentTime,
-    YrcVisible = false,
-    TransVisible = false,
-    RromaVisible = false,
-  } = props;
+// 预定义隐藏文本，避免每次渲染都重新创建
+const HIDDEN_TEXTS = ['//', '本翻译作品'];
 
-  // 计算当前行应该显示的字
-  const visibleChars = useMemo(() => {
-    if (NowIndex !== Index) {
-      return [];
-    }
-    const result = [];
-    for (const word of Item.words) {
-      if (CurrentTime >= word.startTime) {
-        result.push(word.char);
-      } else {
-        break;
-      }
-    }
-    return result;
-  }, [CurrentTime, NowIndex, Item.words]);
+const LrcItem = React.memo(
+  props => {
+    const {
+      Item = {},
+      Index = 0,
+      NowIndex = 0,
+      Progress = 0,
+      VisibleChars = [],
+      FullText = '',
+      YrcVisible = false,
+      TransVisible = false,
+      RromaVisible = false,
+    } = props;
 
-  // 完整行文本
-  const fullText = useMemo(
-    () => Item.words.map(w => w.char).join(''),
-    [Item.words],
-  );
+    // 共享动画值
+    const scale = useSharedValue(1);
+    const opacity = useSharedValue(1);
+    const color = useSharedValue(Colors.lyricColor);
+    const transOpacity = useSharedValue(1);
+    const paddingH = useSharedValue(0);
+    const textWidth = useSharedValue(0);
 
-  const scale = useSharedValue(1);
-  const opacity = useSharedValue(1);
-  const color = useSharedValue(Colors.lyricColor);
-  const transOpacity = useSharedValue(1);
-  const paddingH = useSharedValue(0);
-
-  useEffect(() => {
-    const isActive = NowIndex === Index;
-    scale.value = withTiming(isActive ? 1.3 : 1, {
-      easing: Easing.linear,
-      duration: 600,
+    // 文本尺寸状态
+    const [textDimensions, setTextDimensions] = React.useState({
+      width: fullWidth * 0.84,
+      height: 24,
     });
-    paddingH.value = withTiming(isActive ? fullWidth * 0.11 : 0, {
-      easing: Easing.linear,
-      duration: 300,
-    });
-    if (isActive) {
-      opacity.value = withTiming(1, {
-        easing: Easing.linear,
-        duration: 200,
-      });
-      transOpacity.value = withTiming(1, {
-        easing: Easing.linear,
-        duration: 200,
-      });
-      color.value = withTiming(Colors.lyricColor, {
-        easing: Easing.linear,
-        duration: 100,
-      });
-    } else if (NowIndex === Index - 1 || NowIndex === Index + 1) {
-      color.value = withTiming(Colors.lyricColor, {
-        easing: Easing.linear,
-        duration: 100,
-      });
-      opacity.value = withTiming(0.8, {
-        easing: Easing.linear,
-        duration: 300,
-      });
-      transOpacity.value = withTiming(0.8, {
-        easing: Easing.linear,
-        duration: 300,
-      });
-    } else if (NowIndex === Index - 2 || NowIndex === Index + 2) {
-      color.value = withTiming(Colors.lyricColor, {
-        easing: Easing.linear,
-        duration: 100,
-      });
-      opacity.value = withTiming(0.6, {
-        easing: Easing.linear,
-        duration: 300,
-      });
-      transOpacity.value = withTiming(0.6, {
-        easing: Easing.linear,
-        duration: 300,
-      });
-    } else {
-      color.value = withTiming(Colors.lyricColor, {
-        easing: Easing.linear,
-        duration: 100,
-      });
-      opacity.value = withTiming(0.3, {
-        easing: Easing.linear,
-        duration: 300,
-      });
-      transOpacity.value = withTiming(0.3, {
-        easing: Easing.linear,
-        duration: 300,
-      });
-    }
-  }, [Index, NowIndex]);
 
-  // 实际文本布局回调
-  const [absTextWidth, setAbsTextWidth] = React.useState(0);
-  const [textHeight, setTextHeight] = React.useState(24);
-
-  const textDimensions = React.useMemo(
-    () => ({
-      width: absTextWidth,
-      height: textHeight,
-    }),
-    [absTextWidth, textHeight],
-  );
-
-  const handleTextLayout = React.useCallback(
-    event => {
+    // 处理文本布局
+    const handleTextLayout = useCallback(event => {
       const {height, width} = event.nativeEvent.layout;
-      if (width !== absTextWidth) {
-        setAbsTextWidth(width);
-      }
-      if (height !== textHeight) {
-        setTextHeight(height);
-      }
-    },
-    [absTextWidth, textHeight],
-  );
+      setTextDimensions(prev => {
+        // 只有当尺寸变化时才更新状态
+        if (prev.width !== width || prev.height !== height) {
+          return {width, height};
+        }
+        return prev;
+      });
+    }, []);
 
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
+    // 检查文本是否可见
+    const isTextVisible = useCallback(text => {
+      return !HIDDEN_TEXTS.some(hidden => text.includes(hidden));
+    }, []);
+
+    // 动画样式
+    const animatedStyle = useAnimatedStyle(() => ({
       transform: [{scale: scale.value}],
       opacity: opacity.value,
       color: color.value,
       paddingHorizontal: paddingH.value,
-    };
-  });
+    }));
 
-  const transAnimatedStyle = useAnimatedStyle(() => {
-    return {
+    const transAnimatedStyle = useAnimatedStyle(() => ({
       color: color.value,
       opacity: transOpacity.value,
-    };
-  });
+    }));
 
-  // 动画值
-  const textWidth = useSharedValue(0);
+    const yrcAnimatedStyle = useAnimatedStyle(() => ({
+      width: textWidth.value * textDimensions.width,
+      paddingHorizontal: paddingH.value,
+    }));
 
-  // 计算进度 (0-1)
-  const progress = useMemo(() => {
-    if (NowIndex !== Index) {
-      return [];
-    }
-    const lineTime = CurrentTime - Item.startTime;
-    const _progress = Math.min(Math.max(lineTime / Item.duration, 0), 1);
-    return _progress;
-  }, [CurrentTime, NowIndex, Item.startTime, Item.duration]);
+    // 更新动画效果
+    useEffect(() => {
+      const isActive = NowIndex === Index;
+      const isAdjacent = Math.abs(NowIndex - Index) === 1;
+      const isNearby = Math.abs(NowIndex - Index) === 2;
 
-  // 动画样式
-  const yrcAnimatedStyle = useAnimatedStyle(() => ({
-    width: textWidth.value * textDimensions?.width,
-    paddingHorizontal: paddingH.value,
-  }));
-
-  useEffect(() => {
-    if (typeof progress === 'number') {
-      textWidth.value = withTiming(progress, {
-        duration: 1000,
-        easing: Easing.linear,
-      });
-    }
-  }, [progress]);
-
-  const visibleText = _text => {
-    const hiddenTexts = ['//', '本翻译作品'];
-    for (let i = 0; i < hiddenTexts.length; i++) {
-      if (_text.includes(hiddenTexts[i])) {
-        return false;
+      // 批量更新动画值
+      if (isActive) {
+        scale.value = withTiming(1.3, {duration: 400});
+        paddingH.value = withTiming(fullWidth * 0.11, {duration: 200});
+        textWidth.value = withTiming(Progress, {duration: 600});
+        opacity.value = withTiming(1, {duration: 200});
+        transOpacity.value = withTiming(1, {duration: 200});
+        color.value = withTiming(Colors.lyricColor, {duration: 100});
+      } else if (isAdjacent) {
+        opacity.value = withTiming(0.8, {duration: 300});
+        transOpacity.value = withTiming(0.8, {duration: 300});
+        scale.value = withTiming(1, {duration: 400});
+        paddingH.value = withTiming(0, {duration: 200});
+      } else if (isNearby) {
+        opacity.value = withTiming(0.6, {duration: 300});
+        transOpacity.value = withTiming(0.6, {duration: 300});
+        scale.value = withTiming(1, {duration: 400});
+        paddingH.value = withTiming(0, {duration: 200});
+      } else {
+        opacity.value = withTiming(0.3, {duration: 300});
+        transOpacity.value = withTiming(0.3, {duration: 300});
+        scale.value = withTiming(1, {duration: 400});
+        paddingH.value = withTiming(0, {duration: 200});
       }
-    }
-    return true;
-  };
+    }, [Index, NowIndex, Progress]);
 
-  return (
-    <View paddingV-10 paddingH-20>
-      {YrcVisible ? (
-        <Animated.View style={[styles.lyricView, animatedStyle]}>
-          <Text color={Colors.lyricColor} text70BO onLayout={handleTextLayout}>
-            {fullText}
-          </Text>
-          <Animated.View style={[styles.lyricViewAbs, yrcAnimatedStyle]}>
+    // 渲染歌词行
+    const renderLyricLine = useMemo(() => {
+      if (YrcVisible) {
+        return (
+          <Animated.View style={[styles.lyricView, animatedStyle]}>
             <Text
+              color={Colors.lyricColor}
               text70BO
-              color={Colors.Primary}
-              style={{
-                width: textDimensions?.width,
-                height: textDimensions?.height,
-              }}>
-              {visibleChars.join('')}
+              onLayout={handleTextLayout}>
+              {FullText}
             </Text>
+            <Animated.View style={[styles.lyricViewAbs, yrcAnimatedStyle]}>
+              <View width={textDimensions.width} height={textDimensions.height}>
+                <Text text70BO color={Colors.Primary}>
+                  {VisibleChars}
+                </Text>
+              </View>
+            </Animated.View>
           </Animated.View>
-        </Animated.View>
-      ) : (
+        );
+      }
+      return (
         <Animated.Text style={animatedStyle}>
           <Text color={Colors.lyricColor} text70BO>
             {Item.lyric}
           </Text>
         </Animated.Text>
-      )}
-      {TransVisible && visibleText(Item.trans) ? (
-        <Animated.Text style={transAnimatedStyle}>
-          <Text color={Colors.lyricColor} text80>
-            {Item.trans}
-          </Text>
-        </Animated.Text>
-      ) : null}
-      {RromaVisible && visibleText(Item.roma) ? (
-        <Animated.Text style={transAnimatedStyle}>
-          <Text color={Colors.lyricColor} text80>
-            {Item.roma}
-          </Text>
-        </Animated.Text>
-      ) : null}
-    </View>
-  );
-});
+      );
+    }, [YrcVisible, FullText, Item.lyric, VisibleChars, textDimensions]);
+
+    // 渲染翻译和罗马音
+    const renderTranslations = useMemo(() => {
+      return (
+        <>
+          {TransVisible && isTextVisible(Item.trans) && (
+            <Animated.Text style={transAnimatedStyle}>
+              <Text color={Colors.lyricColor} text80>
+                {Item.trans}
+              </Text>
+            </Animated.Text>
+          )}
+          {RromaVisible && isTextVisible(Item.roma) && (
+            <Animated.Text style={transAnimatedStyle}>
+              <Text color={Colors.lyricColor} text80>
+                {Item.roma}
+              </Text>
+            </Animated.Text>
+          )}
+        </>
+      );
+    }, [TransVisible, RromaVisible, Item.trans,Item.lyric, Item.roma]);
+
+    return (
+      <View paddingV-10 paddingH-20>
+        {renderLyricLine}
+        {renderTranslations}
+      </View>
+    );
+  },
+  (prevProps, nextProps) => {
+    // 自定义比较函数，只在必要属性变化时重新渲染
+    return (
+      prevProps.Item === nextProps.Item &&
+      prevProps.Index === nextProps.Index &&
+      prevProps.NowIndex === nextProps.NowIndex &&
+      prevProps.CurrentTime === nextProps.CurrentTime &&
+      prevProps.Progress === nextProps.Progress &&
+      prevProps.VisibleChars === nextProps.VisibleChars &&
+      prevProps.FullText === nextProps.FullText &&
+      prevProps.YrcVisible === nextProps.YrcVisible &&
+      prevProps.TransVisible === nextProps.TransVisible &&
+      prevProps.RromaVisible === nextProps.RromaVisible
+    );
+  },
+);
 
 const styles = StyleSheet.create({
   lyricView: {
     width: fullWidth * 0.95,
   },
   lyricViewAbs: {
-    width: fullWidth * 0.95,
     position: 'absolute',
     top: 0,
     left: 0,
-    height: 24,
+    overflow: 'hidden',
   },
 });
 

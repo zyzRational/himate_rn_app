@@ -22,7 +22,7 @@ const LrcView = props => {
   const [haveYrc, setHaveYrc] = useState(false);
   const [haveTrans, setHaveTrans] = useState(false);
   const [haveRoma, setHaveRoma] = useState(false);
-  const [yrcVisible, setYrcVisible] = useState(true);
+  const [yrcVisible, setYrcVisible] = useState(false);
   const [transVisible, setTransVisible] = useState(true);
   const [romaVisible, setRomaVisible] = useState(false);
 
@@ -35,6 +35,7 @@ const LrcView = props => {
         haveRoma: _haveRoma,
         haveYrc: _haveYrc,
       } = formatLrc(Music);
+
       setParsedLrc(Lyrics);
       setHaveYrc(_haveYrc);
       setHaveRoma(_haveRoma);
@@ -86,12 +87,31 @@ const LrcView = props => {
   // 渲染每行歌词
   const renderItem = useCallback(
     ({item, index}) => {
+      let progress = 0;
+      const visibleChars = [];
+      const fullText = item.words.map(w => w.char).join('');
+      if (nowIndex === index) {
+        // 计算进度 (0-1)
+        const lineTime = CurrentTime - item.startTime;
+        progress = Math.min(Math.max(lineTime / item.duration, 0), 1);
+        // 计算当前歌词
+        for (const word of item.words) {
+          if (CurrentTime >= word.startTime) {
+            visibleChars.push(word.char);
+          } else {
+            break;
+          }
+        }
+      }
       return (
         <LrcItem
           Item={item}
           Index={index}
           CurrentTime={CurrentTime}
           NowIndex={nowIndex}
+          Progress={progress}
+          VisibleChars={visibleChars.join('')}
+          FullText={fullText}
           YrcVisible={yrcVisible && haveYrc}
           TransVisible={transVisible && haveTrans}
           RomaVisible={romaVisible && haveRoma}
@@ -157,11 +177,11 @@ const LrcView = props => {
                 length:
                   (transVisible && haveTrans) || (romaVisible && haveRoma)
                     ? 64
-                    : 46,
+                    : 44,
                 offset:
                   ((transVisible && haveTrans) || (romaVisible && haveRoma)
                     ? 64
-                    : 48) * index,
+                    : 44) * index,
                 index,
               };
             }}
@@ -175,10 +195,12 @@ const LrcView = props => {
         )}
       </View>
       {(haveRoma || haveTrans || haveYrc) && parsedLrc.length > 0 ? (
-        <View style={styles.switchBut}>
-          <TouchableOpacity style={styles.musicBut} onPress={switchLyric}>
-            <Ionicons name="sync-sharp" color={Colors.lyricColor} size={20} />
-          </TouchableOpacity>
+        <View style={styles.switchView}>
+          <View backgroundColor={Colors.hyalineWhite} style={styles.switchBut}>
+            <TouchableOpacity style={styles.musicBut} onPress={switchLyric}>
+              <Ionicons name="sync-sharp" color={Colors.lyricColor} size={20} />
+            </TouchableOpacity>
+          </View>
         </View>
       ) : null}
     </View>
@@ -221,14 +243,15 @@ const styles = StyleSheet.create({
     color: Colors.lyricColor,
     fontWeight: 'bold',
   },
-  switchBut: {
+  switchView: {
     position: 'absolute',
     bottom: 16,
     right: 24,
+  },
+  switchBut: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: Colors.hyalineWhite,
     justifyContent: 'center',
     alignItems: 'center',
   },
