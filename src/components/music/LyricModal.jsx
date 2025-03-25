@@ -25,6 +25,8 @@ const LyricModal = props => {
     Visible = false,
     Music = {},
     IsPlaying = false,
+    IsFavorite = false,
+    OnFavorite = () => {},
     PlayMode = 'order',
     OnClose = () => {},
     PlayProgress = {},
@@ -115,12 +117,20 @@ const LyricModal = props => {
                       {Music?.artists?.join(' / ') || '未知歌手'}
                     </Text>
                   </View>
-                  <TouchableOpacity style={styles.musicBut}>
-                    <AntDesign
-                      name="hearto"
-                      color={Colors.lyricColor}
-                      size={22}
-                    />
+                  <TouchableOpacity
+                    style={styles.musicBut}
+                    onPress={() => {
+                      OnFavorite(Music.id, IsFavorite);
+                    }}>
+                    {IsFavorite ? (
+                      <AntDesign name="heart" color={Colors.lyricColor} size={22} />
+                    ) : (
+                      <AntDesign
+                        name="hearto"
+                        color={Colors.lyricColor}
+                        size={22}
+                      />
+                    )}
                   </TouchableOpacity>
                 </View>
                 {isEmptyString(nowLyric) ? null : (

@@ -347,11 +347,7 @@ const MusicList = props => {
           }}
         />
       ) : null}
-      <Card
-        flexG
-        marginB-6
-        enableShadow={false}
-        backgroundColor={Colors.white}>
+      <Card flexG marginB-6 enableShadow={false} backgroundColor={Colors.white}>
         <TouchableOpacity
           flexS
           centerV
@@ -375,9 +371,7 @@ const MusicList = props => {
                 grey10
                 numberOfLines={1}
                 color={
-                  playingMusic?.id === item.id
-                    ? Colors.Primary
-                    : Colors.grey10
+                  playingMusic?.id === item.id ? Colors.Primary : Colors.grey10
                 }>
                 {item.title}
               </Text>
@@ -387,9 +381,7 @@ const MusicList = props => {
                 marginT-4
                 numberOfLines={1}
                 color={
-                  playingMusic?.id === item.id
-                    ? Colors.Primary
-                    : Colors.grey10
+                  playingMusic?.id === item.id ? Colors.Primary : Colors.grey10
                 }>
                 {(item.artists && item.artists?.length > 0
                   ? item.artists.join('/')
@@ -405,11 +397,7 @@ const MusicList = props => {
                   dispatch(addPlayList([item]));
                   showToast('已添加到播放列表', 'success');
                 }}>
-                <AntDesign
-                  name="pluscircleo"
-                  color={Colors.grey50}
-                  size={20}
-                />
+                <AntDesign name="pluscircleo" color={Colors.grey50} size={20} />
               </TouchableOpacity>
               {isMultiSelect || IsLocal ? null : (
                 <TouchableOpacity
@@ -431,7 +419,7 @@ const MusicList = props => {
         </TouchableOpacity>
       </Card>
     </View>
-  )
+  );
 
   return (
     <View>

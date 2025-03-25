@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect, useRef, useCallback, useMemo} from 'react';
 import {FlatList, StyleSheet} from 'react-native';
 import {formatLrc} from '../../utils/handle/lyricHandle';
 import {isEmptyObject} from '../../utils/base';
@@ -17,17 +17,33 @@ const LrcView = props => {
   } = props;
   const {showToast} = useToast();
   const [parsedLrc, setParsedLrc] = useState([]);
-  const [parsedYrc, setParsedYrc] = useState([]);
   const flatListRef = useRef(null);
 
   const [haveYrc, setHaveYrc] = useState(false);
   const [haveTrans, setHaveTrans] = useState(false);
   const [haveRoma, setHaveRoma] = useState(false);
+  const [yrcVisible, setYrcVisible] = useState(true);
   const [transVisible, setTransVisible] = useState(true);
   const [romaVisible, setRomaVisible] = useState(false);
 
+  // 解析歌词
+  useEffect(() => {
+    if (Music && !isEmptyObject(Music)) {
+      const {
+        Lyrics,
+        haveTrans: _haveTrans,
+        haveRoma: _haveRoma,
+        haveYrc: _haveYrc,
+      } = formatLrc(Music);
+      setParsedLrc(Lyrics);
+      setHaveYrc(_haveYrc);
+      setHaveRoma(_haveRoma);
+      setHaveTrans(_haveTrans);
+    }
+  }, [Music]);
+
   // 切换歌词
-  const switchLyric = () => {
+  const switchLyric = useCallback(() => {
     setTransVisible(prev => {
       if (!prev && haveTrans) {
         showToast('已显示翻译歌词', 'success', true);
@@ -42,35 +58,19 @@ const LrcView = props => {
       }
       return false;
     });
-  };
-
-  // 解析歌词
-  useEffect(() => {
-    if (Music && !isEmptyObject(Music)) {
-      const {
-        Lyrics,
-        yrcLyrics,
-        haveYrc: _haveYrc,
-        haveTrans: _haveTrans,
-        haveRoma: _haveRoma,
-      } = formatLrc(Music);
-      setParsedLrc(Lyrics);
-      setParsedYrc(yrcLyrics);
-      setHaveYrc(_haveYrc);
-      setHaveRoma(_haveRoma);
-      setHaveTrans(_haveTrans);
-    }
-  }, [Music]);
+  }, [haveTrans, haveRoma, showToast]);
 
   // 根据当前时间找到对应的歌词索引
-  const findCurrentLineIndex = () => {
+  const findCurrentLineIndex = useCallback(() => {
     for (let i = 0; i < parsedLrc.length; i++) {
-      if (parsedLrc[i].time > CurrentTime) {
+      const matchTime =
+        yrcVisible && haveYrc ? parsedLrc[i].startTime : parsedLrc[i].time;
+      if (matchTime > CurrentTime) {
         return i - 1;
       }
     }
     return parsedLrc.length - 1;
-  };
+  }, [parsedLrc, yrcVisible, haveYrc, CurrentTime]);
 
   // 自动滚动到当前歌词
   const [nowIndex, setNowIndex] = useState(-1);
@@ -79,23 +79,42 @@ const LrcView = props => {
     setNowIndex(index);
     if (flatListRef.current && index >= 0) {
       flatListRef.current.scrollToIndex({index, animated: true});
-      OnLyricsChange(parsedLrc[index].lyric);
+      OnLyricsChange(parsedLrc[index]?.lyric);
     }
-  }, [CurrentTime]);
+  }, [CurrentTime, OnLyricsChange, findCurrentLineIndex]);
 
   // 渲染每行歌词
-  const renderItem = ({item, index}) => {
-    return (
-      <LrcItem
-        Item={item}
-        Index={index}
-        CurrentTime={CurrentTime}
-        NowIndex={nowIndex}
-        TransVisible={transVisible && haveTrans}
-        RomaVisible={romaVisible && haveRoma}
-      />
-    );
-  };
+  const renderItem = useCallback(
+    ({item, index}) => {
+      return (
+        <LrcItem
+          Item={item}
+          Index={index}
+          CurrentTime={CurrentTime}
+          NowIndex={nowIndex}
+          YrcVisible={yrcVisible && haveYrc}
+          TransVisible={transVisible && haveTrans}
+          RomaVisible={romaVisible && haveRoma}
+        />
+      );
+    },
+    [
+      CurrentTime,
+      nowIndex,
+      yrcVisible,
+      haveYrc,
+      transVisible,
+      haveTrans,
+      romaVisible,
+      haveRoma,
+    ],
+  );
+
+  const contentContainerStyle = useMemo(() => {
+    return {
+      paddingVertical: fullHeight / 2 - 120,
+    };
+  }, [fullHeight]);
 
   return (
     <View>
@@ -129,20 +148,20 @@ const LrcView = props => {
         {parsedLrc.length ? (
           <FlatList
             ref={flatListRef}
-            data={parsedYrc}
+            data={parsedLrc}
             renderItem={renderItem}
-            keyExtractor={(item, index) => item.id + index.toString()}
-            contentContainerStyle={styles.container}
+            keyExtractor={item => item.id.toString()}
+            contentContainerStyle={contentContainerStyle}
             getItemLayout={(data, index) => {
               return {
                 length:
                   (transVisible && haveTrans) || (romaVisible && haveRoma)
-                    ? 72
+                    ? 64
                     : 46,
                 offset:
                   ((transVisible && haveTrans) || (romaVisible && haveRoma)
-                    ? 72
-                    : 46) * index,
+                    ? 64
+                    : 48) * index,
                 index,
               };
             }}
@@ -155,7 +174,7 @@ const LrcView = props => {
           </View>
         )}
       </View>
-      {(haveRoma || haveTrans) && parsedLrc.length > 0 ? (
+      {(haveRoma || haveTrans || haveYrc) && parsedLrc.length > 0 ? (
         <View style={styles.switchBut}>
           <TouchableOpacity style={styles.musicBut} onPress={switchLyric}>
             <Ionicons name="sync-sharp" color={Colors.lyricColor} size={20} />

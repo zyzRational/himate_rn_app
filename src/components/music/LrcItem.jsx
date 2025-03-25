@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo, useCallback} from 'react';
 import {StyleSheet} from 'react-native';
 import {View, Text, Colors} from 'react-native-ui-lib';
 import {fullWidth} from '../../styles';
@@ -15,6 +15,7 @@ const LrcItem = React.memo(props => {
     Index = 0,
     NowIndex = 0,
     CurrentTime,
+    YrcVisible = false,
     TransVisible = false,
     RromaVisible = false,
   } = props;
@@ -35,32 +36,6 @@ const LrcItem = React.memo(props => {
     return result;
   }, [CurrentTime, NowIndex, Item.words]);
 
-  // 计算进度 (0-1)
-  const progress = useMemo(() => {
-    if (NowIndex !== Index) {
-      return [];
-    }
-    const lineTime = CurrentTime - Item.startTime;
-    return Math.min(Math.max(lineTime / Item.duration, 0), 1);
-  }, [CurrentTime, NowIndex, Item.startTime, Item.duration]);
-
-  // 动画值
-  const progressValue = useSharedValue(0);
-
-  useEffect(() => {
-    if (typeof progress === 'number') {
-      progressValue.value = withTiming(progress, {
-        duration: 300,
-        easing: Easing.linear,
-      });
-    }
-  }, [progress]);
-
-  // 动画样式
-  const yrcAnimatedStyle = useAnimatedStyle(() => ({
-    width: `${progressValue.value * 100}%`,
-  }));
-
   // 完整行文本
   const fullText = useMemo(
     () => Item.words.map(w => w.char).join(''),
@@ -77,11 +52,11 @@ const LrcItem = React.memo(props => {
     const isActive = NowIndex === Index;
     scale.value = withTiming(isActive ? 1.3 : 1, {
       easing: Easing.linear,
-      duration: 400,
+      duration: 600,
     });
     paddingH.value = withTiming(isActive ? fullWidth * 0.11 : 0, {
       easing: Easing.linear,
-      duration: 800,
+      duration: 300,
     });
     if (isActive) {
       opacity.value = withTiming(1, {
@@ -90,7 +65,7 @@ const LrcItem = React.memo(props => {
       });
       transOpacity.value = withTiming(1, {
         easing: Easing.linear,
-        duration: 100,
+        duration: 200,
       });
       color.value = withTiming(Colors.lyricColor, {
         easing: Easing.linear,
@@ -138,12 +113,36 @@ const LrcItem = React.memo(props => {
     }
   }, [Index, NowIndex]);
 
+  // 实际文本布局回调
+  const [absTextWidth, setAbsTextWidth] = React.useState(0);
+  const [textHeight, setTextHeight] = React.useState(24);
+
+  const textDimensions = React.useMemo(
+    () => ({
+      width: absTextWidth,
+      height: textHeight,
+    }),
+    [absTextWidth, textHeight],
+  );
+
+  const handleTextLayout = React.useCallback(
+    event => {
+      const {height, width} = event.nativeEvent.layout;
+      if (width !== absTextWidth) {
+        setAbsTextWidth(width);
+      }
+      if (height !== textHeight) {
+        setTextHeight(height);
+      }
+    },
+    [absTextWidth, textHeight],
+  );
+
   const animatedStyle = useAnimatedStyle(() => {
     return {
       transform: [{scale: scale.value}],
       opacity: opacity.value,
       color: color.value,
-      fontWeight: NowIndex === Index ? 'bold' : 'normal',
       paddingHorizontal: paddingH.value,
     };
   });
@@ -154,6 +153,34 @@ const LrcItem = React.memo(props => {
       opacity: transOpacity.value,
     };
   });
+
+  // 动画值
+  const textWidth = useSharedValue(0);
+
+  // 计算进度 (0-1)
+  const progress = useMemo(() => {
+    if (NowIndex !== Index) {
+      return [];
+    }
+    const lineTime = CurrentTime - Item.startTime;
+    const _progress = Math.min(Math.max(lineTime / Item.duration, 0), 1);
+    return _progress;
+  }, [CurrentTime, NowIndex, Item.startTime, Item.duration]);
+
+  // 动画样式
+  const yrcAnimatedStyle = useAnimatedStyle(() => ({
+    width: textWidth.value * textDimensions?.width,
+    paddingHorizontal: paddingH.value,
+  }));
+
+  useEffect(() => {
+    if (typeof progress === 'number') {
+      textWidth.value = withTiming(progress, {
+        duration: 1000,
+        easing: Easing.linear,
+      });
+    }
+  }, [progress]);
 
   const visibleText = _text => {
     const hiddenTexts = ['//', '本翻译作品'];
@@ -166,68 +193,59 @@ const LrcItem = React.memo(props => {
   };
 
   return (
-    <View paddingV-12 paddingH-20>
-      <View style={styles.lineContainer} width={fullWidth * 0.95}>
-        <Text style={styles.fullLineText}>{fullText}</Text>
-        <Animated.View
-          style={[styles.highlightLineContainer, yrcAnimatedStyle]}>
-          <Text style={styles.highlightedLineText}>
-            {visibleChars.join('')}
+    <View paddingV-10 paddingH-20>
+      {YrcVisible ? (
+        <Animated.View style={[styles.lyricView, animatedStyle]}>
+          <Text color={Colors.lyricColor} text70BO onLayout={handleTextLayout}>
+            {fullText}
           </Text>
+          <Animated.View style={[styles.lyricViewAbs, yrcAnimatedStyle]}>
+            <Text
+              text70BO
+              color={Colors.Primary}
+              style={{
+                width: textDimensions?.width,
+                height: textDimensions?.height,
+              }}>
+              {visibleChars.join('')}
+            </Text>
+          </Animated.View>
         </Animated.View>
-      </View>
-      {/* <Animated.Text style={[styles.lyricText, animatedStyle]}>
-        {Item.lyric}
-      </Animated.Text> */}
-      {/* {TransVisible && visibleText(Item.trans) ? (
-        <Animated.Text style={[styles.transText, transAnimatedStyle]}>
-          {Item.trans}
+      ) : (
+        <Animated.Text style={animatedStyle}>
+          <Text color={Colors.lyricColor} text70BO>
+            {Item.lyric}
+          </Text>
+        </Animated.Text>
+      )}
+      {TransVisible && visibleText(Item.trans) ? (
+        <Animated.Text style={transAnimatedStyle}>
+          <Text color={Colors.lyricColor} text80>
+            {Item.trans}
+          </Text>
         </Animated.Text>
       ) : null}
       {RromaVisible && visibleText(Item.roma) ? (
-        <Animated.Text style={[styles.transText, transAnimatedStyle]}>
-          {Item.roma}
+        <Animated.Text style={transAnimatedStyle}>
+          <Text color={Colors.lyricColor} text80>
+            {Item.roma}
+          </Text>
         </Animated.Text>
-      ) : null} */}
+      ) : null}
     </View>
   );
 });
 
 const styles = StyleSheet.create({
-  lyricText: {
-    fontSize: 16,
-    color: Colors.lyricColor,
+  lyricView: {
     width: fullWidth * 0.95,
   },
-  transText: {
-    fontSize: 14,
-    color: Colors.lyricColor,
-    marginTop: 10,
-  },
-  container: {
-    paddingVertical: 16,
-  },
-  lineContainer: {
-    position: 'relative',
-    paddingVertical: 8,
-    minHeight: 36,
-  },
-  fullLineText: {
-    color: 'rgba(255, 255, 255, 0.6)',
-    fontSize: 18,
-    lineHeight: 28,
-  },
-  highlightLineContainer: {
+  lyricViewAbs: {
+    width: fullWidth * 0.95,
     position: 'absolute',
-    top: 8,
+    top: 0,
     left: 0,
-    height: 28,
-    overflow: 'hidden',
-  },
-  highlightedLineText: {
-    color: '#000',
-    fontSize: 18,
-    lineHeight: 28,
+    height: 24,
   },
 });
 

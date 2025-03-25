@@ -1,6 +1,9 @@
 import {isEmptyString} from '../base';
 
 export const parserLrc = lrc => {
+  if (!lrc) {
+    return [];
+  }
   const lines = lrc.split('\n');
   return lines
     .map(line => {
@@ -40,14 +43,13 @@ export const parseYrcs = lyricsString => {
       const endTime = startTime + duration;
 
       // 解析每个字
-      const wordRegex =
-        /([\p{Script=Hani}\p{Script=Hira}\p{Script=Kana}])\((\d+),(\d+)\)/gu;
+      const wordRegex = /([^]+?)\((\d+),(\d+)\)/g;
       const words = [];
       let match;
 
       while ((match = wordRegex.exec(line)) !== null) {
         words.push({
-          char: match[1],
+          char: match[1].replace(/\[\d+,\d+\]/g, ''),
           startTime: parseInt(match[2], 10),
           duration: parseInt(match[3], 10),
           endTime: parseInt(match[2], 10) + parseInt(match[3], 10),
@@ -72,7 +74,6 @@ export const formatLrc = Music => {
   const transLyrics = parserLrc(music_trans);
   const romaLyrics = parserLrc(music_roma);
   const yrcLyrics = parseYrcs(music_yrc);
-  console.log(lyric, yrcLyrics);
 
   // 将歌词数组转换为以 time 为键的对象
   const transLyricsMap = transLyrics.reduce((map, _lyric) => {
@@ -96,12 +97,18 @@ export const formatLrc = Music => {
       roma: romaText,
     };
   });
-
   return {
-    Lyrics: mergedLyrics,
-    yrcLyrics: yrcLyrics,
+    Lyrics: mergeArraysByIndex(yrcLyrics, mergedLyrics),
     haveYrc: yrcLyrics.length > 0,
     haveTrans: transLyrics.length > 0,
     haveRoma: romaLyrics.length > 0,
   };
+};
+
+export const mergeArraysByIndex = (array1, array2) => {
+  const maxLength = Math.min(array1.length, array2.length);
+  return Array.from({length: maxLength}, (_, index) => ({
+    ...array1[index],
+    ...array2[index],
+  }));
 };

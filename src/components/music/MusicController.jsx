@@ -17,7 +17,11 @@ import {
 import {useToast} from '../commom/Toast';
 import {useRealm} from '@realm/react';
 import MusicControl, {Command} from 'react-native-music-control';
-import {getMusicList} from '../../api/music';
+import {
+  getMusicList,
+  getFavoritesDetail,
+  editDefaultFavorites,
+} from '../../api/music';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import LyricModal from './LyricModal';
 import ToBePlayedModal from './ToBePlayedModal';
@@ -348,6 +352,47 @@ const MusicCtrlProvider = props => {
     );
   };
 
+  /* 获取用户收藏的音乐列表 */
+  const [collectMusic, setCollectMusic] = React.useState([]);
+  const getAllMusicList = async userId => {
+    try {
+      const res = await getFavoritesDetail({
+        creator_uid: userId,
+        is_default: 1,
+      });
+      if (res.success) {
+        setCollectMusic(res.data.music);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  // 编辑用户收藏的音乐
+  const editMyFavorite = async (id, isFavorite) => {
+    try {
+      const res = await editDefaultFavorites({
+        handleType: isFavorite ? 'remove' : 'add',
+        creator_uid: userInfo?.id,
+        musicIds: [id],
+      });
+      if (res.success) {
+        showToast(isFavorite ? '已取消收藏' : '已收藏', 'success');
+        getAllMusicList(userInfo?.id);
+      } else {
+        showToast(res.message, 'error');
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  React.useEffect(() => {
+    if (userInfo?.id) {
+      getAllMusicList(userInfo?.id);
+    }
+  }, [userInfo]);
+
   return (
     <MusicCtrlContext.Provider value={{}}>
       {children}
@@ -433,6 +478,8 @@ const MusicCtrlProvider = props => {
         OnClose={() => setMusicModalVisible(false)}
         Music={playingMusic}
         IsPlaying={audioIsPlaying}
+        IsFavorite={collectMusic.some(item => item.id === playingMusic.id)}
+        OnFavorite={editMyFavorite}
         PlayMode={playType}
         PlayProgress={audioPlayprogress}
         OnSliderChange={value => {
