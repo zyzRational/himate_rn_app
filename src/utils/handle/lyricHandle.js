@@ -96,18 +96,33 @@ export const formatLrc = Music => {
     };
   });
   return {
-    Lyrics: mergeArraysByIndex(yrcLyrics, mergedLyrics, romaLyricsMap),
+    Lyrics: mergeArraysByIndex(mergedLyrics, yrcLyrics, romaLyricsMap),
     haveYrc: yrcLyrics.length > 0,
     haveTrans: transLyrics.length > 0,
     haveRoma: romaLyricsMap.length > 0,
   };
 };
 
-export const mergeArraysByIndex = (array1, array2, array3) => {
-  const maxLength = Math.min(array1.length, array2.length, array3.length);
-  return Array.from({length: maxLength}, (_, index) => ({
-    ...array1[index],
-    ...array2[index],
-    ...array3[index],
-  }));
+export const mergeArraysByIndex = (array1, array2 = [], array3 = []) => {
+  const maxLength = array1.length;
+  if (maxLength === 0) {
+    return [];
+  }
+
+  const merge = (arr1, arr2) => {
+    return Array.from({length: maxLength}, (_, index) => ({
+      ...arr1[index],
+      ...arr2[index],
+    }));
+  };
+
+  if (array2.length > 0 && array3.length > 0) {
+    return merge(merge(array1, array2), array3);
+  }
+
+  if (array2.length > 0) {
+    return merge(array1, array2);
+  }
+
+  return array1;
 };

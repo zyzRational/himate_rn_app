@@ -1,5 +1,6 @@
 import {createSlice, createAsyncThunk} from '@reduxjs/toolkit';
 import {getMusicDetail} from '../../api/music';
+import {addStorage} from '../../utils/Storage';
 
 export const musicSlice = createSlice({
   name: 'musicStore',
@@ -11,6 +12,9 @@ export const musicSlice = createSlice({
     isClosed: false,
     randomNum: {min: 1, max: 1},
     isRandomPlay: false,
+    yrcVisible: false,
+    transVisible: true,
+    romaVisible: false,
   },
   extraReducers: builder => {
     builder
@@ -28,6 +32,18 @@ export const musicSlice = createSlice({
       if (action.payload?.length > 0) {
         state.playList = action.payload;
       }
+    },
+    setLrcFlag: (state, action) => {
+      const {yrcVisible, transVisible, romaVisible} = action.payload;
+      if (yrcVisible === null) {
+        return;
+      }
+      state.yrcVisible = yrcVisible;
+      state.transVisible = transVisible;
+      state.romaVisible = romaVisible;
+      addStorage('music', 'yrcVisible', state.yrcVisible);
+      addStorage('music', 'transVisible', state.transVisible);
+      addStorage('music', 'romaVisible', state.romaVisible);
     },
     addPlayList: (state, action) => {
       if (action.payload?.length > 0) {
@@ -113,6 +129,7 @@ export const {
   setIsClosed,
   setIsRandomPlay,
   setRandomNum,
+  setLrcFlag,
 } = musicSlice.actions;
 
 export default musicSlice.reducer;

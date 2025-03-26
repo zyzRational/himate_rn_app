@@ -19,6 +19,7 @@ import {
   setIsMusicApp,
   setIsFastStatic,
 } from '../stores/store-slice/settingStore';
+import {setLrcFlag} from '../stores/store-slice/musicStore';
 import {checkPermissions} from '../stores/store-slice/permissionStore';
 import {initNotRemindSessionIds} from '../stores/store-slice/chatMsgStore';
 import {getUserdetail} from '../api/user';
@@ -51,6 +52,9 @@ const RootView = () => {
     const isEncryptMsg = await getStorage('setting', 'isEncryptMsg');
     const isMusicApp = await getStorage('setting', 'isMusicApp');
     const isFastStatic = await getStorage('setting', 'isFastStatic');
+    const yrcVisible = await getStorage('music', 'yrcVisible');
+    const transVisible = await getStorage('music', 'transVisible');
+    const romaVisible = await getStorage('music', 'romaVisible');
 
     dispatch(setPrimaryColor(PrimaryColor));
     dispatch(setToastType(ToastType));
@@ -61,6 +65,7 @@ const RootView = () => {
     dispatch(setIsEncryptMsg(isEncryptMsg));
     dispatch(setIsMusicApp(isMusicApp));
     dispatch(setIsFastStatic(isFastStatic));
+    dispatch(setLrcFlag({yrcVisible, transVisible, romaVisible}));
     dispatch(checkPermissions());
   };
 

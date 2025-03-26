@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useCallback} from 'react';
+import React, {useEffect, useCallback} from 'react';
 import {StyleSheet} from 'react-native';
 import {View, Text, Colors} from 'react-native-ui-lib';
 import {fullWidth} from '../../styles';
@@ -6,6 +6,7 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
+  Easing,
 } from 'react-native-reanimated';
 
 // 预定义隐藏文本，避免每次渲染都重新创建
@@ -70,8 +71,8 @@ const LrcItem = React.memo(
     }));
 
     const yrcAnimatedStyle = useAnimatedStyle(() => ({
-      width: textWidth.value * textDimensions.width,
       paddingHorizontal: paddingH.value,
+      width: textWidth.value * textDimensions.width,
     }));
 
     // 更新动画效果
@@ -82,9 +83,12 @@ const LrcItem = React.memo(
 
       // 批量更新动画值
       if (isActive) {
-        scale.value = withTiming(1.3, {duration: 400});
-        paddingH.value = withTiming(fullWidth * 0.105, {duration: 200});
-        textWidth.value = withTiming(Progress, {duration: 600});
+        scale.value = withTiming(1.3, {duration: 200});
+        paddingH.value = withTiming(fullWidth * 0.105, {duration: 400});
+        textWidth.value = withTiming(Progress, {
+          duration: 390,
+          easing: Easing.in,
+        });
         opacity.value = withTiming(1, {duration: 200});
         transOpacity.value = withTiming(1, {duration: 200});
         color.value = withTiming(Colors.lyricColor, {duration: 100});

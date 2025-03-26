@@ -7,8 +7,10 @@ import {fullHeight, fullWidth} from '../../styles';
 import LrcItem from './LrcItem';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useToast} from '../commom/Toast';
+import {useSelector, useDispatch} from 'react-redux';
+import {setLrcFlag} from '../../stores/store-slice/musicStore';
 
-const LrcView = props => {
+const LrcView = React.memo(props => {
   const {
     Music = {},
     Cover = '',
@@ -19,12 +21,14 @@ const LrcView = props => {
   const [parsedLrc, setParsedLrc] = useState([]);
   const flatListRef = useRef(null);
 
+  const dispatch = useDispatch();
+  const yrcVisible = useSelector(state => state.musicStore.yrcVisible);
+  const transVisible = useSelector(state => state.musicStore.transVisible);
+  const romaVisible = useSelector(state => state.musicStore.romaVisible);
+
   const [haveYrc, setHaveYrc] = useState(false);
   const [haveTrans, setHaveTrans] = useState(false);
   const [haveRoma, setHaveRoma] = useState(false);
-  const [yrcVisible, setYrcVisible] = useState(false);
-  const [transVisible, setTransVisible] = useState(true);
-  const [romaVisible, setRomaVisible] = useState(false);
 
   // 解析歌词 - 保留基本逻辑
   useEffect(() => {
@@ -46,30 +50,56 @@ const LrcView = props => {
   const switchLyric = useCallback(() => {
     if (haveTrans && transVisible) {
       if (haveRoma && !romaVisible) {
-        setRomaVisible(true);
-        setTransVisible(false);
+        dispatch(
+          setLrcFlag({
+            yrcVisible: false,
+            transVisible: false,
+            romaVisible: true,
+          }),
+        );
         showToast('已切换到音译歌词', 'success', true);
       } else {
-        setTransVisible(false);
+        dispatch(
+          setLrcFlag({
+            yrcVisible: false,
+            transVisible: false,
+            romaVisible: false,
+          }),
+        );
         showToast('已隐藏翻译歌词', 'success', true);
       }
       return;
     }
     if (haveRoma && romaVisible) {
-      setTransVisible(false);
-      setRomaVisible(false);
+      dispatch(
+        setLrcFlag({
+          yrcVisible: false,
+          transVisible: false,
+          romaVisible: false,
+        }),
+      );
       showToast('已隐藏音译歌词', 'success', true);
       return;
     }
     if (haveYrc && !yrcVisible) {
-      setYrcVisible(true);
-      setTransVisible(true);
+      dispatch(
+        setLrcFlag({
+          yrcVisible: true,
+          transVisible: true,
+          romaVisible: false,
+        }),
+      );
       showToast('已切换到逐字歌词', 'success', true);
       return;
     }
     if (haveYrc && yrcVisible) {
-      setYrcVisible(false);
-      setTransVisible(true);
+      dispatch(
+        setLrcFlag({
+          yrcVisible: false,
+          transVisible: true,
+          romaVisible: false,
+        }),
+      );
       showToast('已切换到静态歌词', 'success', true);
       return;
     }
@@ -102,7 +132,7 @@ const LrcView = props => {
     }
   }, [CurrentTime, findCurrentLineIndex, OnLyricsChange, parsedLrc]);
 
-  // 渲染每行歌词 - 简化props传递
+  // 渲染每行歌词
   const renderItem = useCallback(
     ({item, index}) => {
       const isActive = nowIndex === index;
@@ -221,7 +251,7 @@ const LrcView = props => {
       )}
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   // 保持原有样式不变
@@ -244,7 +274,7 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
   },
   container: {
-    paddingVertical: fullHeight / 2 - 120,
+    paddingVertical: (fullHeight * 0.8) / 2 - 120,
   },
   line: {
     fontSize: 16,
