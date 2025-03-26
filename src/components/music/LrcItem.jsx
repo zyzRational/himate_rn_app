@@ -22,7 +22,7 @@ const LrcItem = React.memo(
       FullText = '',
       YrcVisible = false,
       TransVisible = false,
-      RromaVisible = false,
+      RomaVisible = false,
     } = props;
 
     // 共享动画值
@@ -83,7 +83,7 @@ const LrcItem = React.memo(
       // 批量更新动画值
       if (isActive) {
         scale.value = withTiming(1.3, {duration: 400});
-        paddingH.value = withTiming(fullWidth * 0.108, {duration: 200});
+        paddingH.value = withTiming(fullWidth * 0.105, {duration: 200});
         textWidth.value = withTiming(Progress, {duration: 600});
         opacity.value = withTiming(1, {duration: 200});
         transOpacity.value = withTiming(1, {duration: 200});
@@ -139,7 +139,7 @@ const LrcItem = React.memo(
             </Text>
           </Animated.Text>
         )}
-        {RromaVisible && isTextVisible(Item.roma) && (
+        {RomaVisible && isTextVisible(Item.roma) && (
           <Animated.Text style={transAnimatedStyle}>
             <Text color={Colors.lyricColor} text80>
               {Item.roma}
@@ -161,7 +161,7 @@ const LrcItem = React.memo(
       prevProps.FullText === nextProps.FullText &&
       prevProps.YrcVisible === nextProps.YrcVisible &&
       prevProps.TransVisible === nextProps.TransVisible &&
-      prevProps.RromaVisible === nextProps.RromaVisible
+      prevProps.RomaVisible === nextProps.RomaVisible
     );
   },
 );

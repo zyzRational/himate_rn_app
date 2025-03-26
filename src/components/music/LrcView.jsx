@@ -35,7 +35,6 @@ const LrcView = props => {
         haveRoma: _haveRoma,
         haveYrc: _haveYrc,
       } = formatLrc(Music);
-
       setParsedLrc(Lyrics);
       setHaveYrc(_haveYrc);
       setHaveRoma(_haveRoma);

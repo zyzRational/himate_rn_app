@@ -1,5 +1,6 @@
 import {isEmptyString} from '../base';
 
+// 解析普通歌词函数
 export const parserLrc = lrc => {
   if (!lrc) {
     return [];
@@ -21,7 +22,7 @@ export const parserLrc = lrc => {
     .filter(line => line !== null && !isEmptyString(line.text));
 };
 
-// 解析歌词函数
+// 解析逐字歌词函数
 export const parseYrcs = lyricsString => {
   if (!lyricsString) {
     return [];
@@ -72,7 +73,7 @@ export const formatLrc = Music => {
 
   const lyric = parserLrc(music_lyric);
   const transLyrics = parserLrc(music_trans);
-  const romaLyrics = parserLrc(music_roma);
+  const romaLyrics = parseYrcs(music_roma);
   const yrcLyrics = parseYrcs(music_yrc);
 
   // 将歌词数组转换为以 time 为键的对象
@@ -81,34 +82,32 @@ export const formatLrc = Music => {
     return map;
   }, {});
 
-  const romaLyricsMap = romaLyrics.reduce((map, _lyric) => {
-    map[_lyric.time] = _lyric.text;
-    return map;
-  }, {});
+  const romaLyricsMap = romaLyrics.map(item => {
+    return {roma: item.words.map(word => word.char).join('')};
+  });
 
   // 合并歌词
   const mergedLyrics = lyric.map(zhLyric => {
     const transText = transLyricsMap[zhLyric.time] || '';
-    const romaText = romaLyricsMap[zhLyric.time] || '';
     return {
       time: zhLyric.time,
       lyric: zhLyric.text,
       trans: transText,
-      roma: romaText,
     };
   });
   return {
-    Lyrics: mergeArraysByIndex(yrcLyrics, mergedLyrics),
+    Lyrics: mergeArraysByIndex(yrcLyrics, mergedLyrics, romaLyricsMap),
     haveYrc: yrcLyrics.length > 0,
     haveTrans: transLyrics.length > 0,
-    haveRoma: romaLyrics.length > 0,
+    haveRoma: romaLyricsMap.length > 0,
   };
 };
 
-export const mergeArraysByIndex = (array1, array2) => {
-  const maxLength = Math.min(array1.length, array2.length);
+export const mergeArraysByIndex = (array1, array2, array3) => {
+  const maxLength = Math.min(array1.length, array2.length, array3.length);
   return Array.from({length: maxLength}, (_, index) => ({
     ...array1[index],
     ...array2[index],
+    ...array3[index],
   }));
 };
