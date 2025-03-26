@@ -121,11 +121,15 @@ const MusicList = props => {
       iconColor: Colors.grey30,
       onPress: () => {
         if (isMultiSelect) {
-          dispatch(unshiftPlayList(selectedItems));
+          const selectedMusic = List.filter(item =>
+            selectedItems.includes(item.id),
+          );
+          dispatch(addPlayList(selectedMusic));
         } else {
-          dispatch(unshiftPlayList([nowMusic]));
+          dispatch(addPlayList([nowMusic]));
         }
         showToast('已添加到播放列表', 'success');
+        setModalVisible(false);
       },
     },
     {
@@ -394,7 +398,7 @@ const MusicList = props => {
               <TouchableOpacity
                 style={styles.musicBut}
                 onPress={() => {
-                  dispatch(addPlayList([item]));
+                  dispatch(unshiftPlayList([item]));
                   showToast('已添加到播放列表', 'success');
                 }}>
                 <AntDesign name="pluscircleo" color={Colors.grey50} size={20} />

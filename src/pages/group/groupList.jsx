@@ -44,8 +44,11 @@ const Grouplist = ({navigation}) => {
   };
 
   useEffect(() => {
-    if (userInfo) {
-      getUserGroups(userInfo.id);
+    if (userInfo?.id) {
+      const timer = setTimeout(() => {
+        getUserGroups(userInfo.id);
+      }, 800);
+      return () => clearTimeout(timer);
     }
   }, [userInfo]);
 

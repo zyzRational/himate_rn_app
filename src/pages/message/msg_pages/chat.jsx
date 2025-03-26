@@ -120,7 +120,7 @@ const Chat = ({navigation, route}) => {
   );
   const isEncryptMsg = useSelector(state => state.settingStore.isEncryptMsg);
 
-  const [messages, setMessages] = useState([]);
+  const [cahtMessages, setChatMessages] = useState([]);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -246,7 +246,7 @@ const Chat = ({navigation, route}) => {
 
   /*  添加消息  */
   const addMsg = (msgList, userList, userId, isNew = true) => {
-    setMessages(previousMessages => {
+    setChatMessages(previousMessages => {
       const newList = deepClone(msgList);
       const needList = [];
       newList?.forEach(msg => {
@@ -293,7 +293,7 @@ const Chat = ({navigation, route}) => {
       _id: Date.now().toString(),
       createdAt: new Date(),
     };
-    setMessages(prevMsgs => {
+    setChatMessages(prevMsgs => {
       if (prevMsgs.find(item => item.system === true)) {
         return prevMsgs;
       }
@@ -387,7 +387,7 @@ const Chat = ({navigation, route}) => {
   const [uploadProgress, setUploadProgress] = useState(0);
   /* 本地发送 */
   const onSend = useCallback(async (messages = []) => {
-    setMessages(previousMessages =>
+    setChatMessages(previousMessages =>
       GiftedChat.append(previousMessages, messages),
     );
     addUploadIds(messages);
@@ -503,7 +503,7 @@ const Chat = ({navigation, route}) => {
 
   /* 加载本地消息 */
   useEffect(() => {
-    setMessages([]);
+    setChatMessages([]);
     if (session_id) {
       const localMsg = getLocalMsg(realm, session_id);
       setLocalMsgList(localMsg.list);
@@ -789,7 +789,7 @@ const Chat = ({navigation, route}) => {
             sendMsg(currentMessage?.text, 'text', true)
               .then(res => {
                 if (res) {
-                  setMessages(previousMessages => {
+                  setChatMessages(previousMessages => {
                     const filteredItems = previousMessages.filter(
                       item => item.clientMsg_id !== currentMessage.clientMsg_id,
                     );
@@ -1390,7 +1390,7 @@ const Chat = ({navigation, route}) => {
         timeFormat={'HH:mm'}
         renderDay={renderDay}
         dateFormatCalendar={FormatCalendarObj}
-        messages={messages}
+        messages={cahtMessages}
         text={msgText}
         onInputTextChanged={text => setMsgText(text)}
         minInputToolbarHeight={60}
@@ -1398,7 +1398,7 @@ const Chat = ({navigation, route}) => {
         showUserAvatar={chat_type === 'group'}
         showAvatarForEveryMessage={chat_type === 'group'}
         renderUsernameOnMessage={chat_type === 'group'}
-        loadEarlier={messages.length < localMsgCount}
+        loadEarlier={cahtMessages.length < localMsgCount}
         renderLoadEarlier={renderLoadEarlier}
         infiniteScroll={true}
         isLoadingEarlier={loadingMsg}

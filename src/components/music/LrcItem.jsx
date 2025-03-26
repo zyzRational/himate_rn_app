@@ -83,33 +83,32 @@ const LrcItem = React.memo(
       // 批量更新动画值
       if (isActive) {
         scale.value = withTiming(1.3, {duration: 400});
-        paddingH.value = withTiming(fullWidth * 0.11, {duration: 200});
+        paddingH.value = withTiming(fullWidth * 0.108, {duration: 200});
         textWidth.value = withTiming(Progress, {duration: 600});
         opacity.value = withTiming(1, {duration: 200});
         transOpacity.value = withTiming(1, {duration: 200});
         color.value = withTiming(Colors.lyricColor, {duration: 100});
       } else if (isAdjacent) {
-        opacity.value = withTiming(0.8, {duration: 300});
-        transOpacity.value = withTiming(0.8, {duration: 300});
-        scale.value = withTiming(1, {duration: 400});
+        opacity.value = withTiming(0.8, {duration: 200});
+        transOpacity.value = withTiming(0.8, {duration: 200});
+        scale.value = withTiming(1, {duration: 200});
         paddingH.value = withTiming(0, {duration: 200});
       } else if (isNearby) {
-        opacity.value = withTiming(0.6, {duration: 300});
-        transOpacity.value = withTiming(0.6, {duration: 300});
-        scale.value = withTiming(1, {duration: 400});
+        opacity.value = withTiming(0.6, {duration: 200});
+        transOpacity.value = withTiming(0.6, {duration: 200});
+        scale.value = withTiming(1, {duration: 200});
         paddingH.value = withTiming(0, {duration: 200});
       } else {
-        opacity.value = withTiming(0.3, {duration: 300});
-        transOpacity.value = withTiming(0.3, {duration: 300});
-        scale.value = withTiming(1, {duration: 400});
+        opacity.value = withTiming(0.3, {duration: 200});
+        transOpacity.value = withTiming(0.3, {duration: 200});
+        scale.value = withTiming(1, {duration: 200});
         paddingH.value = withTiming(0, {duration: 200});
       }
     }, [Index, NowIndex, Progress]);
 
-    // 渲染歌词行
-    const renderLyricLine = useMemo(() => {
-      if (YrcVisible) {
-        return (
+    return (
+      <View paddingV-10 paddingH-20>
+        {YrcVisible ? (
           <Animated.View style={[styles.lyricView, animatedStyle]}>
             <Text
               color={Colors.lyricColor}
@@ -125,43 +124,28 @@ const LrcItem = React.memo(
               </View>
             </Animated.View>
           </Animated.View>
-        );
-      }
-      return (
-        <Animated.Text style={animatedStyle}>
-          <Text color={Colors.lyricColor} text70BO>
-            {Item.lyric}
-          </Text>
-        </Animated.Text>
-      );
-    }, [YrcVisible, FullText, Item.lyric, VisibleChars, textDimensions]);
+        ) : (
+          <Animated.Text style={animatedStyle}>
+            <Text color={Colors.lyricColor} text70BO>
+              {Item.lyric}
+            </Text>
+          </Animated.Text>
+        )}
 
-    // 渲染翻译和罗马音
-    const renderTranslations = useMemo(() => {
-      return (
-        <>
-          {TransVisible && isTextVisible(Item.trans) && (
-            <Animated.Text style={transAnimatedStyle}>
-              <Text color={Colors.lyricColor} text80>
-                {Item.trans}
-              </Text>
-            </Animated.Text>
-          )}
-          {RromaVisible && isTextVisible(Item.roma) && (
-            <Animated.Text style={transAnimatedStyle}>
-              <Text color={Colors.lyricColor} text80>
-                {Item.roma}
-              </Text>
-            </Animated.Text>
-          )}
-        </>
-      );
-    }, [TransVisible, RromaVisible, Item.trans,Item.lyric, Item.roma]);
-
-    return (
-      <View paddingV-10 paddingH-20>
-        {renderLyricLine}
-        {renderTranslations}
+        {TransVisible && isTextVisible(Item.trans) && (
+          <Animated.Text style={transAnimatedStyle}>
+            <Text color={Colors.lyricColor} text80>
+              {Item.trans}
+            </Text>
+          </Animated.Text>
+        )}
+        {RromaVisible && isTextVisible(Item.roma) && (
+          <Animated.Text style={transAnimatedStyle}>
+            <Text color={Colors.lyricColor} text80>
+              {Item.roma}
+            </Text>
+          </Animated.Text>
+        )}
       </View>
     );
   },

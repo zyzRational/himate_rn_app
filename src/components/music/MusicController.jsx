@@ -30,7 +30,7 @@ export const MusicCtrlContext = React.createContext();
 export const useMusicCtrl = () => React.useContext(MusicCtrlContext);
 const audioPlayer = new AudioRecorderPlayer();
 
-const MusicCtrlProvider = props => {
+const MusicCtrlProvider = React.memo(props => {
   const {children} = props;
   const {showToast} = useToast();
   const realm = useRealm();
@@ -54,48 +54,55 @@ const MusicCtrlProvider = props => {
   const [progressNum, setProgressNum] = React.useState(0); // 进度条数值
   const [playType, setPlayType] = React.useState('order'); // 列表播放类型 single order random
 
-  audioPlayer.addPlayBackListener(playbackMeta => {
-    setAudioPlayprogress(playbackMeta);
-    MusicControl.updatePlayback({
-      elapsedTime: Math.round(playbackMeta.currentPosition / 1000),
-    });
-    const num = Math.round(
-      (playbackMeta.currentPosition / playbackMeta.duration) * 100,
-    );
-    if (num) {
-      setProgressNum(num);
-    }
-    if (playbackMeta.isFinished) {
-      restMusicStatus().then(() => {
-        if (isRandomPlay) {
-          getRandMusic();
-        } else if (playList.length > 0) {
-          if (playType === 'single') {
-            dispatch(setPlayingMusic(playList[playingIndex]));
-          }
-          if (playType === 'order') {
-            if (playingIndex === playList.length - 1) {
-              dispatch(setPlayingMusic(playList[0]));
-              return;
-            }
-            dispatch(setPlayingMusic(playList[playingIndex + 1]));
-          }
-          if (playType === 'random') {
-            dispatch(
-              setPlayingMusic(
-                playList[Math.floor(Math.random() * playList.length)],
-              ),
-            );
-          }
-        } else {
-          dispatch(setPlayingMusic({}));
-        }
+  // 音乐播放器
+  React.useEffect(() => {
+    const listener = audioPlayer.addPlayBackListener(playbackMeta => {
+      setAudioPlayprogress(playbackMeta);
+      MusicControl.updatePlayback({
+        elapsedTime: Math.round(playbackMeta.currentPosition / 1000),
       });
-    }
-  });
+      const num = Math.round(
+        (playbackMeta.currentPosition / playbackMeta.duration) * 100,
+      );
+      if (num) {
+        setProgressNum(num);
+      }
+      if (playbackMeta.isFinished) {
+        restMusicStatus().then(() => {
+          if (isRandomPlay) {
+            getRandMusic();
+          } else if (playList.length > 0) {
+            if (playType === 'single') {
+              dispatch(setPlayingMusic(playList[playingIndex]));
+            } else if (playType === 'order') {
+              dispatch(
+                setPlayingMusic(
+                  playingIndex === playList.length - 1
+                    ? playList[0]
+                    : playList[playingIndex + 1],
+                ),
+              );
+            } else if (playType === 'random') {
+              dispatch(
+                setPlayingMusic(
+                  playList[Math.floor(Math.random() * playList.length)],
+                ),
+              );
+            }
+          } else {
+            dispatch(setPlayingMusic({}));
+          }
+        });
+      }
+    });
+    return () => {
+      audioPlayer.removePlayBackListener(listener);
+      MusicControl.stopControl();
+    };
+  }, [isRandomPlay, playList, playType, playingIndex]);
 
-  /* 上一曲 */
-  const previousRemote = () => {
+  // 上一首
+  const previousRemote = React.useCallback(() => {
     if (playingIndex === 0) {
       dispatch(setPlayingMusic(playList[playList.length - 1]));
       showToast('已经是第一首了~', 'warning');
@@ -106,10 +113,10 @@ const MusicCtrlProvider = props => {
     } else {
       showToast('没有要播放的音乐~', 'warning');
     }
-  };
+  }, [playList, playingIndex]);
 
-  /* 暂停/播放 */
-  const playOrPauseRemote = () => {
+  // 播放或暂停
+  const playOrPauseRemote = React.useCallback(() => {
     if (audioIsPlaying) {
       audioPlayer.pausePlayer();
       setAudioIsPlaying(false);
@@ -127,10 +134,10 @@ const MusicCtrlProvider = props => {
         state: MusicControl.STATE_PLAYING,
       });
     }
-  };
+  }, [audioIsPlaying, playingMusic]);
 
-  /* 下一曲 */
-  const nextRemote = () => {
+  // 下一首
+  const nextRemote = React.useCallback(() => {
     if (isRandomPlay) {
       getRandMusic();
       return;
@@ -147,11 +154,10 @@ const MusicCtrlProvider = props => {
       showToast('没有要播放的音乐~', 'warning');
       return;
     }
-  };
+  }, [isRandomPlay, playList, playingIndex]);
 
   // 重置音乐播放所有状态
   const restMusicStatus = async () => {
-    MusicControl.stopControl();
     setAudioPlayprogress({});
     setProgressNum(0);
     setAudioIsPlaying(false);
@@ -196,59 +202,50 @@ const MusicCtrlProvider = props => {
   /* 开启通知栏控件 */
   const startNotification = musicInfo => {
     const {title, artist, album, duration, musicMore} = musicInfo;
+    MusicControl.setNotificationId(5173, '音乐播放器控制组件');
     MusicControl.enableControl('play', true);
     MusicControl.enableControl('pause', true);
     MusicControl.enableControl('stop', false);
     MusicControl.enableControl('nextTrack', true);
     MusicControl.enableControl('previousTrack', true);
     MusicControl.enableControl('seek', true);
-    MusicControl.enableControl('closeNotification', true, {when: 'never'});
+    MusicControl.enableControl('closeNotification', true, {when: 'paused'});
     MusicControl.enableBackgroundMode(true);
     MusicControl.handleAudioInterruptions(true);
     MusicControl.setNowPlaying({
       title: title,
-      artwork: STATIC_URL + (musicMore?.music_cover || userInfo?.user_avatar), // URL or RN's image require()
+      artwork: STATIC_URL + (musicMore?.music_cover || userInfo?.user_avatar),
       artist: artist,
       album: album,
-      duration: duration, // (Seconds)
-      color: 0x0000ff, // Android Only - Notification Color
-      //colorized: true, // Android 8+ Only - Notification Color extracted from the artwork. Set to false to use the color property instead
-      date: Date.now().toString(), // , // Release Date (RFC 3339) - Android Only
-      isLiveStream: true, // iOS Only (Boolean), Show or hide Live Indicator instead of seekbar on lock screen for live streams. Default value is false.
+      duration: duration,
+      color: 0x0000ff,
+      date: Date.now().toString(),
+      isLiveStream: true,
     });
     MusicControl.updatePlayback({
       state: MusicControl.STATE_PLAYING,
-      speed: 1, // Playback Rate
+      speed: 1,
     });
   };
 
-  /* 控件操作 */
-  MusicControl.on(Command.pause, () => {
-    playOrPauseRemote();
-  });
-
-  MusicControl.on(Command.play, () => {
-    playOrPauseRemote();
-  });
-
-  MusicControl.on(Command.nextTrack, () => {
-    nextRemote();
-  });
-
-  MusicControl.on(Command.previousTrack, () => {
-    previousRemote();
-  });
-
-  MusicControl.on(Command.seek, pos => {
-    audioPlayer?.seekToPlayer(pos * 1000);
-  });
-
-  // 是否处于音乐中
   React.useEffect(() => {
-    if (!showMusicCtrl) {
-      audioPlayer.removeRecordBackListener();
-    }
-  }, [showMusicCtrl]);
+    /* 控件操作 */
+    MusicControl.on(Command.pause, () => {
+      playOrPauseRemote();
+    });
+    MusicControl.on(Command.play, () => {
+      playOrPauseRemote();
+    });
+    MusicControl.on(Command.nextTrack, () => {
+      nextRemote();
+    });
+    MusicControl.on(Command.previousTrack, () => {
+      previousRemote();
+    });
+    MusicControl.on(Command.seek, pos => {
+      audioPlayer?.seekToPlayer(pos * 1000);
+    });
+  }, [playOrPauseRemote, nextRemote, previousRemote]);
 
   // 是否要定时关闭音乐
   let timer = null;
@@ -270,21 +267,19 @@ const MusicCtrlProvider = props => {
   }, [closeTime]);
 
   // 获取随机歌曲
-  const getRandMusic = async () => {
+  const getRandMusic = React.useCallback(async () => {
     const index = getRandomInt(randomNum.min, randomNum.max);
     try {
       const res = await getMusicList({pageNum: index, pageSize: 1});
-      if (res.success) {
-        if (res.data.list.length > 0) {
-          const music = res.data.list[0];
-          dispatch(setPlayingMusic(music));
-          dispatch(addPlayList([music]));
-        }
+      if (res.success && res.data.list.length > 0) {
+        const music = res.data.list[0];
+        dispatch(setPlayingMusic(music));
+        dispatch(addPlayList([music]));
       }
     } catch (error) {
       console.log(error);
     }
-  };
+  }, [randomNum.max, randomNum.min]);
 
   // 随机播放
   React.useEffect(() => {
@@ -528,7 +523,7 @@ const MusicCtrlProvider = props => {
       />
     </MusicCtrlContext.Provider>
   );
-};
+});
 
 const styles = StyleSheet.create({
   musicBut: {

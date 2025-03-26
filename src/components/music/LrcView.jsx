@@ -26,7 +26,7 @@ const LrcView = props => {
   const [transVisible, setTransVisible] = useState(true);
   const [romaVisible, setRomaVisible] = useState(false);
 
-  // 解析歌词
+  // 解析歌词 - 保留基本逻辑
   useEffect(() => {
     if (Music && !isEmptyObject(Music)) {
       const {
@@ -45,24 +45,43 @@ const LrcView = props => {
 
   // 切换歌词
   const switchLyric = useCallback(() => {
-    setTransVisible(prev => {
-      if (!prev && haveTrans) {
-        showToast('已显示翻译歌词', 'success', true);
-        return true;
+    if (haveTrans && transVisible) {
+      if (haveRoma && !romaVisible) {
+        setRomaVisible(true);
+        setTransVisible(false);
+        showToast('已切换到音译歌词', 'success', true);
+      } else {
+        setTransVisible(false);
+        showToast('已隐藏翻译歌词', 'success', true);
       }
-      return false;
-    });
-    setRomaVisible(prev => {
-      if (!prev && haveRoma) {
-        showToast('已显示音译歌词', 'success', true);
-        return true;
-      }
-      return false;
-    });
-  }, [haveTrans, haveRoma, showToast]);
+      return;
+    }
+    if (haveRoma && romaVisible) {
+      setTransVisible(false);
+      setRomaVisible(false);
+      showToast('已隐藏音译歌词', 'success', true);
+      return;
+    }
+    if (haveYrc && !yrcVisible) {
+      setYrcVisible(true);
+      setTransVisible(true);
+      showToast('已切换到逐字歌词', 'success', true);
+      return;
+    }
+    if (haveYrc && yrcVisible) {
+      setYrcVisible(false);
+      setTransVisible(true);
+      showToast('已切换到静态歌词', 'success', true);
+      return;
+    }
+  }, [haveRoma, romaVisible, haveTrans, transVisible, haveYrc, yrcVisible]);
 
-  // 根据当前时间找到对应的歌词索引
+  // 查找当前行 - 保留线性查找但优化比较
   const findCurrentLineIndex = useCallback(() => {
+    if (parsedLrc.length === 0) {
+      return -1;
+    }
+
     for (let i = 0; i < parsedLrc.length; i++) {
       const matchTime =
         yrcVisible && haveYrc ? parsedLrc[i].startTime : parsedLrc[i].time;
@@ -73,7 +92,7 @@ const LrcView = props => {
     return parsedLrc.length - 1;
   }, [parsedLrc, yrcVisible, haveYrc, CurrentTime]);
 
-  // 自动滚动到当前歌词
+  // 自动滚动到当前歌词 - 保留基本逻辑
   const [nowIndex, setNowIndex] = useState(-1);
   useEffect(() => {
     const index = findCurrentLineIndex();
@@ -82,27 +101,28 @@ const LrcView = props => {
       flatListRef.current.scrollToIndex({index, animated: true});
       OnLyricsChange(parsedLrc[index]?.lyric);
     }
-  }, [CurrentTime, OnLyricsChange, findCurrentLineIndex]);
+  }, [CurrentTime, findCurrentLineIndex, OnLyricsChange, parsedLrc]);
 
-  // 渲染每行歌词
+  // 渲染每行歌词 - 简化props传递
   const renderItem = useCallback(
     ({item, index}) => {
+      const isActive = nowIndex === index;
       let progress = 0;
-      const visibleChars = [];
+      let visibleChars = '';
       const fullText = item.words.map(w => w.char).join('');
-      if (nowIndex === index) {
-        // 计算进度 (0-1)
+      if (isActive) {
         const lineTime = CurrentTime - item.startTime;
         progress = Math.min(Math.max(lineTime / item.duration, 0), 1);
-        // 计算当前歌词
+
         for (const word of item.words) {
           if (CurrentTime >= word.startTime) {
-            visibleChars.push(word.char);
+            visibleChars += word.char;
           } else {
             break;
           }
         }
       }
+
       return (
         <LrcItem
           Item={item}
@@ -110,7 +130,7 @@ const LrcView = props => {
           CurrentTime={CurrentTime}
           NowIndex={nowIndex}
           Progress={progress}
-          VisibleChars={visibleChars.join('')}
+          VisibleChars={visibleChars}
           FullText={fullText}
           YrcVisible={yrcVisible && haveYrc}
           TransVisible={transVisible && haveTrans}
@@ -130,21 +150,18 @@ const LrcView = props => {
     ],
   );
 
-  const contentContainerStyle = useMemo(() => {
-    return {
-      paddingVertical: fullHeight / 2 - 120,
-    };
-  }, [fullHeight]);
+  // 基本FlatList配置
+  const contentContainerStyle = {
+    paddingVertical: fullHeight / 2 - 120,
+  };
 
   return (
     <View>
       <View flexS row centerV paddingV-16 paddingH-20>
         {Music?.music_name ? (
           <Image
-            source={{
-              uri: Cover,
-            }}
-            style={styles.image}
+            source={{uri: Cover}}
+            style={[styles.image, {borderColor: Colors.lyricColor}]}
           />
         ) : null}
         <View>
@@ -172,19 +189,19 @@ const LrcView = props => {
             renderItem={renderItem}
             keyExtractor={item => item.id.toString()}
             contentContainerStyle={contentContainerStyle}
-            getItemLayout={(data, index) => {
-              return {
-                length:
-                  (transVisible && haveTrans) || (romaVisible && haveRoma)
-                    ? 64
-                    : 44,
-                offset:
-                  ((transVisible && haveTrans) || (romaVisible && haveRoma)
-                    ? 64
-                    : 44) * index,
-                index,
-              };
-            }}
+            getItemLayout={(data, index) => ({
+              length:
+                (transVisible && haveTrans) || (romaVisible && haveRoma)
+                  ? 62
+                  : 44,
+              offset:
+                ((transVisible && haveTrans) || (romaVisible && haveRoma)
+                  ? 62
+                  : 44) * index,
+              index,
+            })}
+            initialNumToRender={15}
+            windowSize={11}
           />
         ) : (
           <View height={'100%'} center>
@@ -194,7 +211,7 @@ const LrcView = props => {
           </View>
         )}
       </View>
-      {(haveRoma || haveTrans || haveYrc) && parsedLrc.length > 0 ? (
+      {(haveRoma || haveTrans || haveYrc) && parsedLrc.length > 0 && (
         <View style={styles.switchView}>
           <View backgroundColor={Colors.hyalineWhite} style={styles.switchBut}>
             <TouchableOpacity style={styles.musicBut} onPress={switchLyric}>
@@ -202,12 +219,13 @@ const LrcView = props => {
             </TouchableOpacity>
           </View>
         </View>
-      ) : null}
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  // 保持原有样式不变
   lyricText: {
     fontSize: 16,
     color: Colors.lyricColor,
@@ -224,6 +242,7 @@ const styles = StyleSheet.create({
     height: 46,
     borderRadius: 8,
     marginRight: 12,
+    borderWidth: 0.5,
   },
   container: {
     paddingVertical: fullHeight / 2 - 120,

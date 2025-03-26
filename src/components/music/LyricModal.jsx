@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useCallback, useMemo} from 'react';
 import {StyleSheet, Modal, ImageBackground} from 'react-native';
 import {useSelector} from 'react-redux';
 import {
@@ -20,7 +20,7 @@ import {getWhitenessScore} from '../../utils/handle/colorHandle';
 import LrcView from './LrcView';
 import KeepAwake from '@sayem314/react-native-keep-awake';
 
-const LyricModal = props => {
+const LyricModal = React.memo(props => {
   const {
     Visible = false,
     Music = {},
@@ -38,32 +38,83 @@ const LyricModal = props => {
     OnMain = () => {},
   } = props;
 
-  // baseConfig
+  // Redux selectors
   const {STATIC_URL} = useSelector(state => state.baseConfigStore.baseConfig);
   const userInfo = useSelector(state => state.userStore.userInfo);
 
   const {musicMore} = Music || {};
   const [nowLyric, setNowLyric] = useState('');
 
+  // 颜色计算 - 使用useMemo缓存结果
+  const coverUri = useMemo(
+    () => STATIC_URL + (musicMore?.music_cover || userInfo?.user_avatar),
+    [STATIC_URL, musicMore?.music_cover, userInfo?.user_avatar],
+  );
+
+  // 颜色计算 - 只在相关依赖变化时执行
   React.useEffect(() => {
-    getColors(STATIC_URL + musicMore?.music_cover, {
+    if (!musicMore?.music_cover) {
+      return;
+    }
+
+    getColors(STATIC_URL + musicMore.music_cover, {
       fallback: '#ffffff',
-      cache: false,
+      cache: true, // 启用缓存
     }).then(res => {
-      if (res.platform === 'android') {
-        const num = getWhitenessScore(res.dominant);
-        num > 87
-          ? Colors.loadColors({lyricColor: Colors.grey10})
-          : Colors.loadColors({lyricColor: Colors.white});
-      }
-      if (res.platform === 'ios') {
-        const num = getWhitenessScore(res.background);
-        num > 87
-          ? Colors.loadColors({lyricColor: Colors.grey10})
-          : Colors.loadColors({lyricColor: Colors.white});
-      }
+      const platform = res.platform;
+      const colorValue = platform === 'android' ? res.average : res.background;
+      const num = getWhitenessScore(colorValue);
+      Colors.loadColors({
+        lyricColor: num > 87 ? Colors.grey10 : Colors.white,
+      });
     });
-  }, [musicMore]);
+  }, [musicMore?.music_cover]);
+
+  // 记忆化回调函数
+  const handleFavorite = useCallback(() => {
+    OnFavorite(Music.id, IsFavorite);
+  }, [OnFavorite, Music.id, IsFavorite]);
+
+  // 音乐封面URI
+  const musicCoverUri = useMemo(
+    () => STATIC_URL + (musicMore?.music_cover || 'default_music_cover.jpg'),
+    [STATIC_URL, musicMore?.music_cover],
+  );
+
+  // 艺术家字符串
+  const artistsString = useMemo(
+    () => Music?.artists?.join(' / ') || '未知歌手',
+    [Music?.artists],
+  );
+
+  // 当前时间和总时长格式化
+  const currentTimeFormatted = useMemo(
+    () => formatMilliseconds(PlayProgress?.currentPosition ?? 0),
+    [PlayProgress?.currentPosition],
+  );
+
+  const durationFormatted = useMemo(
+    () => formatMilliseconds(PlayProgress?.duration ?? 0),
+    [PlayProgress?.duration],
+  );
+
+  // 歌词动画组件
+  const lyricAnimation = useMemo(() => {
+    if (isEmptyString(nowLyric)) {
+      return null;
+    }
+
+    return (
+      <Animated.View entering={FadeInUp} exiting={FadeOutDown} key={nowLyric}>
+        <Text
+          numberOfLines={1}
+          width={fullWidth * 0.8}
+          color={Colors.lyricColor}>
+          {nowLyric}
+        </Text>
+      </Animated.View>
+    );
+  }, [nowLyric]);
 
   return (
     <Modal
@@ -79,13 +130,12 @@ const LyricModal = props => {
         <ImageBackground
           blurRadius={50}
           style={styles.backImage}
-          source={{
-            uri: STATIC_URL + (musicMore?.music_cover || userInfo?.user_avatar),
-          }}
+          source={{uri: coverUri}}
           resizeMode="cover">
           <TouchableOpacity paddingT-48 paddingL-22 onPress={OnClose}>
             <AntDesign name="close" color={Colors.lyricColor} size={24} />
           </TouchableOpacity>
+
           <Carousel
             pageControlPosition={Carousel.pageControlPositions.UNDER}
             pageControlProps={{
@@ -96,17 +146,15 @@ const LyricModal = props => {
             itemSpacings={0}
             containerMarginHorizontal={0}
             initialPage={0}>
+            {/* 第一页：音乐信息 */}
             <View>
               <View flexS center marginT-40>
                 <Image
-                  source={{
-                    uri:
-                      STATIC_URL +
-                      (musicMore?.music_cover || 'default_music_cover.jpg'),
-                  }}
-                  style={styles.bigImage}
+                  source={{uri: musicCoverUri}}
+                  style={[styles.bigImage, {borderColor: Colors.lyricColor}]}
                 />
               </View>
+
               <View padding-26>
                 <View row centerV spread marginT-12>
                   <View flexS>
@@ -114,42 +162,20 @@ const LyricModal = props => {
                       {Music?.title ?? '还没有要播放的音乐 ~'}
                     </Text>
                     <Text marginT-6 color={Colors.lyricColor} text70>
-                      {Music?.artists?.join(' / ') || '未知歌手'}
+                      {artistsString}
                     </Text>
                   </View>
                   <TouchableOpacity
                     style={styles.musicBut}
-                    onPress={() => {
-                      OnFavorite(Music.id, IsFavorite);
-                    }}>
-                    {IsFavorite ? (
-                      <AntDesign
-                        name="heart"
-                        color={Colors.lyricColor}
-                        size={22}
-                      />
-                    ) : (
-                      <AntDesign
-                        name="hearto"
-                        color={Colors.lyricColor}
-                        size={22}
-                      />
-                    )}
+                    onPress={handleFavorite}>
+                    <AntDesign
+                      name={IsFavorite ? 'heart' : 'hearto'}
+                      color={Colors.lyricColor}
+                      size={22}
+                    />
                   </TouchableOpacity>
                 </View>
-                {isEmptyString(nowLyric) ? null : (
-                  <Animated.View
-                    entering={FadeInUp}
-                    exiting={FadeOutDown}
-                    key={nowLyric}>
-                    <Text
-                      numberOfLines={1}
-                      width={fullWidth * 0.8}
-                      color={Colors.lyricColor}>
-                      {nowLyric}
-                    </Text>
-                  </Animated.View>
-                )}
+                {lyricAnimation}
                 {Music?.sampleRate ? (
                   <View marginT-12 row centerV spread>
                     <Text color={Colors.lyricColor} text100L>
@@ -175,13 +201,14 @@ const LyricModal = props => {
                   />
                   <View row centerV spread>
                     <Text text90L color={Colors.lyricColor}>
-                      {formatMilliseconds(PlayProgress?.currentPosition ?? 0)}
+                      {currentTimeFormatted}
                     </Text>
                     <Text text90L color={Colors.lyricColor}>
-                      {formatMilliseconds(PlayProgress?.duration ?? 0)}
+                      {durationFormatted}
                     </Text>
                   </View>
                 </View>
+
                 <View row centerV spread marginT-16>
                   <TouchableOpacity
                     style={styles.musicBut}
@@ -216,19 +243,15 @@ const LyricModal = props => {
                     />
                   </TouchableOpacity>
                   <TouchableOpacity onPress={OnPlay}>
-                    {IsPlaying ? (
-                      <Ionicons
-                        name="pause-circle-outline"
-                        color={Colors.lyricColor}
-                        size={64}
-                      />
-                    ) : (
-                      <Ionicons
-                        name="play-circle-outline"
-                        color={Colors.lyricColor}
-                        size={64}
-                      />
-                    )}
+                    <Ionicons
+                      name={
+                        IsPlaying
+                          ? 'pause-circle-outline'
+                          : 'play-circle-outline'
+                      }
+                      color={Colors.lyricColor}
+                      size={64}
+                    />
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.musicBut} onPress={OnForWard}>
                     <Ionicons
@@ -247,12 +270,12 @@ const LyricModal = props => {
                 </View>
               </View>
             </View>
+
+            {/* 第二页：歌词视图 */}
             <View>
               <LrcView
                 Music={musicMore}
-                Cover={
-                  STATIC_URL + (musicMore?.music_cover || userInfo?.user_avatar)
-                }
+                Cover={coverUri}
                 CurrentTime={PlayProgress?.currentPosition}
                 OnLyricsChange={setNowLyric}
               />
@@ -262,7 +285,8 @@ const LyricModal = props => {
       </View>
     </Modal>
   );
-};
+});
+
 const styles = StyleSheet.create({
   musicBut: {
     width: 30,
@@ -288,7 +312,6 @@ const styles = StyleSheet.create({
     width: fullWidth * 0.86,
     height: fullWidth * 0.86,
     borderRadius: 20,
-    borderColor: Colors.lyricColor,
     borderWidth: 1,
   },
   trackStyle: {

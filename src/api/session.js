@@ -11,3 +11,7 @@ export const getSessionDetail = data =>
 // 删除用户会话
 export const dleUserSession = id =>
   instance.delete('api/session/del', {params: {id}});
+
+// 获取云端消息
+export const getChatList = data =>
+  instance.get('api/chat/list', {params: data});

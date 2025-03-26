@@ -160,7 +160,7 @@ const GroupInfo = ({navigation, route}) => {
       const addRes = await deleteGroup(groupInfo.id);
       if (addRes.success) {
         setDeleteIsVisible(false);
-        navigation.navigate('Grouplist');
+        navigation.navigate('Mate');
       }
       showToast(addRes.message, addRes.success ? 'success' : 'error');
     } catch (error) {
