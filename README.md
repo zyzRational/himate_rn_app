@@ -115,6 +115,12 @@ yarn ios
 cd android
 ```
 
+清除android项目缓存
+
+```
+./gradlew clean
+```
+
 debug（测试）版本
 
 ```
