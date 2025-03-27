@@ -94,17 +94,13 @@ export const setLocalMsg = async (realm, msgs) => {
 /* 查询本地消息 */
 export const getLocalMsg = (realm, session_id) => {
   const localMsgs = realm.objects('ChatMsg');
-  const newlist = localMsgs
+  const list = localMsgs
     .filtered('session_id == $0', session_id)
     .sorted('createdAt', true)
     .toJSON();
-
-  const lastList = newlist.sort((a, b) => b.createdAt - a.createdAt);
-  // console.log('本地消息', lastList);
-
   return {
-    list: lastList,
-    count: lastList.length,
+    list,
+    count: list.length,
   };
 };
 

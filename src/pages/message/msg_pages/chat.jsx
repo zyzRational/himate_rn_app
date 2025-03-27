@@ -84,7 +84,6 @@ import {
   createRandomSecretKey,
   encryptAES,
 } from '../../../utils/handle/cryptoHandle';
-import {audioExtNames} from '../../../constants/baseConst';
 import VideoModal from '../../../components/commom/VideoModal';
 import ImgModal from '../../../components/commom/ImgModal';
 import VideoMsg from '../../../components/message/VideoMsg';
@@ -121,7 +120,7 @@ const Chat = ({navigation, route}) => {
   );
   const isEncryptMsg = useSelector(state => state.settingStore.isEncryptMsg);
 
-  const [cahtMessages, setChatMessages] = useState([]);
+  const [messages, setMessages] = useState([]);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -246,65 +245,72 @@ const Chat = ({navigation, route}) => {
   };
 
   /*  添加消息  */
-  const addMsg = (msgList, userList, userId, isNew = true) => {
-    setChatMessages(previousMessages => {
-      const newList = deepClone(msgList);
-      const needList = [];
-      newList?.forEach(msg => {
-        if (!previousMessages.find(item => item._id === msg._id)) {
-          const needUser = userList.find(
-            ele => ele.uid === msg.send_uid && ele.session_id === session_id,
-          );
-          if (msg.msg_type === 'image') {
-            msg.image = `${THUMBNAIL_URL}${msg.text}`;
-            msg.originalImage = `${STATIC_URL}${msg.text}`;
-            msg.text = null;
+  const addMsg = useCallback(
+    (msgList = [], userList = [], userId, isNew = true) => {
+      setMessages(previousMessages => {
+        const newList = deepClone(msgList);
+        const needList = [];
+        newList.forEach(msg => {
+          const send_uid = msg.send_uid;
+          if (!previousMessages.find(item => item._id === msg._id)) {
+            const needUser = userList.find(
+              ele => ele.uid === send_uid && ele.session_id === session_id,
+            );
+            switch (msg.msg_type) {
+              case 'image':
+                msg.image = `${THUMBNAIL_URL}${msg.text}`;
+                msg.originalImage = `${STATIC_URL}${msg.text}`;
+                msg.text = null;
+                break;
+              case 'video':
+                msg.video = `${STATIC_URL}${msg.text}`;
+                msg.text = null;
+                break;
+              case 'audio':
+                msg.audio = `${STATIC_URL}${msg.text}`;
+                msg.text = null;
+                break;
+              case 'other':
+                msg.filePath = `${STATIC_URL}${msg.text}`;
+                msg.text = getFileExt(msg.text);
+                break;
+            }
+            if (needUser) {
+              msg.user = {
+                _id: userId === msg.send_uid ? 1 : 2,
+                avatar: STATIC_URL + needUser.avatar,
+                name: needUser.remark,
+                uid: needUser.uid,
+              };
+              needList.push(msg);
+            }
           }
-          if (msg.msg_type === 'video') {
-            msg.video = `${STATIC_URL}${msg.text}`;
-            msg.text = null;
-          }
-          if (msg.msg_type === 'audio') {
-            msg.audio = `${STATIC_URL}${msg.text}`;
-            msg.text = null;
-          }
-          if (msg.msg_type === 'other') {
-            msg.filePath = `${STATIC_URL}${msg.text}`;
-            msg.text = getFileExt(msg.text);
-          }
-          if (needUser) {
-            msg.user = {};
-            msg.user._id = userId === msg.send_uid ? 1 : 2;
-            msg.user.avatar = STATIC_URL + needUser?.avatar;
-            msg.user.name = needUser?.remark;
-            msg.user.uid = needUser.uid;
-            needList.push(msg);
-          }
-        }
+        });
+        return GiftedChat.append(previousMessages, needList, isNew);
       });
-      return GiftedChat.append(previousMessages, [...needList], isNew);
-    });
-  };
+    },
+    [session_id],
+  );
 
   /* 添加系统消息 */
-  const addSystemMsg = msg => {
+  const addSystemMsg = useCallback(msg => {
     const newMsg = {
       text: msg,
       system: true,
       _id: Date.now().toString(),
       createdAt: new Date(),
     };
-    setChatMessages(prevMsgs => {
+    setMessages(prevMsgs => {
       if (prevMsgs.find(item => item.system === true)) {
         return prevMsgs;
       }
       return GiftedChat.append(prevMsgs, [newMsg]);
     });
-  };
+  }, []);
 
   /* 发送消息 */
   const [failMsgList, setFailMsgList] = useState([]);
-  const sendMsg = async (message, msg_type = 'text', isReSend = false) => {
+  const sendMsg = (message, msg_type = 'text', isReSend = false) => {
     const baseMsg = {
       sId,
       session_id,
@@ -322,15 +328,19 @@ const Chat = ({navigation, route}) => {
     }
     return new Promise((resolve, reject) => {
       if (socketReady) {
-        socket?.emit('chat', baseMsg, res => {
-          // console.log('chat msg', res);
-          if (res.success) {
-            resolve(res.data);
-          } else {
-            showToast(res.message, 'error');
-            reject(new Error('发送失败'));
-          }
-        });
+        try {
+          socket?.emit('chat', baseMsg, res => {
+            // console.log('chat msg', res);
+            if (res.success) {
+              resolve(res.data);
+            } else {
+              showToast(res.message, 'error');
+              reject(new Error('发送失败'));
+            }
+          });
+        } catch (error) {
+          reject(new Error(error));
+        }
       } else {
         showToast('socket 未连接', 'error');
         reject(new Error('socket 未连接'));
@@ -387,51 +397,72 @@ const Chat = ({navigation, route}) => {
   const [uploadIds, setUploadIds] = useState([]);
   const [uploadProgress, setUploadProgress] = useState(0);
   /* 本地发送 */
-  const onSend = useCallback(
-    async (messages = []) => {
-      setChatMessages(previousMessages =>
-        GiftedChat.append(previousMessages, messages),
-      );
-      addUploadIds(messages);
-      for (let i = 0; i < messages.length; i++) {
-        const message = messages[i];
-        const msgType = message?.msg_type;
-        let msgContent = message.text;
-        if (msgType && msgType !== 'text') {
-          setNowSendId(message._id);
-          const res = await UploadFile(
-            message.file,
-            value => {
-              setUploadProgress(value);
-            },
-            {uid: userInfo?.id, fileType: msgType, useType: 'chat'},
-          );
-          setNowSendId(null);
-          removeUploadIds(message._id);
-          setUploadProgress(0); // 重置媒体消息进度
-          const upRes = JSON.parse(res.text());
-          if (upRes.success) {
-            msgContent = upRes.data.file_name;
-          } else {
-            continue;
-          }
+  const onSend = useCallback(async (_messages = []) => {
+    setMessages(previousMessages =>
+      GiftedChat.append(previousMessages, _messages),
+    );
+    addUploadIds(_messages);
+    for (let i = 0; i < _messages.length; i++) {
+      const message = _messages[i];
+      const msgType = message?.msg_type;
+      let msgContent = message.text;
+      if (msgType && msgType !== 'text') {
+        setNowSendId(message._id);
+        const res = await UploadFile(
+          message.file,
+          value => {
+            setUploadProgress(value);
+          },
+          {uid: userInfo?.id, fileType: msgType, useType: 'chat'},
+        );
+        setNowSendId(null);
+        removeUploadIds(message._id);
+        setUploadProgress(0); // 重置媒体消息进度
+        const upRes = JSON.parse(res.text());
+        if (upRes.success) {
+          msgContent = upRes.data.file_name;
+        } else {
+          continue;
         }
-        sendMsg(msgContent, msgType)
-          .then(async reslut => {
-            const msg = formatMsg(reslut);
-            setLocalMsg(realm, [msg]);
-          })
-          .catch(error => {
-            setFailMsgList(previousFailMsgIds => [
-              ...previousFailMsgIds,
-              message._id,
-            ]);
-            console.log(error);
-          });
       }
-    },
-    [setChatMessages],
-  );
+      sendMsg(msgContent, msgType)
+        .then(reslut => {
+          const msg = formatMsg(reslut);
+          setLocalMsg(realm, [msg]);
+        })
+        .catch(error => {
+          setFailMsgList(previousFailMsgIds => [
+            ...previousFailMsgIds,
+            message._id,
+          ]);
+          console.log(error);
+        });
+    }
+  }, []);
+
+  /* 本地消息分页 */
+  const [page, setPage] = useState(1);
+  const [localMsgList, setLocalMsgList] = useState([]);
+  const [localMsgCount, setLocalMsgCount] = useState(0);
+  const [loadingMsg, setLoadingMsg] = useState(false); // 加载显示
+  const [startIndex, setStartIndex] = useState(0); // 开始索引
+  const [lastMsg, setLastMsg] = useState(null); // 结束索引的消息
+  const getNowPageMsg = (list, newpage, cid) => {
+    setLoadingMsg(true);
+    const endIndex = newpage * 100;
+    if (cid) {
+      for (let i = 0; i < list.length; i++) {
+        if (list[i] && list[i].clientMsg_id === cid) {
+          setStartIndex(i);
+          setPage(Math.floor(i / 100) + 1);
+          break;
+        }
+      }
+    }
+    setLastMsg(list[endIndex - 1]);
+    const newList = list.slice(0, endIndex);
+    return newList;
+  };
 
   /* 媒体消息 */
   const sendMediaMsg = (medias, sourceType) => {
@@ -481,69 +512,28 @@ const Chat = ({navigation, route}) => {
     onSend(mediaMsgs);
   };
 
-  /* 本地消息分页 */
-  const [page, setPage] = useState(0);
-  const [localMsgList, setLocalMsgList] = useState([]);
-  const [localMsgCount, setLocalMsgCount] = useState(0);
-  const [isLoadingEarlier, setIsLoadingEarlier] = useState(false); // 是否正在加载早期消息
-  const [allLoaded, setAllLoaded] = useState(false); // 是否全部加载完毕
-  const [startIndex, setStartIndex] = useState(0); // 开始索引
-  const [lastMsg, setLastMsg] = useState(null); // 结束索引的消息
-
-  // 加载更早的消息
-  const onLoadEarlier = useCallback(async () => {
-    console.log(111111);
-
-    if (isLoadingEarlier || allLoaded) {
-      return;
-    }
-    setIsLoadingEarlier(true);
-    try {
-      const olderMessages = getNowPageMsg(page + 1);
-      if (olderMessages.length === 0) {
-        setAllLoaded(true);
-        return;
-      }
-      addMsg(olderMessages, jionUsers, userInfo.id, false);
-      setPage(prev => prev + 1);
-    } catch (error) {
-      console.error('加载历史消息失败:', error);
-    } finally {
-      setIsLoadingEarlier(false);
-    }
-  }, [page, isLoadingEarlier, allLoaded, jionUsers, userInfo?.id]);
-
-  // 获取本页消息
-  const pageSize = 20;
-  const getNowPageMsg = useCallback(
-    (_page, cid) => {
-      const start = _page * pageSize;
-      const end = start + pageSize;
-      return Array.from(localMsgList.slice(start, end));
-    },
-    [localMsgList],
-  );
-
-  /* 加载本地消息*/
+  /* 加载本地消息 */
   useEffect(() => {
-    setChatMessages([]);
+    setMessages([]);
     if (session_id) {
       const localMsg = getLocalMsg(realm, session_id);
-      const {count, list} = localMsg || {};
-      setLocalMsgList(list);
-      setLocalMsgCount(count);
-      // 重置页码
-      setPage(0);
+      setLocalMsgList(localMsg.list);
+      setLocalMsgCount(localMsg.count);
     }
   }, [session_id]);
 
-  /* 首次加载消息 */
+  /* 滑动加载历史消息 */
   useEffect(() => {
-    if (jionUsers.length > 0 && userInfo?.id) {
-      const moreMsg = getNowPageMsg(0, searchMsg_cid);
-      addMsg(localMsgList, jionUsers, userInfo.id, false);
+    if (localMsgList.length > 0 && jionUsers.length > 0 && userInfo) {
+      // console.log('加载历史消息:', localMsgList);
+      addMsg(
+        getNowPageMsg(localMsgList, page, searchMsg_cid),
+        jionUsers,
+        userInfo.id,
+        false,
+      );
     }
-  }, [localMsgList,jionUsers, userInfo, searchMsg_cid]);
+  }, [page, localMsgList, jionUsers, userInfo, searchMsg_cid]);
 
   /* 监听接受的消息 */
   useEffect(() => {
@@ -638,15 +628,6 @@ const Chat = ({navigation, route}) => {
   /* 自定义输入框 */
   const renderComposer = props => {
     return <Composer {...props} textInputStyle={styles.textInputStyle} />;
-  };
-
-  /* 自定义滚动到底部 */
-  const scrollToBottomComponent = () => {
-    return (
-      <View>
-        <Ionicons name="chevron-down" color={Colors.Primary} size={24} />
-      </View>
-    );
   };
 
   /* 点击头像 */
@@ -793,6 +774,27 @@ const Chat = ({navigation, route}) => {
     }
   };
 
+  /* 重新发送消息的回调 */
+  const onResendMsg = useCallback(
+    (res, _curMessage) => {
+      if (res) {
+        setMessages(previousMessages => {
+          const filteredItems = previousMessages.filter(
+            item => item.clientMsg_id !== _curMessage.clientMsg_id,
+          );
+          return GiftedChat.append(filteredItems, []);
+        });
+        const toDelete = realm
+          .objects('ChatMsg')
+          .filtered('clientMsg_id == $0', _curMessage.clientMsg_id);
+        realm.write(() => {
+          realm.delete(toDelete);
+        });
+      }
+    },
+    [realm],
+  );
+
   /* 自定义长按消息 */
   const onLongPress = (context, currentMessage) => {
     if (currentMessage.msg_type === 'text') {
@@ -818,23 +820,7 @@ const Chat = ({navigation, route}) => {
           ) {
             sendMsg(currentMessage?.text, 'text', true)
               .then(res => {
-                if (res) {
-                  setChatMessages(previousMessages => {
-                    const filteredItems = previousMessages.filter(
-                      item => item.clientMsg_id !== currentMessage.clientMsg_id,
-                    );
-                    return GiftedChat.append(filteredItems, []);
-                  });
-                  const toDelete = realm
-                    .objects('ChatMsg')
-                    .filtered(
-                      'clientMsg_id == $0',
-                      currentMessage.clientMsg_id,
-                    );
-                  realm.write(() => {
-                    realm.delete(toDelete);
-                  });
-                }
+                onResendMsg(res, currentMessage);
               })
               .catch(error => {
                 console.log(error);
@@ -875,10 +861,7 @@ const Chat = ({navigation, route}) => {
           margin-4
           style={styles.fileContainer}
           onPress={() => {
-            if (audioExtNames.includes(fileMsg.text)) {
-              setFullscreenUri(fileMsg.filePath);
-              setModalVisible(true);
-            } else if (fileMsg.text === 'pdf') {
+            if (fileMsg.text === 'pdf') {
               navigation.navigate('PdfView', {url: fileMsg.filePath});
             } else {
               showToast('暂不支持该类型文件预览，请长按下载后查看', 'warning');
@@ -1422,9 +1405,8 @@ const Chat = ({navigation, route}) => {
         dateFormat={'MM/DD HH:mm'}
         timeFormat={'HH:mm'}
         renderDay={renderDay}
-        renderTime={() => null}
         dateFormatCalendar={FormatCalendarObj}
-        messages={cahtMessages}
+        messages={messages}
         text={msgText}
         onInputTextChanged={text => setMsgText(text)}
         minInputToolbarHeight={60}
@@ -1432,19 +1414,26 @@ const Chat = ({navigation, route}) => {
         showUserAvatar={chat_type === 'group'}
         showAvatarForEveryMessage={chat_type === 'group'}
         renderUsernameOnMessage={chat_type === 'group'}
-        loadEarlier={!allLoaded}
-        infiniteScroll={true}
-        isLoadingEarlier={isLoadingEarlier}
+        loadEarlier={messages.length < localMsgCount}
         renderLoadEarlier={renderLoadEarlier}
-        onLoadEarlier={onLoadEarlier}
-        isScrollToBottomEnabled={true}
-        scrollToBottomComponent={scrollToBottomComponent}
+        infiniteScroll={true}
+        isLoadingEarlier={loadingMsg}
+        onLoadEarlier={() => {
+          setPage(previousPages => {
+            if (previousPages * 100 >= localMsgCount) {
+              showToast('没有更多消息了', 'warning', true);
+              return previousPages;
+            }
+            return previousPages + 1;
+          });
+        }}
         onLongPress={onLongPress}
         onPressAvatar={onAvatarPress}
         onLongPressAvatar={onLongPressAvatar}
         renderBubble={renderBubble}
         renderTicks={renderTicks}
         renderSend={renderSend}
+        renderTime={() => {}}
         renderActions={renderActions}
         renderInputToolbar={renderInputToolbar}
         renderComposer={renderComposer}
@@ -1563,7 +1552,7 @@ const Chat = ({navigation, route}) => {
           />
         </View>
       </Modal>
-      {isLoadingEarlier && searchMsg_cid ? (
+      {loadingMsg && searchMsg_cid ? (
         <LoaderScreen
           message={'跳转中...'}
           color={Colors.Primary}
