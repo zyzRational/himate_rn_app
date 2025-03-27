@@ -24,7 +24,6 @@ const LrcItem = React.memo(
       YrcVisible = false,
       TransVisible = false,
       RomaVisible = false,
-      OnItemLayout = () => {},
     } = props;
 
     // 共享动画值
@@ -40,14 +39,6 @@ const LrcItem = React.memo(
       width: fullWidth * 0.84,
       height: 24,
     });
-
-    // 处理布局
-    const itemLayout = useCallback(event => {
-      const {height} = event.nativeEvent.layout;
-      console.log('height', height);
-
-      OnItemLayout(height);
-    }, []);
 
     // 处理文本布局
     const handleTextLayout = useCallback(event => {
@@ -120,7 +111,7 @@ const LrcItem = React.memo(
     }, [Index, NowIndex, Progress]);
 
     return (
-      <View paddingV-10 paddingH-20 onLayout={itemLayout}>
+      <View paddingV-10 paddingH-20>
         {YrcVisible ? (
           <Animated.View style={[styles.lyricView, animatedStyle]}>
             <Text
