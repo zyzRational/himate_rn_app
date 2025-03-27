@@ -31,6 +31,8 @@ import {
   requestCameraPermission,
   requestFolderPermission,
 } from '../../stores/store-slice/permissionStore';
+import {getChatList} from '../../api/session';
+import {formatMsg, setLocalMsg} from '../../utils/handle/chatHandle';
 
 const GroupInfo = ({navigation, route}) => {
   const {session_id} = route.params || {};
@@ -254,6 +256,26 @@ const GroupInfo = ({navigation, route}) => {
   const [showActionSheet, setShowActionSheet] = useState(false);
   const [editMemberInfo, setEditMemberInfo] = useState(null);
 
+  const getCouldChatHistory = async () => {
+    try {
+      setRefreshing(true);
+      const res = await getChatList({session_id, isPaging: false});
+      if (res.success) {
+        const newlist = [];
+        res.data.list.forEach(item => {
+          newlist.push(formatMsg(item));
+        });
+        setLocalMsg(realm, newlist);
+        navigation.navigate('Msg');
+      }
+      setRefreshing(true);
+      showToast(res.message, res.success ? 'success' : 'error');
+    } catch (error) {
+      setRefreshing(true);
+      console.log(error);
+    }
+  };
+
   useEffect(() => {
     if (avatarfile) {
       const fileRes = getfileFormdata('group', avatarfile);
@@ -435,16 +457,30 @@ const GroupInfo = ({navigation, route}) => {
               expanded={isExpand}
               backgroundColor={Colors.white}
               sectionHeader={
-                <ListItem
-                  ItemName={'查看' + groupInfo?.members?.length + '个成员'}
-                  IconName={'group'}
-                  IconSize={20}
-                  IconColor={Colors.Primary}
-                  IsBottomLine={true}
-                  Fun={() => {
-                    setIsExpand(prev => !prev);
-                  }}
-                />
+                <View>
+                  <ListItem
+                    ItemName={'邀请新的成员'}
+                    IconName={'plus-circle'}
+                    IconColor={Colors.blue40}
+                    Fun={() => {
+                      navigation.navigate('CreateGroup', {
+                        group_id: session_id,
+                        gId: groupInfo.id,
+                        existMemberIds: allMemberIds,
+                      });
+                    }}
+                  />
+                  <ListItem
+                    ItemName={'查看' + groupInfo?.members?.length + '个成员'}
+                    IconName={'group'}
+                    IconSize={20}
+                    IconColor={Colors.Primary}
+                    IsBottomLine={true}
+                    Fun={() => {
+                      setIsExpand(prev => !prev);
+                    }}
+                  />
+                </View>
               }
               children={
                 <>
@@ -520,18 +556,14 @@ const GroupInfo = ({navigation, route}) => {
               onPress={() => {}}
             />
           </Card>
-
-          <Card enableShadow={false} marginT-16>
+          <Card marginT-16 enableShadow={false}>
             <ListItem
-              ItemName={'邀请新的成员'}
-              IconName={'plus-circle'}
-              IconColor={Colors.blue40}
+              ItemName={'从云端同步消息'}
+              IconName={'cloud-download'}
+              IconSize={20}
+              IconColor={Colors.blue30}
               Fun={() => {
-                navigation.navigate('CreateGroup', {
-                  group_id: session_id,
-                  gId: groupInfo.id,
-                  existMemberIds: allMemberIds,
-                });
+                getCouldChatHistory();
               }}
             />
           </Card>

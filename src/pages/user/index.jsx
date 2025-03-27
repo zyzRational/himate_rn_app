@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -11,13 +11,13 @@ import {
   Button,
   ProgressBar,
 } from 'react-native-ui-lib';
-import { StyleSheet, ActivityIndicator, Platform } from 'react-native';
-import { useSelector } from 'react-redux';
-import { useToast } from '../../components/commom/Toast';
+import {StyleSheet, ActivityIndicator, Platform} from 'react-native';
+import {useSelector} from 'react-redux';
+import {useToast} from '../../components/commom/Toast';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { DownloadFile } from '../../utils/handle/fileHandle';
+import {DownloadFile} from '../../utils/handle/fileHandle';
 import ListItem from '../../components/commom/ListItem';
-import { getAppPackageDetail } from '../../api/appPackage';
+import {getAppPackageDetail} from '../../api/appPackage';
 import {
   name as appName,
   displayName as appDisplayName,
@@ -26,12 +26,12 @@ import DeviceInfo from 'react-native-device-info';
 import RNFetchBlob from 'rn-fetch-blob';
 import ImgModal from '../../components/commom/ImgModal';
 
-const User = ({ navigation }) => {
-  const { showToast } = useToast();
+const User = ({navigation}) => {
+  const {showToast} = useToast();
   const userInfo = useSelector(state => state.userStore.userInfo);
 
   // baseConfig
-  const { STATIC_URL } = useSelector(state => state.baseConfigStore.baseConfig);
+  const {STATIC_URL} = useSelector(state => state.baseConfigStore.baseConfig);
 
   // 预览头像
   const [avatarShow, setAvatarShow] = useState(false);
@@ -47,7 +47,7 @@ const User = ({ navigation }) => {
   const saveAvatar = async (url, name) => {
     setAvatarShow(false);
     showToast('已开始保存头像...', 'success');
-    const pathRes = await DownloadFile(url, name, () => { }, true);
+    const pathRes = await DownloadFile(url, name, () => {}, true);
     if (pathRes) {
       showToast('图片已保存到' + pathRes, 'success');
     } else {
@@ -55,20 +55,56 @@ const User = ({ navigation }) => {
     }
   };
 
+  /**
+   * 比较两个版本号的大小
+   * @param {string} v1 版本号1，格式为 x.y.z
+   * @param {string} v2 版本号2，格式为 x.y.z
+   * @returns {number} 返回比较结果：
+   *   -1: v1 < v2
+   *    0: v1 == v2
+   *    1: v1 > v2
+   */
+  const compareVersions = (v1, v2) => {
+    // 将版本号拆分为数字数组
+    const parts1 = v1?.split('.').map(Number);
+    const parts2 = v2?.split('.').map(Number);
+
+    // 确保两个版本号都有相同数量的部分
+    const maxLength = Math.max(parts1.length, parts2.length);
+
+    for (let i = 0; i < maxLength; i++) {
+      // 如果某一部分不存在，则视为0
+      const num1 = parts1[i] || 0;
+      const num2 = parts2[i] || 0;
+
+      if (num1 > num2) {
+        return 1;
+      }
+      if (num1 < num2) {
+        return -1;
+      }
+    }
+
+    // 所有部分都相等
+    return 0;
+  };
+
   // 检查更新
   const versionName = DeviceInfo.getVersion();
   const [showAppUpate, setShowAppUpate] = useState(false);
   const [updateLoading, setUpdateLoading] = useState(false);
-  const [newAppInfo, setNewAppInfo] = useState(null);
+  const [newAppInfo, setNewAppInfo] = useState({});
+  const [isNewVersion, setIsNewVersion] = useState(false);
 
   const checkUpdate = async () => {
     setUpdateLoading(true);
     try {
-      const res = await getAppPackageDetail({ app_name: appName });
-      // console.log(res);
-
+      const res = await getAppPackageDetail({app_name: appName});
       if (res.code === 200) {
         setNewAppInfo(res.data);
+        setIsNewVersion(
+          compareVersions(versionName, res.data.app_version) === -1,
+        );
       } else {
         showToast('检查更新失败', 'error');
         setShowAppUpate(false);
@@ -134,7 +170,7 @@ const User = ({ navigation }) => {
                 isShowAvatar();
               }}>
               <Image
-                source={{ uri: STATIC_URL + userInfo.user_avatar }}
+                source={{uri: STATIC_URL + userInfo.user_avatar}}
                 style={styles.image}
               />
             </TouchableOpacity>
@@ -259,22 +295,17 @@ const User = ({ navigation }) => {
               ) : (
                 <View flexS>
                   <Text text70BO>
-                    {newAppInfo?.app_version === versionName
-                      ? '当前已是最新版本！'
-                      : '发现新版本！'}
+                    {isNewVersion ? '发现新版本！' : '当前已是最新版本！'}
                     <Text text80BO green30>
                       {newAppInfo?.app_version}
                     </Text>
                   </Text>
+                  <Text marginT-2 grey30>版本说明：{newAppInfo?.app_description}</Text>
                   {showProgress ? null : (
                     <View flexS marginT-16>
                       <Button
                         size={'medium'}
-                        label={
-                          newAppInfo?.app_version === versionName
-                            ? '下载安装包'
-                            : '立即更新'
-                        }
+                        label={isNewVersion ? '立即更新' : '下载安装包'}
                         backgroundColor={Colors.Primary}
                         onPress={downloadApp}
                       />

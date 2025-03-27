@@ -98,6 +98,7 @@ const MusicCtrlProvider = React.memo(props => {
     return () => {
       audioPlayer.removePlayBackListener(listener);
       MusicControl.stopControl();
+      restMusicStatus();
     };
   }, [isRandomPlay, playList, playType, playingIndex]);
 

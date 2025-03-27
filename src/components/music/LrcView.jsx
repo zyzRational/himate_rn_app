@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef, useCallback, useMemo} from 'react';
+import React, {useState, useEffect, useRef, useCallback} from 'react';
 import {FlatList, StyleSheet} from 'react-native';
 import {formatLrc} from '../../utils/handle/lyricHandle';
 import {isEmptyObject} from '../../utils/base';
@@ -8,7 +8,7 @@ import LrcItem from './LrcItem';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useToast} from '../commom/Toast';
 import {useSelector, useDispatch} from 'react-redux';
-import {setLrcFlag} from '../../stores/store-slice/musicStore';
+import {setLrcFlag, setSwitchCount} from '../../stores/store-slice/musicStore';
 
 const LrcView = React.memo(props => {
   const {
@@ -25,6 +25,7 @@ const LrcView = React.memo(props => {
   const yrcVisible = useSelector(state => state.musicStore.yrcVisible);
   const transVisible = useSelector(state => state.musicStore.transVisible);
   const romaVisible = useSelector(state => state.musicStore.romaVisible);
+  const switchCount = useSelector(state => state.musicStore.switchCount);
 
   const [haveYrc, setHaveYrc] = useState(false);
   const [haveTrans, setHaveTrans] = useState(false);
@@ -48,62 +49,21 @@ const LrcView = React.memo(props => {
 
   // 切换歌词
   const switchLyric = useCallback(() => {
-    if (haveTrans && transVisible) {
-      if (haveRoma && !romaVisible) {
-        dispatch(
-          setLrcFlag({
-            yrcVisible: false,
-            transVisible: false,
-            romaVisible: true,
-          }),
-        );
-        showToast('已切换到音译歌词', 'success', true);
-      } else {
-        dispatch(
-          setLrcFlag({
-            yrcVisible: false,
-            transVisible: false,
-            romaVisible: false,
-          }),
-        );
-        showToast('已隐藏翻译歌词', 'success', true);
-      }
-      return;
+    dispatch(
+      setLrcFlag({
+        yrcVisible: haveYrc && [3, 4, 5].includes(switchCount),
+        transVisible: haveTrans && [0, 3].includes(switchCount),
+        romaVisible: haveRoma && [1, 4].includes(switchCount),
+      }),
+    );
+    dispatch(setSwitchCount(switchCount < 5 ? switchCount + 1 : 0));
+    if (haveTrans && [0, 3].includes(switchCount)) {
+      showToast('已切换到翻译歌词', 'success', true);
     }
-    if (haveRoma && romaVisible) {
-      dispatch(
-        setLrcFlag({
-          yrcVisible: false,
-          transVisible: false,
-          romaVisible: false,
-        }),
-      );
-      showToast('已隐藏音译歌词', 'success', true);
-      return;
+    if (haveRoma && [1, 4].includes(switchCount)) {
+      showToast('已切换到音译歌词', 'success', true);
     }
-    if (haveYrc && !yrcVisible) {
-      dispatch(
-        setLrcFlag({
-          yrcVisible: true,
-          transVisible: true,
-          romaVisible: false,
-        }),
-      );
-      showToast('已切换到逐字歌词', 'success', true);
-      return;
-    }
-    if (haveYrc && yrcVisible) {
-      dispatch(
-        setLrcFlag({
-          yrcVisible: false,
-          transVisible: true,
-          romaVisible: false,
-        }),
-      );
-      showToast('已切换到静态歌词', 'success', true);
-      return;
-    }
-  }, [haveRoma, romaVisible, haveTrans, transVisible, haveYrc, yrcVisible]);
+  }, [haveRoma, haveTrans, haveYrc, switchCount]);
 
   // 查找当前行 - 保留线性查找但优化比较
   const findCurrentLineIndex = useCallback(() => {

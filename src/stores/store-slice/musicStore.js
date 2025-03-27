@@ -15,6 +15,7 @@ export const musicSlice = createSlice({
     yrcVisible: false,
     transVisible: true,
     romaVisible: false,
+    switchCount: 0,
   },
   extraReducers: builder => {
     builder
@@ -44,6 +45,10 @@ export const musicSlice = createSlice({
       addStorage('music', 'yrcVisible', state.yrcVisible);
       addStorage('music', 'transVisible', state.transVisible);
       addStorage('music', 'romaVisible', state.romaVisible);
+    },
+    setSwitchCount: (state, action) => {
+      state.switchCount = action.payload ?? 1;
+      addStorage('music', 'switchCount', state.switchCount);
     },
     addPlayList: (state, action) => {
       if (action.payload?.length > 0) {
@@ -130,6 +135,7 @@ export const {
   setIsRandomPlay,
   setRandomNum,
   setLrcFlag,
+  setSwitchCount,
 } = musicSlice.actions;
 
 export default musicSlice.reducer;

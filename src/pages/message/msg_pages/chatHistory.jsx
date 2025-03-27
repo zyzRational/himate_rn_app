@@ -121,7 +121,7 @@ const ChatHistory = ({navigation, route}) => {
       />
       {loading ? (
         <LoaderScreen
-          message={'修改中...'}
+          message={'同步中...'}
           color={Colors.Primary}
           backgroundColor={Colors.hyalineWhite}
           overlay={true}

@@ -1,11 +1,12 @@
 export const audioExtNames = [
-  '.mp3',
-  '.wav',
-  '.aac',
-  '.m4a',
-  '.flac',
-  '.ogg',
-  '.wma',
+  'mp3',
+  'mp4',
+  'wav',
+  'aac',
+  'm4a',
+  'flac',
+  'ogg',
+  'wma',
 ];
 
 export const textExtNames = [
