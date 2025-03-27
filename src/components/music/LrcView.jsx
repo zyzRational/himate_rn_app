@@ -141,7 +141,7 @@ const LrcView = React.memo(props => {
 
   // 基本FlatList配置
   const contentContainerStyle = {
-    paddingVertical: fullHeight / 2 - 120,
+    paddingVertical: fullHeight * 0.8 / 2 ,
   };
 
   return (
@@ -181,11 +181,11 @@ const LrcView = React.memo(props => {
             getItemLayout={(data, index) => ({
               length:
                 (transVisible && haveTrans) || (romaVisible && haveRoma)
-                  ? 62
+                  ? 64
                   : 44,
               offset:
                 ((transVisible && haveTrans) || (romaVisible && haveRoma)
-                  ? 62
+                  ? 64
                   : 44) * index,
               index,
             })}
@@ -232,9 +232,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginRight: 12,
     borderWidth: 0.5,
-  },
-  container: {
-    paddingVertical: (fullHeight * 0.8) / 2 - 120,
   },
   line: {
     fontSize: 16,

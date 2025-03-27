@@ -151,17 +151,17 @@ RELEASE_KEY_PASSWORD=
 
 1，升级react-native-gifted-chat组件到2.8.0后，新增相对时间计算，但不太符合国内使用习惯可进行如下优化
 
-./node_modules/react-native-gifted-chat/lib/Constant.js
+./node_modules/react-native-gifted-chat/lib/Constant.js:10/11
 
 ```js
-10:export const DATE_FORMAT = 'MM/DD HH:mm';
-11:export const TIME_FORMAT = 'HH:mm';
+export const DATE_FORMAT = 'MM/DD HH:mm';
+export const TIME_FORMAT = 'HH:mm';
 ```
 
-./node_modules/react-native-gifted-chat/lib/Day/index.js
+./node_modules/react-native-gifted-chat/lib/Day/index.js:20
 
 ```js
-19:const _date = dayjs(createdAt).locale(getLocale());
+const _date = dayjs(createdAt).locale(getLocale());
         if (!now.isSame(date, 'year'))
             return _date.format('YYYY MM/DD HH:mm');
         if (now.diff(date, 'days') < 1)

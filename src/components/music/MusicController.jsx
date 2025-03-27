@@ -55,7 +55,6 @@ const MusicCtrlProvider = React.memo(props => {
   const [playType, setPlayType] = React.useState('order'); // 列表播放类型 single order random
 
   // 音乐播放器
-  React.useEffect(() => {
     const listener = audioPlayer.addPlayBackListener(playbackMeta => {
       setAudioPlayprogress(playbackMeta);
       MusicControl.updatePlayback({
@@ -95,12 +94,6 @@ const MusicCtrlProvider = React.memo(props => {
         });
       }
     });
-    return () => {
-      audioPlayer.removePlayBackListener(listener);
-      MusicControl.stopControl();
-      restMusicStatus();
-    };
-  }, [isRandomPlay, playList, playType, playingIndex]);
 
   // 上一首
   const previousRemote = React.useCallback(() => {
@@ -387,6 +380,11 @@ const MusicCtrlProvider = React.memo(props => {
     if (userInfo?.id) {
       getAllMusicList(userInfo?.id);
     }
+    return () => {
+      audioPlayer.removePlayBackListener(listener);
+      MusicControl.stopControl();
+      restMusicStatus();
+    };
   }, [userInfo]);
 
   return (
