@@ -1,5 +1,5 @@
 # Himate
-
+![输入图片说明](src/assets/images/logo.png)
 ### 简介
 
 使用react native 0.75.5 开发的一款轻量的聊天和音乐播放器软件。
