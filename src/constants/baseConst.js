@@ -1,12 +1,32 @@
-export const audioExtNames = [
-  'mp3',
+export const audioExtNames = ['mp3', 'wav', 'aac', 'm4a', 'flac', 'ogg', 'wma'];
+
+export const videoExtNames = [
   'mp4',
-  'wav',
-  'aac',
-  'm4a',
-  'flac',
-  'ogg',
-  'wma',
+  'avi',
+  'mkv',
+  'wmv',
+  'mov',
+  'flv',
+  'm4v',
+  'webm',
+  'vob',
+  'ogv',
+];
+
+export const imageExtNames = [
+  'jpg',
+  'jpeg',
+  'png',
+  'gif',
+  'bmp',
+  'webp',
+  'psd',
+  'eps',
+  'ai',
+  'indd',
+  'raw',
+  'arw',
+  'cr2',
 ];
 
 export const textExtNames = [

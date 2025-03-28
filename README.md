@@ -24,7 +24,7 @@
 - android端  java JDK17  android SDK 34
 - ios端  Homebrew  ruby  CocoaPods
 
-
+详见https://reactnative.dev/docs/0.75/set-up-your-environment
 
 #### 运行项目
 
@@ -40,6 +40,7 @@ MSG_SECRET=你的加密消息秘钥
 
 2
 COULD_URL=获取所有服务接口
+COULD_SECRE=获取所有服务的秘钥（如有）
 ```
 
 选择一种方式作为你的环境配置：
@@ -56,6 +57,7 @@ COULD_URL=获取所有服务接口
    STATIC_URL:你的静态资源服务地址
    SOCKET_URL:你的socket服务地址
    FAST_STATIC_URL:你的静态资源服务地址
+   MSG_SECRET=你的加密消息秘钥
 }
 ```
 
@@ -77,7 +79,7 @@ yarn
 
 ##### android端
 
-启动安卓模拟器后或连接真机后使用以下命令启动项目，推荐使用Android Studio打开android文件夹并运行
+启动安卓模拟器后或连接真机后使用以下命令进行编译
 
 ```
 yarn android
@@ -89,6 +91,15 @@ yarn android
 ./node_modules/react-native-musicontrol/android/java/com/tanguyantoine/react/MusicControlModule.java:204: 
 原代码：context.registerReceiver(receiver, filter);
 修改为：context.registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED);
+
+./node_modules/rn-fetch-blob/android/src/main/android/java/com/RNFetchBlob/RNFetchBlobReq.java:199: 
+原代码：appCtx.registerReceiver(this, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
+修改为：if (Build.VERSION.SDK_INT >= 34 && appCtx.getApplicationInfo().targetSdkVersion >= 34) {
+                    appCtx.registerReceiver(this, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE),
+                    Context.RECEIVER_EXPORTED);
+                } else {
+                    appCtx.registerReceiver(this, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+                }
 ```
 
 ##### ios端
@@ -99,13 +110,13 @@ yarn android
 pod install
 ```
 
-启动ios模拟器后或连接真机后使用以下命令启动项目，推荐使用Xcode打开/ios/himate.xcworkspace文件夹并运行
+启动ios模拟器后或连接真机后使用以下命令进行编译
 
 ```
 yarn ios
 ```
 
-
+推荐使用Xcode打开/ios/himate.xcworkspace文件夹，并使用Xcode进行编译
 
 #### 构建安装包
 
@@ -139,11 +150,15 @@ RELEASE_KEY_PASSWORD=
 ```
 ./gradlew assembleRelease
 ```
-构建完成的安装包位于：项目目录\android\app\build\outputs\apk\release
+构建完成的安装包位于：项目目录\android\app\build\outputs\apk\release、
+
+其它详见https://reactnative.dev/docs/0.75/signed-apk-android
 
 ##### ios端
 
 使用xcode 设备选择Any ios Device (arm64) 打开Product ---> Archive 进行构建，前提是你拥有Provisioning Profile描述文件。
+
+其它详见https://reactnative.dev/docs/0.75/publishing-to-app-store
 
 
 
@@ -151,7 +166,7 @@ RELEASE_KEY_PASSWORD=
 
 1，升级react-native-gifted-chat组件到2.8.0后，新增相对时间计算，但不太符合国内使用习惯可进行如下优化
 
-./node_modules/react-native-gifted-chat/lib/Constant.js:10/11
+./node_modules/react-native-gifted-chat/lib/Constant.js:10/11:
 
 ```js
 export const DATE_FORMAT = 'MM/DD HH:mm';

@@ -2,6 +2,15 @@ import {pinyin} from 'pinyin-pro';
 import RNFetchBlob from 'rn-fetch-blob';
 import {Platform} from 'react-native';
 import {getFileExt} from './handle/fileHandle';
+import {
+  audioExtNames,
+  imageExtNames,
+  videoExtNames,
+  textExtNames,
+  docTypes,
+  excelTypes,
+  pptTypes,
+} from '../constants/baseConst';
 
 // 判断是否为空字符串
 export const isEmptyString = str => {
@@ -103,7 +112,7 @@ export const getfileFormdata = (doName, fileInfo) => {
   // fileInfo.mime 文件类型
   const baseType = fileInfo.mime;
 
-  let type = 'other';
+  let type = 'image';
   if (baseType.startsWith('image/')) {
     type = 'image';
   } else if (baseType.startsWith('video/')) {
@@ -140,18 +149,25 @@ export const getDocumentfileFormdata = (
   // console.log('fileInfo', fileInfo);
   // fileInfo.mime 文件类型
   const baseType = fileInfo.type;
-
-  let type = 'other';
-  if (baseType.startsWith('image/')) {
-    type = 'image';
-  } else if (baseType.startsWith('video/')) {
-    type = 'video';
-  } else if (baseType.startsWith('audio/')) {
-    type = 'audio';
-  }
-
   const oringalName = fileInfo.name;
   const ext = getFileExt(oringalName);
+
+  let type = 'other';
+  if (baseType.startsWith('image/') || imageExtNames.includes(ext)) {
+    type = 'image';
+  } else if (baseType.startsWith('video/') || videoExtNames.includes(ext)) {
+    type = 'video';
+  } else if (baseType.startsWith('audio/') || audioExtNames.includes(ext)) {
+    type = 'audio';
+  } else if (
+    textExtNames.includes(ext) ||
+    docTypes.includes(ext) ||
+    excelTypes.includes(ext) ||
+    pptTypes.includes(ext) ||
+    pptTypes.includes(ext)
+  ) {
+    type = 'text';
+  }
 
   const file = {
     name: 'file',

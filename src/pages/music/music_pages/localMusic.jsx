@@ -67,6 +67,13 @@ const LocalMusic = ({navigation}) => {
               realm.create('LocalMusic', item);
             });
           });
+          newItems.length
+            ? showToast(
+                '已扫描到' + newItems.length + '首音乐',
+                'success',
+                true,
+              )
+            : null;
           return [...newItems, ...prevItems];
         });
       } catch (error) {
