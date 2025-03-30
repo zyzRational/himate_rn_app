@@ -13,6 +13,7 @@ import {
   removePlayList,
   setIsClosed,
   addPlayList,
+  setPlayList,
 } from '../../stores/store-slice/musicStore';
 import {useToast} from '../commom/Toast';
 import {useRealm} from '@realm/react';
@@ -97,7 +98,7 @@ const MusicCtrlProvider = React.memo(props => {
 
   // 上一首
   const previousRemote = React.useCallback(() => {
-    if (playingIndex === 0) {
+    if (playingIndex === 0 && playList.length > 0) {
       dispatch(setPlayingMusic(playList[playList.length - 1]));
       showToast('已经是第一首了~', 'warning');
       return;
@@ -152,6 +153,7 @@ const MusicCtrlProvider = React.memo(props => {
 
   // 重置音乐播放所有状态
   const restMusicStatus = async () => {
+    MusicControl.stopControl();
     setAudioPlayprogress({});
     setProgressNum(0);
     setAudioIsPlaying(false);
@@ -511,6 +513,9 @@ const MusicCtrlProvider = React.memo(props => {
       <ToBePlayedModal
         Visible={listModalVisible}
         OnClose={() => setListModalVisible(false)}
+        OnClearList={()=>{
+          dispatch(setPlayList([]));
+        }}
         Music={playingMusic}
         List={playList}
         OnPressItem={item => {

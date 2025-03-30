@@ -1,4 +1,4 @@
-import React, {useState, useCallback, useMemo} from 'react';
+import React, {useState, useEffect, useCallback, useMemo} from 'react';
 import {StyleSheet, Modal, ImageBackground} from 'react-native';
 import {useSelector} from 'react-redux';
 import {
@@ -42,17 +42,11 @@ const LyricModal = React.memo(props => {
   const {STATIC_URL} = useSelector(state => state.baseConfigStore.baseConfig);
   const userInfo = useSelector(state => state.userStore.userInfo);
 
-  const {musicMore} = Music || {};
+  const {musicMore = {}} = Music || {};
   const [nowLyric, setNowLyric] = useState('');
 
-  // 颜色计算 - 使用useMemo缓存结果
-  const coverUri = useMemo(
-    () => STATIC_URL + (musicMore?.music_cover || userInfo?.user_avatar),
-    [STATIC_URL, musicMore?.music_cover, userInfo?.user_avatar],
-  );
-
   // 颜色计算 - 只在相关依赖变化时执行
-  React.useEffect(() => {
+  useEffect(() => {
     if (!musicMore?.music_cover) {
       return;
     }
@@ -65,7 +59,7 @@ const LyricModal = React.memo(props => {
       const colorValue = platform === 'android' ? res.average : res.background;
       const num = getWhitenessScore(colorValue);
       Colors.loadColors({
-        lyricColor: num > 87 ? Colors.grey10 : Colors.white,
+        lyricColor: num > 76 ? Colors.grey10 : Colors.white,
       });
     });
   }, [musicMore?.music_cover]);
@@ -74,12 +68,6 @@ const LyricModal = React.memo(props => {
   const handleFavorite = useCallback(() => {
     OnFavorite(Music.id, IsFavorite);
   }, [OnFavorite, Music.id, IsFavorite]);
-
-  // 音乐封面URI
-  const musicCoverUri = useMemo(
-    () => STATIC_URL + (musicMore?.music_cover || 'default_music_cover.jpg'),
-    [STATIC_URL, musicMore?.music_cover],
-  );
 
   // 艺术家字符串
   const artistsString = useMemo(
@@ -130,7 +118,9 @@ const LyricModal = React.memo(props => {
         <ImageBackground
           blurRadius={50}
           style={styles.backImage}
-          source={{uri: coverUri}}
+          source={{
+            uri: STATIC_URL + (musicMore?.music_cover || userInfo?.user_avatar),
+          }}
           resizeMode="cover">
           <TouchableOpacity paddingT-48 paddingL-22 onPress={OnClose}>
             <AntDesign name="close" color={Colors.lyricColor} size={24} />
@@ -150,7 +140,11 @@ const LyricModal = React.memo(props => {
             <View>
               <View flexS center marginT-40>
                 <Image
-                  source={{uri: musicCoverUri}}
+                  source={{
+                    uri:
+                      STATIC_URL +
+                      (musicMore?.music_cover || 'default_music_cover.jpg'),
+                  }}
                   style={[styles.bigImage, {borderColor: Colors.lyricColor}]}
                 />
               </View>
@@ -275,7 +269,10 @@ const LyricModal = React.memo(props => {
             <View>
               <LrcView
                 Music={musicMore}
-                Cover={coverUri}
+                Cover={
+                  STATIC_URL +
+                  (musicMore?.music_cover || 'default_music_cover.jpg')
+                }
                 CurrentTime={PlayProgress?.currentPosition}
                 OnLyricsChange={setNowLyric}
               />

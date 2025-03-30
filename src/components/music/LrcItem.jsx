@@ -7,6 +7,7 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
   Easing,
+  cancelAnimation,
 } from 'react-native-reanimated';
 
 // 预定义隐藏文本，避免每次渲染都重新创建
@@ -24,6 +25,7 @@ const LrcItem = React.memo(
       YrcVisible = false,
       TransVisible = false,
       RomaVisible = false,
+      OnItemLayout = () => {},
     } = props;
 
     // 共享动画值
@@ -39,6 +41,14 @@ const LrcItem = React.memo(
       width: fullWidth * 0.84,
       height: 24,
     });
+
+    const itemLayout = useCallback(
+      index => event => {
+        const {height} = event.nativeEvent.layout;
+        OnItemLayout(index, height);
+      },
+      [],
+    );
 
     // 处理文本布局
     const handleTextLayout = useCallback(event => {
@@ -108,12 +118,20 @@ const LrcItem = React.memo(
         scale.value = withTiming(1, {duration: 200});
         paddingH.value = withTiming(0, {duration: 200});
       }
+      return () => {
+        // 组件卸载时取消动画
+        cancelAnimation(opacity);
+        cancelAnimation(transOpacity);
+        cancelAnimation(scale);
+        cancelAnimation(paddingH);
+        cancelAnimation(textWidth);
+      };
     }, [Index, NowIndex, Progress]);
 
     return (
-      <View paddingV-10 paddingH-20>
+      <View paddingV-12 paddingH-20 onLayout={itemLayout(Index)}>
         {YrcVisible ? (
-          <Animated.View style={[styles.lyricView, animatedStyle]}>
+          <Animated.View style={[{width: fullWidth * 0.95}, animatedStyle]}>
             <Text
               color={Colors.lyricColor}
               text70BO
@@ -121,7 +139,7 @@ const LrcItem = React.memo(
               {FullText}
             </Text>
             <Animated.View style={[styles.lyricViewAbs, yrcAnimatedStyle]}>
-              <View width={textDimensions.width} height={textDimensions.height}>
+              <View width={textDimensions?.width || 0} height={textDimensions?.height || 0}>
                 <Text text70BO color={Colors.Primary}>
                   {VisibleChars}
                 </Text>
@@ -138,14 +156,14 @@ const LrcItem = React.memo(
 
         {TransVisible && isTextVisible(Item.trans) && (
           <Animated.Text style={transAnimatedStyle}>
-            <Text color={Colors.lyricColor} text80>
+            <Text color={Colors.lyricColor} text80L>
               {Item.trans}
             </Text>
           </Animated.Text>
         )}
         {RomaVisible && isTextVisible(Item.roma) && (
           <Animated.Text style={transAnimatedStyle}>
-            <Text color={Colors.lyricColor} text80>
+            <Text color={Colors.lyricColor} text80L>
               {Item.roma}
             </Text>
           </Animated.Text>
@@ -158,9 +176,8 @@ const LrcItem = React.memo(
     return (
       prevProps.Item === nextProps.Item &&
       prevProps.Index === nextProps.Index &&
-      prevProps.NowIndex === nextProps.NowIndex &&
-      prevProps.CurrentTime === nextProps.CurrentTime &&
       prevProps.Progress === nextProps.Progress &&
+      prevProps.NowIndex === nextProps.NowIndex &&
       prevProps.VisibleChars === nextProps.VisibleChars &&
       prevProps.FullText === nextProps.FullText &&
       prevProps.YrcVisible === nextProps.YrcVisible &&
@@ -171,9 +188,6 @@ const LrcItem = React.memo(
 );
 
 const styles = StyleSheet.create({
-  lyricView: {
-    width: fullWidth * 0.95,
-  },
   lyricViewAbs: {
     position: 'absolute',
     top: 0,

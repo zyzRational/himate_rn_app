@@ -10,6 +10,7 @@ const ToBePlayedModal = React.memo(props => {
     Visible = false,
     Music = {},
     OnClose = () => {},
+    OnClearList = () => {},
     List = [],
     OnPressItem = () => {},
     OnPressRemove = () => {},
@@ -78,10 +79,10 @@ const ToBePlayedModal = React.memo(props => {
               padding-12>
               <View row spread centerV>
                 <View width={'86%'}>
-                  <Text text80BO white>
+                  <Text text80BO white numberOfLines={1}>
                     {item.title}
                   </Text>
-                  <Text text90L white marginT-4>
+                  <Text text90L white marginT-4 numberOfLines={1}>
                     {`${artistsText} - ${albumText}`}
                   </Text>
                 </View>
@@ -118,9 +119,14 @@ const ToBePlayedModal = React.memo(props => {
           source={{uri: backgroundImageUri}}
           resizeMode="cover">
           <View padding-12>
-            <TouchableOpacity onPress={OnClose}>
-              <AntDesign name="close" color={Colors.white} size={24} />
-            </TouchableOpacity>
+            <View row centerV spread>
+              <TouchableOpacity onPress={OnClose}>
+                <AntDesign name="close" color={Colors.white} size={24} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={OnClearList}>
+                <Text white>清空列表</Text>
+              </TouchableOpacity>
+            </View>
             {currentMusicInfo}
             <FlatList
               data={List}

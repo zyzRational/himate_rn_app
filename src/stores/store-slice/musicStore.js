@@ -30,7 +30,7 @@ export const musicSlice = createSlice({
   },
   reducers: {
     setPlayList: (state, action) => {
-      if (action.payload?.length > 0) {
+      if (Array.isArray(action.payload)) {
         state.playList = action.payload;
       }
     },

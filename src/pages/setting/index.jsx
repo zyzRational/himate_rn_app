@@ -29,10 +29,13 @@ import {displayName as appDisplayName} from '../../../app.json';
 import {setBaseConfig} from '../../stores/store-slice/baseConfigStore';
 import {getBaseConfig} from '../../api/baseConfig';
 import {deepClone} from '../../utils/base';
+import {getStorage} from '../../utils/Storage';
 
 const Setting = ({navigation}) => {
   const {showToast} = useToast();
   const themeColor = useSelector(state => state.settingStore.themeColor);
+  const toastType = useSelector(state => state.settingStore.toastType);
+  const isMusicApp = useSelector(state => state.settingStore.isMusicApp);
   const isFullScreen = useSelector(state => state.settingStore.isFullScreen);
   const isPlaySound = useSelector(state => state.settingStore.isPlaySound);
   const notSaveMsg = useSelector(state => state.settingStore.notSaveMsg);
@@ -90,8 +93,20 @@ const Setting = ({navigation}) => {
     dispatch(setBaseConfig(newUrlInfo));
   };
 
+  // 铃声
+  const [soundName, setSoundName] = useState('default_1.mp3');
+  const getSoundName = async () => {
+    try {
+      const _soundName = await getStorage('setting', 'soundName');
+      setSoundName(_soundName);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   useEffect(() => {
     getBaseUrlInfo();
+    getSoundName();
   }, []);
 
   return (
@@ -257,7 +272,7 @@ const Setting = ({navigation}) => {
         Actions={[
           {
             label: '系统默认',
-            color: Colors.Primary,
+            color: toastType === 'System' ? Colors.Primary : Colors.grey30,
             onPress: () => {
               dispatch(setToastType('System'));
               showToast('设置成功！', 'success', true);
@@ -266,7 +281,7 @@ const Setting = ({navigation}) => {
           },
           {
             label: '顶部弹出',
-            color: Colors.Primary,
+            color: toastType === 'top' ? Colors.Primary : Colors.grey30,
             onPress: () => {
               dispatch(setToastType('top'));
               showToast('设置成功！', 'success', true);
@@ -275,7 +290,7 @@ const Setting = ({navigation}) => {
           },
           {
             label: '底部弹出',
-            color: Colors.Primary,
+            color: toastType === 'bottom' ? Colors.Primary : Colors.grey30,
             onPress: () => {
               dispatch(setToastType('bottom'));
               showToast('设置成功！', 'success', true);
@@ -291,7 +306,7 @@ const Setting = ({navigation}) => {
         Actions={[
           {
             label: '聊天应用',
-            color: Colors.Primary,
+            color: isMusicApp ? Colors.grey30 : Colors.Primary,
             onPress: () => {
               dispatch(setIsMusicApp(false));
               showToast('下次启动为聊天应用！', 'success', true);
@@ -300,7 +315,7 @@ const Setting = ({navigation}) => {
           },
           {
             label: '音乐应用',
-            color: Colors.Primary,
+            color: isMusicApp ? Colors.Primary : Colors.grey30,
             onPress: () => {
               dispatch(setIsMusicApp(true));
               showToast('下次启动为音乐应用！', 'success', true);
@@ -316,10 +331,11 @@ const Setting = ({navigation}) => {
         Actions={soundNames.map(item => {
           return {
             label: item.name,
-            color: Colors.Primary,
+            color: soundName === item.value ? Colors.Primary : Colors.grey30,
             onPress: () => {
               playSystemSound(item.value);
               addStorage('setting', 'soundName', item.value);
+              getSoundName();
               showToast('设置成功！', 'success', true);
               setShowAudio(false);
             },

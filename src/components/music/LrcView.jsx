@@ -1,7 +1,6 @@
-import React, {useState, useEffect, useRef, useCallback} from 'react';
+import React, {useState, useEffect, useRef, useMemo, useCallback} from 'react';
 import {FlatList, StyleSheet} from 'react-native';
 import {formatLrc} from '../../utils/handle/lyricHandle';
-import {isEmptyObject} from '../../utils/base';
 import {View, Text, Colors, TouchableOpacity, Image} from 'react-native-ui-lib';
 import {fullHeight, fullWidth} from '../../styles';
 import LrcItem from './LrcItem';
@@ -31,24 +30,26 @@ const LrcView = React.memo(props => {
   const [haveTrans, setHaveTrans] = useState(false);
   const [haveRoma, setHaveRoma] = useState(false);
 
-  // 解析歌词 - 保留基本逻辑
+  // 解析歌词
   useEffect(() => {
-    if (Music && !isEmptyObject(Music)) {
-      const {
-        Lyrics,
-        haveTrans: _haveTrans,
-        haveRoma: _haveRoma,
-        haveYrc: _haveYrc,
-      } = formatLrc(Music);
-      setParsedLrc(Lyrics);
-      setHaveYrc(_haveYrc);
-      setHaveRoma(_haveRoma);
-      setHaveTrans(_haveTrans);
-    }
+    const {
+      Lyrics,
+      haveTrans: _haveTrans,
+      haveRoma: _haveRoma,
+      haveYrc: _haveYrc,
+    } = formatLrc(Music);
+    setParsedLrc(Lyrics);
+    setHaveYrc(_haveYrc);
+    setHaveRoma(_haveRoma);
+    setHaveTrans(_haveTrans);
+    setItemHeights(() => new Map());
+    shouldSkip.current = false;
   }, [Music]);
 
   // 切换歌词
   const switchLyric = useCallback(() => {
+    shouldSkip.current = false;
+    setItemHeights(() => new Map());
     dispatch(
       setLrcFlag({
         yrcVisible: haveYrc && [3, 4, 5].includes(switchCount),
@@ -56,16 +57,30 @@ const LrcView = React.memo(props => {
         romaVisible: haveRoma && [1, 4].includes(switchCount),
       }),
     );
-    dispatch(setSwitchCount(switchCount < 5 ? switchCount + 1 : 0));
     if (haveTrans && [0, 3].includes(switchCount)) {
       showToast('已切换到翻译歌词', 'success', true);
     }
     if (haveRoma && [1, 4].includes(switchCount)) {
       showToast('已切换到音译歌词', 'success', true);
     }
+
+    let skip = 0;
+    let maxCount = haveYrc ? 5 : 2;
+    if (!haveTrans && [5, 2].includes(switchCount)) {
+      skip += 1;
+    }
+    if (!haveRoma && [0, 3].includes(switchCount)) {
+      skip += 1;
+    }
+    if (!haveTrans && !haveRoma) {
+      skip += 1;
+    }
+    dispatch(
+      setSwitchCount(switchCount < maxCount ? switchCount + skip + 1 : 0),
+    );
   }, [haveRoma, haveTrans, haveYrc, switchCount]);
 
-  // 查找当前行 - 保留线性查找但优化比较
+  // 查找当前行
   const findCurrentLineIndex = useCallback(() => {
     if (parsedLrc.length === 0) {
       return -1;
@@ -89,8 +104,87 @@ const LrcView = React.memo(props => {
     if (flatListRef.current && index >= 0) {
       flatListRef.current.scrollToIndex({index, animated: true});
       OnLyricsChange(parsedLrc[index]?.lyric);
+    } else {
+      OnLyricsChange('');
     }
   }, [CurrentTime, findCurrentLineIndex, OnLyricsChange, parsedLrc]);
+
+  // 歌词是否为两行
+  const isTwoLines = useRef(
+    (transVisible && haveTrans) || (romaVisible && haveRoma),
+  );
+  useEffect(() => {
+    isTwoLines.current =
+      (transVisible && haveTrans) || (romaVisible && haveRoma);
+  }, [transVisible, haveTrans, romaVisible, haveRoma]);
+
+  // 每行歌词高度变化
+  const [itemHeights, setItemHeights] = useState(() => new Map());
+  const shouldSkip = useRef(false);
+  const OnItemLayout = useCallback(
+    (index, height) => {
+      if (shouldSkip.current || index === parsedLrc.length - 1) {
+        shouldSkip.current = true;
+        return;
+      }
+      setItemHeights(prev => {
+        if (
+          isTwoLines.current &&
+          (prev.get(index) === height || height === 68)
+        ) {
+          return prev;
+        }
+        if (
+          !isTwoLines.current &&
+          (prev.get(index) === height || height === 48)
+        ) {
+          return prev;
+        }
+        const newMap = new Map(prev);
+        newMap.set(index, height);
+        return newMap;
+      });
+    },
+    [parsedLrc?.length, shouldSkip.current, isTwoLines.current, setItemHeights],
+  );
+
+  const itemLayouts = useMemo(() => {
+    const newLengths = new Map();
+    const newOffsets = new Map();
+    if (!parsedLrc?.length || itemHeights.size === 0 || !shouldSkip.current) {
+      return {lengths: newLengths, offsets: newOffsets};
+    }
+
+    const defaultHeight = isTwoLines.current ? 68 : 48; // 动态默认高度
+    const maxIndex = parsedLrc.length - 1;
+
+    for (let i = 0; i <= maxIndex; i++) {
+      newLengths.set(i, itemHeights.get(i) || defaultHeight);
+    }
+
+    let currentOffset = 0;
+    for (let i = 0; i <= newLengths.size; i++) {
+      newOffsets.set(i, currentOffset);
+      currentOffset += newLengths.get(i) || defaultHeight;
+    }
+    return {
+      lengths: newLengths,
+      offsets: newOffsets,
+    };
+  }, [isTwoLines.current, itemHeights, parsedLrc?.length, shouldSkip.current]);
+
+  // 计算每行歌词高度
+  const getItemLayout = useCallback(
+    (data, index) => {
+      const {lengths, offsets} = itemLayouts || {};
+      return {
+        length: lengths.get(index) || isTwoLines.current ? 68 : 48,
+        offset: offsets.get(index) || (isTwoLines.current ? 68 : 48) * index,
+        index,
+      };
+    },
+    [isTwoLines.current, itemLayouts, itemHeights],
+  );
 
   // 渲染每行歌词
   const renderItem = useCallback(
@@ -124,6 +218,7 @@ const LrcView = React.memo(props => {
           YrcVisible={yrcVisible && haveYrc}
           TransVisible={transVisible && haveTrans}
           RomaVisible={romaVisible && haveRoma}
+          OnItemLayout={OnItemLayout}
         />
       );
     },
@@ -141,7 +236,7 @@ const LrcView = React.memo(props => {
 
   // 基本FlatList配置
   const contentContainerStyle = {
-    paddingVertical: fullHeight * 0.8 / 2 ,
+    paddingVertical: (fullHeight * 0.8) / 2 - 68,
   };
 
   return (
@@ -178,19 +273,7 @@ const LrcView = React.memo(props => {
             renderItem={renderItem}
             keyExtractor={item => item.id.toString()}
             contentContainerStyle={contentContainerStyle}
-            getItemLayout={(data, index) => ({
-              length:
-                (transVisible && haveTrans) || (romaVisible && haveRoma)
-                  ? 64
-                  : 44,
-              offset:
-                ((transVisible && haveTrans) || (romaVisible && haveRoma)
-                  ? 64
-                  : 44) * index,
-              index,
-            })}
-            initialNumToRender={15}
-            windowSize={11}
+            getItemLayout={getItemLayout}
           />
         ) : (
           <View height={'100%'} center>

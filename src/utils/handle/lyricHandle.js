@@ -69,7 +69,7 @@ export const parseYrcs = lyricsString => {
 };
 
 export const formatLrc = Music => {
-  const {music_lyric, music_trans, music_yrc, music_roma} = Music;
+  const {music_lyric, music_trans, music_yrc, music_roma} = Music || {};
 
   const lyric = parserLrc(music_lyric);
   const transLyrics = parserLrc(music_trans);

@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useEffect, useCallback, useState, useRef, use} from 'react';
+import React, {useEffect, useCallback, useState, useRef} from 'react';
 import {ActivityIndicator, StyleSheet, Vibration, Modal} from 'react-native';
 import {
   View,

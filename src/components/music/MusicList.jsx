@@ -398,7 +398,7 @@ const MusicList = props => {
               <TouchableOpacity
                 style={styles.musicBut}
                 onPress={() => {
-                  dispatch(unshiftPlayList([item]));
+                  dispatch(addPlayList([item]));
                   showToast('已添加到播放列表', 'success');
                 }}>
                 <AntDesign name="pluscircleo" color={Colors.grey50} size={20} />
