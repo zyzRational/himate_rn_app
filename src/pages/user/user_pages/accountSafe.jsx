@@ -99,24 +99,24 @@ const Edituser = ({navigation, route}) => {
   // 提交修改
   const [uploading, setUploading] = useState(false);
   const submitData = async value => {
-    const truekey = Object.keys(value)[0];
-    const truevalue = Object.values(value)[0];
-    if (truevalue === null || truevalue === '') {
+    const trueKey = Object.keys(value)[0];
+    const trueValue = Object.values(value)[0];
+    if (trueValue === null || trueValue === '') {
       showToast('请输入要修改的内容！', 'error');
       return;
     }
-    if (truekey === 'account' && !ValidateMail(truevalue)) {
+    if (trueKey === 'account' && !ValidateMail(trueValue)) {
       showToast('请输入正确的邮箱号', 'error');
       return;
     }
-    if (truekey === 'password' && truevalue.length < 6) {
+    if (trueKey === 'password' && trueValue.length < 6) {
       showToast('请输入至少六位密码', 'error');
       return;
     }
     value.id = userId;
     try {
       setUploading(true);
-      if (truekey === 'account') {
+      if (trueKey === 'account') {
         const validateRes = await mailValidate({
           account: userInfo.account,
           code,
@@ -130,19 +130,19 @@ const Edituser = ({navigation, route}) => {
           return;
         }
       }
-      if (truekey === 'password') {
+      if (trueKey === 'password') {
         value.oldpassword = oldpassword;
       }
       const res = await EditUserInfo(value);
       if (res.success) {
         setUploading(false);
         dataInit();
-        if (truekey === 'account') {
+        if (trueKey === 'account') {
           setMailshow(false);
           setShowCodeDialog(false);
           setCode(null);
         }
-        if (truekey === 'password') {
+        if (trueKey === 'password') {
           setPasswordshow(false);
           setShowPassDialog(false);
           setNewpassword(null);

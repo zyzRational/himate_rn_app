@@ -236,12 +236,12 @@ const LrcView = React.memo(props => {
 
   // 基本FlatList配置
   const contentContainerStyle = {
-    paddingVertical: (fullHeight * 0.8) / 2 - 68,
+    paddingVertical: (fullHeight * 0.76) / 2 - 46,
   };
 
   return (
     <View>
-      <View flexS row centerV paddingV-16 paddingH-20>
+      <View flexS row centerV paddingV-16 paddingH-20 paddingB-20>
         {Music?.music_name ? (
           <Image
             source={{uri: Cover}}
@@ -265,7 +265,7 @@ const LrcView = React.memo(props => {
           </Text>
         </View>
       </View>
-      <View height={fullHeight * 0.8}>
+      <View height={fullHeight * 0.76}>
         {parsedLrc.length ? (
           <FlatList
             ref={flatListRef}

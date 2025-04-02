@@ -15,7 +15,6 @@ import {
   AccountuserLogin,
   CodeuserLogin,
   getCodeBymail,
-  mailValidate,
   userRegMail,
 } from '../../api/user';
 import {useSelector, useDispatch} from 'react-redux';
@@ -141,18 +140,14 @@ const Login = ({navigation}) => {
     ) {
       try {
         setButdisabled(true);
-        const valRes = await mailValidate({account, code});
-        if (valRes.success) {
-          const regRes = await userRegMail({account, password});
-          if (regRes.success) {
-            const timer = setTimeout(() => {
-              userLogin();
-              clearTimeout(timer);
-            }, 1000);
-          }
-          showToast(regRes.message, regRes.success ? 'success' : 'error');
+        const regRes = await userRegMail({account, password, code});
+        if (regRes.success) {
+          const timer = setTimeout(() => {
+            userLogin();
+            clearTimeout(timer);
+          }, 1000);
         }
-        showToast(valRes.message, valRes.success ? 'success' : 'error');
+        showToast(regRes.message, regRes.success ? 'success' : 'error');
         setButdisabled(false);
       } catch (error) {
         console.log(error);

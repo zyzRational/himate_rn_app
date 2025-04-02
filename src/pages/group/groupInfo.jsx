@@ -31,8 +31,8 @@ import {
   requestCameraPermission,
   requestFolderPermission,
 } from '../../stores/store-slice/permissionStore';
-import {getChatList} from '../../api/session';
 import {formatMsg, setLocalMsg} from '../../utils/handle/chatHandle';
+import { getUserMsgList } from '../../api/dataManager';
 
 const GroupInfo = ({navigation, route}) => {
   const {session_id} = route.params || {};
@@ -150,6 +150,7 @@ const GroupInfo = ({navigation, route}) => {
     }
     deleteMsg(sessionId);
     showToast('清除成功', 'success');
+    navigation.navigate('Msg');
   };
 
   const [clearVisible, setClearVisible] = useState(false);
@@ -259,7 +260,7 @@ const GroupInfo = ({navigation, route}) => {
   const getCouldChatHistory = async () => {
     try {
       setRefreshing(true);
-      const res = await getChatList({session_id, isPaging: false});
+      const res = await getUserMsgList({session_id, isPaging: false});
       if (res.success) {
         const newlist = [];
         res.data.list.forEach(item => {

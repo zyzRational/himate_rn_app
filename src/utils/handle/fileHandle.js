@@ -16,7 +16,7 @@ import {Colors} from 'react-native-ui-lib';
 export const DownloadFile = async (
   fileUrl,
   fileName,
-  Callback = () => {},
+  callback = () => {},
   isInCameraRoll = false,
   isSystemDownload = true,
 ) => {
@@ -54,7 +54,8 @@ export const DownloadFile = async (
     RNFetchBlob.config(config)
       .fetch('GET', fileUrl)
       .progress((received, total) => {
-        Callback((received / total).toFixed(2) * 100);
+        const progress = Math.round((received / total) * 100);
+        callback(progress);
       })
       .then(resp => {
         resolve(resp.path());
@@ -122,18 +123,20 @@ export const UploadFile = async (
   const userToken = await getStorage('user', 'userToken');
   const {uid, fileType, useType} = params;
 
+  // 构建URL
+  const url = `${BASE_URL}api/upload/file?uid=${uid}&file_type=${fileType}&use_type=${useType}`;
+
   return RNFetchBlob.fetch(
     'POST',
-    BASE_URL +
-      'api/upload/file' +
-      `?uid=${uid}&file_type=${fileType}&use_type=${useType}`,
+    url,
     {
       Authorization: 'Bearer ' + userToken,
       'Content-Type': 'multipart/form-data',
     },
     [fileData],
   ).uploadProgress((written, total) => {
-    callback((written / total).toFixed(2) * 100);
+    const progress = Math.round((written / total) * 100);
+    callback(progress);
   });
 };
 

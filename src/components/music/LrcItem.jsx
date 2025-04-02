@@ -7,7 +7,6 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
   Easing,
-  cancelAnimation,
 } from 'react-native-reanimated';
 
 // 预定义隐藏文本，避免每次渲染都重新创建
@@ -82,7 +81,7 @@ const LrcItem = React.memo(
 
     const yrcAnimatedStyle = useAnimatedStyle(() => ({
       paddingHorizontal: paddingH.value,
-      width: textWidth.value * textDimensions.width,
+      width: textWidth.value * textDimensions?.width || 0,
     }));
 
     // 更新动画效果
@@ -118,14 +117,6 @@ const LrcItem = React.memo(
         scale.value = withTiming(1, {duration: 200});
         paddingH.value = withTiming(0, {duration: 200});
       }
-      return () => {
-        // 组件卸载时取消动画
-        cancelAnimation(opacity);
-        cancelAnimation(transOpacity);
-        cancelAnimation(scale);
-        cancelAnimation(paddingH);
-        cancelAnimation(textWidth);
-      };
     }, [Index, NowIndex, Progress]);
 
     return (
@@ -139,7 +130,9 @@ const LrcItem = React.memo(
               {FullText}
             </Text>
             <Animated.View style={[styles.lyricViewAbs, yrcAnimatedStyle]}>
-              <View width={textDimensions?.width || 0} height={textDimensions?.height || 0}>
+              <View
+                width={textDimensions?.width || 0}
+                height={textDimensions?.height || 0}>
                 <Text text70BO color={Colors.Primary}>
                   {VisibleChars}
                 </Text>
