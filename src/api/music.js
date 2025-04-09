@@ -29,3 +29,7 @@ export const getMusicList = data =>
 // 音乐详情
 export const getMusicDetail = data =>
   instance.get('api/music/detail', {params: data});
+
+// 第三方歌单导入
+export const importFavorites = data =>
+  instance.post('api/musicMore/sync', data);

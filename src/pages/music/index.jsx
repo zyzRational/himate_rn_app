@@ -36,7 +36,7 @@ import {
   setIsRandomPlay,
   setRandomNum,
 } from '../../stores/store-slice/musicStore';
-import {getMusicList} from '../../api/music';
+import {getMusicList, importFavorites} from '../../api/music';
 
 const Music = ({navigation}) => {
   const {showToast} = useToast();
@@ -147,11 +147,11 @@ const Music = ({navigation}) => {
     setShowAddDialog(false);
     try {
       const addRes = await addFavorities({
-        creator_uid: userInfo.id,
+        creator_uid: userInfo?.id,
         favorites_name: favoritesName,
       });
       if (addRes.success) {
-        getUserFavoritesList(userInfo.id);
+        getUserFavoritesList(userInfo?.id);
       }
       showToast(addRes.message, addRes.success ? 'success' : 'error');
     } catch (error) {
@@ -169,7 +169,7 @@ const Music = ({navigation}) => {
         ids: del_ids || delids,
       });
       if (delRes.success) {
-        getUserFavoritesList(userInfo.id);
+        getUserFavoritesList(userInfo?.id);
       }
       showToast(delRes.message, 'success');
       resetMultiSelect();
@@ -237,6 +237,27 @@ const Music = ({navigation}) => {
       }
     } catch (error) {
       console.log(error);
+    }
+  };
+
+  // 导入外部歌单
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [importUrl, setImportUrl] = useState('');
+  const onImport = async () => {
+    try {
+      const urlRegex = /https?:\/\/(?:www\.)?[^\s/$.?#].[^\s]*/g;
+      const urls = importUrl.match(urlRegex);
+      if (urls && urls?.[0]) {
+        const trueUrl = urls?.[0];
+        showToast('歌单导入中...', 'success');
+        const res = await importFavorites({uid: userInfo?.id, url: trueUrl});
+        showToast(res.message, res.success ? 'success' : 'error');
+        getUserFavoritesList(userInfo?.id);
+        getAllMusicList();
+      }
+    } catch (error) {
+      console.log(error);
+      showToast('歌单导入失败', 'error');
     }
   };
 
@@ -413,14 +434,22 @@ const Music = ({navigation}) => {
               row
               centerV
               padding-4
+              marginR-10
               onPress={() => {
                 setShowAddDialog(true);
                 setFavoritesName('');
               }}>
-              <Text text90L grey40 marginR-4>
-                新建歌单
-              </Text>
-              <AntDesign name="pluscircleo" color={Colors.grey40} size={13} />
+              <AntDesign name="pluscircleo" color={Colors.grey40} size={18} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              row
+              centerV
+              padding-4
+              onPress={() => {
+                setShowImportDialog(true);
+                setImportUrl('');
+              }}>
+              <AntDesign name="login" color={Colors.grey40} size={18} />
             </TouchableOpacity>
           </View>
         </View>
@@ -516,7 +545,7 @@ const Music = ({navigation}) => {
         }}
         Visible={showAddDialog}
         SetVisible={setShowAddDialog}
-        MainText={'创建歌单'}
+        MainText={'新建歌单'}
         Body={
           <View>
             <TextField
@@ -528,6 +557,33 @@ const Music = ({navigation}) => {
               maxLength={10}
               onChangeText={value => {
                 setFavoritesName(value);
+              }}
+            />
+          </View>
+        }
+      />
+      <BaseDialog
+        IsButton={true}
+        Fun={() => {
+          onImport();
+          setShowImportDialog(false);
+        }}
+        Visible={showImportDialog}
+        SetVisible={setShowImportDialog}
+        MainText={'导入外部歌单'}
+        Body={
+          <View>
+            <Text marginT-2 text90L blue40>
+              暂只支持QQ音乐，同名歌单将覆盖原歌单
+            </Text>
+            <TextField
+              text70
+              placeholderTextColor={Colors.grey40}
+              placeholder={'请输入歌单分享链接'}
+              floatingPlaceholder
+              value={importUrl}
+              onChangeText={value => {
+                setImportUrl(value);
               }}
             />
           </View>
