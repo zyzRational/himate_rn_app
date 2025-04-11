@@ -31,7 +31,7 @@
     "pinyin-pro": "^3.22.2",
     "react": "18.3.1",
     "react-native": "0.75.5",
-    "react-native-audio-recorder-player": "^3.6.11",
+    "react-native-audio-recorder-player": "^3.6.12",
     "react-native-blob-util": "^0.21.2",
     "react-native-bootsplash": "^6.2.6",
     "react-native-circular-progress": "^1.4.1",

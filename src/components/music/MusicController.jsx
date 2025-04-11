@@ -24,6 +24,7 @@ import {
   editDefaultFavorites,
 } from '../../api/music';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import {runOnJS, runOnRuntime, runOnUI} from 'react-native-reanimated';
 import LyricModal from './LyricModal';
 import ToBePlayedModal from './ToBePlayedModal';
 
@@ -56,45 +57,45 @@ const MusicCtrlProvider = React.memo(props => {
   const [playType, setPlayType] = React.useState('order'); // 列表播放类型 single order random
 
   // 音乐播放器
-    const listener = audioPlayer.addPlayBackListener(playbackMeta => {
-      setAudioPlayprogress(playbackMeta);
-      MusicControl.updatePlayback({
-        elapsedTime: Math.round(playbackMeta.currentPosition / 1000),
-      });
-      const num = Math.round(
-        (playbackMeta.currentPosition / playbackMeta.duration) * 100,
-      );
-      if (num) {
-        setProgressNum(num);
-      }
-      if (playbackMeta.isFinished) {
-        restMusicStatus().then(() => {
-          if (isRandomPlay) {
-            getRandMusic();
-          } else if (playList.length > 0) {
-            if (playType === 'single') {
-              dispatch(setPlayingMusic(playList[playingIndex]));
-            } else if (playType === 'order') {
-              dispatch(
-                setPlayingMusic(
-                  playingIndex === playList.length - 1
-                    ? playList[0]
-                    : playList[playingIndex + 1],
-                ),
-              );
-            } else if (playType === 'random') {
-              dispatch(
-                setPlayingMusic(
-                  playList[Math.floor(Math.random() * playList.length)],
-                ),
-              );
-            }
-          } else {
-            dispatch(setPlayingMusic({}));
-          }
-        });
-      }
+  const listener = audioPlayer.addPlayBackListener(playbackMeta => {
+    setAudioPlayprogress(playbackMeta);
+    MusicControl.updatePlayback({
+      elapsedTime: Math.round(playbackMeta.currentPosition / 1000),
     });
+    const num = Math.round(
+      (playbackMeta.currentPosition / playbackMeta.duration) * 100,
+    );
+    if (num) {
+      setProgressNum(num);
+    }
+    if (playbackMeta.isFinished) {
+      restMusicStatus().then(() => {
+        if (isRandomPlay) {
+          getRandMusic();
+        } else if (playList.length > 0) {
+          if (playType === 'single') {
+            dispatch(setPlayingMusic(playList[playingIndex]));
+          } else if (playType === 'order') {
+            dispatch(
+              setPlayingMusic(
+                playingIndex === playList.length - 1
+                  ? playList[0]
+                  : playList[playingIndex + 1],
+              ),
+            );
+          } else if (playType === 'random') {
+            dispatch(
+              setPlayingMusic(
+                playList[Math.floor(Math.random() * playList.length)],
+              ),
+            );
+          }
+        } else {
+          dispatch(setPlayingMusic({}));
+        }
+      });
+    }
+  });
 
   // 上一首
   const previousRemote = React.useCallback(() => {
@@ -284,6 +285,37 @@ const MusicCtrlProvider = React.memo(props => {
     }
   }, [isRandomPlay]);
 
+  // 播放新音乐的方法
+  const playNewMusic = async () => {
+    if (!playingMusic?.file_name) {
+      return;
+    }
+    await restMusicStatus();
+    try {
+      let url = '';
+      if (typeof playingMusic?.id === 'number') {
+        url = STATIC_URL + playingMusic?.file_name;
+      } else {
+        url = playingMusic?.file_name;
+      }
+
+      runOnJS(audioPlayer.startPlayer)(url);
+
+      setAudioIsPlaying(true);
+      const index = playList.findIndex(item => item.id === playingMusic.id);
+      setPlayingIndex(index);
+      setPrevPlayingMusic(playingMusic);
+      startNotification(playingMusic);
+
+      if (realm) {
+        addOrUpdateLocalMusic(playingMusic);
+      }
+    } catch (error) {
+      console.log(error);
+      showToast('无法播放的音乐！', 'error');
+    }
+  };
+
   // 是否播放新的音乐
   React.useEffect(() => {
     if (
@@ -291,37 +323,9 @@ const MusicCtrlProvider = React.memo(props => {
       playType === 'single' ||
       !audioIsPlaying
     ) {
-      restMusicStatus().then(() => {
-        if (playingMusic?.file_name) {
-          let url = '';
-          if (typeof playingMusic?.id === 'number') {
-            url = STATIC_URL + playingMusic?.file_name;
-          } else {
-            url = playingMusic?.file_name;
-          }
-          // console.log('开始播放音乐', playingMusic);
-          audioPlayer
-            .startPlayer(url)
-            .then(() => {
-              setAudioIsPlaying(true);
-              const index = playList.findIndex(
-                item => item.id === playingMusic.id,
-              );
-              setPlayingIndex(index);
-              setPrevPlayingMusic(playingMusic);
-              startNotification(playingMusic);
-              if (realm) {
-                addOrUpdateLocalMusic(playingMusic);
-              }
-            })
-            .catch(error => {
-              console.log(error);
-              showToast('无法播放的音乐！', 'error');
-            });
-        }
-      });
+      playNewMusic();
     }
-  }, [playingMusic, realm]);
+  }, [playingMusic, playType]);
 
   // 加载音乐名
   const renderMarquee = music => {
@@ -513,7 +517,7 @@ const MusicCtrlProvider = React.memo(props => {
       <ToBePlayedModal
         Visible={listModalVisible}
         OnClose={() => setListModalVisible(false)}
-        OnClearList={()=>{
+        OnClearList={() => {
           dispatch(setPlayList([]));
         }}
         Music={playingMusic}

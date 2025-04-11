@@ -6080,7 +6080,7 @@ human-signals@^2.1.0:
 
 hyochan-welcome@^1.0.0:
   version "1.0.1"
-  resolved "https://registry.yarnpkg.com/hyochan-welcome/-/hyochan-welcome-1.0.1.tgz#a949de8bc3c1e18fe096016bc273aa191c844971"
+  resolved "https://registry.npmmirror.com/hyochan-welcome/-/hyochan-welcome-1.0.1.tgz#a949de8bc3c1e18fe096016bc273aa191c844971"
   integrity sha512-WRZNH5grESkOXP/r7xc7TMhO9cUqxaJIuZcQDAjzHWs6viGP+sWtVbiBigxc9YVRrw3hnkESQWwzqg+oOga65A==
 
 iconv-lite@^0.4.17:
@@ -9015,9 +9015,9 @@ react-is@^17.0.1:
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-17.0.2.tgz#e691d4a8e9c789365655539ab372762b0efb54f0"
   integrity sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w==
 
-react-native-audio-recorder-player@^3.6.11:
+react-native-audio-recorder-player@^3.6.12:
   version "3.6.12"
-  resolved "https://registry.yarnpkg.com/react-native-audio-recorder-player/-/react-native-audio-recorder-player-3.6.12.tgz#edc3aa271534a4ce6bc4b32ff2b0ece555b35498"
+  resolved "https://registry.npmmirror.com/react-native-audio-recorder-player/-/react-native-audio-recorder-player-3.6.12.tgz#edc3aa271534a4ce6bc4b32ff2b0ece555b35498"
   integrity sha512-/pnZxPA2jvQ9K7oDtrjcAjc/hn124swi451Q/i1Z6yesDVqupE38moNm12HgY1IVupdUCjeiZVqPoShcE0N8mw==
   dependencies:
     hyochan-welcome "^1.0.0"
