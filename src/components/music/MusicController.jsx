@@ -24,7 +24,6 @@ import {
   editDefaultFavorites,
 } from '../../api/music';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
-import {runOnJS, runOnRuntime, runOnUI} from 'react-native-reanimated';
 import LyricModal from './LyricModal';
 import ToBePlayedModal from './ToBePlayedModal';
 
@@ -50,24 +49,32 @@ const MusicCtrlProvider = React.memo(props => {
   const [musicModalVisible, setMusicModalVisible] = React.useState(false);
   const [listModalVisible, setListModalVisible] = React.useState(false);
   const [audioIsPlaying, setAudioIsPlaying] = React.useState(false); // 音频是否正在播放
-  const [audioPlayprogress, setAudioPlayprogress] = React.useState({}); // 音频播放进度
-  const [prevPlayingMusic, setPrevPlayingMusic] = React.useState({}); // 记录上一次播放的音乐
+  const [curPosition, setCurPosition] = React.useState(0); // 当前播放进度
+  const [audioDuration, setAudioDuration] = React.useState(0); // 音频总时长
+  const lastPlayedId = React.useRef(null); // 记录上一次播放的音乐Id
   const [playingIndex, setPlayingIndex] = React.useState(0); // 当前播放音乐的索引
-  const [progressNum, setProgressNum] = React.useState(0); // 进度条数值
+  const [playProgress, setPlayProgress] = React.useState(0); // 进度条数值
   const [playType, setPlayType] = React.useState('order'); // 列表播放类型 single order random
 
+  const [isLoading, setIsLoading] = React.useState(false);
   // 音乐播放器
-  const listener = audioPlayer.addPlayBackListener(playbackMeta => {
-    setAudioPlayprogress(playbackMeta);
-    MusicControl.updatePlayback({
-      elapsedTime: Math.round(playbackMeta.currentPosition / 1000),
-    });
-    const num = Math.round(
-      (playbackMeta.currentPosition / playbackMeta.duration) * 100,
-    );
-    if (num) {
-      setProgressNum(num);
+  audioPlayer.addPlayBackListener(playbackMeta => {
+    const {currentPosition, duration} = playbackMeta;
+
+    setCurPosition(currentPosition);
+    if (duration !== audioDuration) {
+      setAudioDuration(duration);
     }
+
+    MusicControl.updatePlayback({
+      elapsedTime: Math.round(currentPosition / 1000),
+    });
+
+    const progress = Math.round((currentPosition / duration) * 100);
+    if (progress) {
+      setPlayProgress(progress);
+    }
+
     if (playbackMeta.isFinished) {
       restMusicStatus().then(() => {
         if (isRandomPlay) {
@@ -113,6 +120,11 @@ const MusicCtrlProvider = React.memo(props => {
 
   // 播放或暂停
   const playOrPauseRemote = React.useCallback(() => {
+    if (isLoading) {
+      showToast('正在获取音乐...', 'warning');
+      setAudioIsPlaying(false);
+      return;
+    }
     if (audioIsPlaying) {
       audioPlayer.pausePlayer();
       setAudioIsPlaying(false);
@@ -130,7 +142,7 @@ const MusicCtrlProvider = React.memo(props => {
         state: MusicControl.STATE_PLAYING,
       });
     }
-  }, [audioIsPlaying, playingMusic]);
+  }, [audioIsPlaying, playingMusic, isLoading]);
 
   // 下一首
   const nextRemote = React.useCallback(() => {
@@ -155,8 +167,9 @@ const MusicCtrlProvider = React.memo(props => {
   // 重置音乐播放所有状态
   const restMusicStatus = async () => {
     MusicControl.stopControl();
-    setAudioPlayprogress({});
-    setProgressNum(0);
+    setCurPosition(0);
+    setAudioDuration(0);
+    setPlayProgress(0);
     setAudioIsPlaying(false);
     try {
       const stopResult = await audioPlayer.stopPlayer();
@@ -290,7 +303,13 @@ const MusicCtrlProvider = React.memo(props => {
     if (!playingMusic?.file_name) {
       return;
     }
-    await restMusicStatus();
+
+    const isStoped = await restMusicStatus();
+    if (!isStoped) {
+      return;
+    }
+
+    setIsLoading(true);
     try {
       let url = '';
       if (typeof playingMusic?.id === 'number') {
@@ -299,27 +318,30 @@ const MusicCtrlProvider = React.memo(props => {
         url = playingMusic?.file_name;
       }
 
-      runOnJS(audioPlayer.startPlayer)(url);
+      await audioPlayer.startPlayer(url);
 
-      setAudioIsPlaying(true);
       const index = playList.findIndex(item => item.id === playingMusic.id);
+      lastPlayedId.current = playingMusic.id;
+      setAudioIsPlaying(true);
       setPlayingIndex(index);
-      setPrevPlayingMusic(playingMusic);
       startNotification(playingMusic);
 
       if (realm) {
         addOrUpdateLocalMusic(playingMusic);
       }
+      setIsLoading(false);
     } catch (error) {
       console.log(error);
       showToast('无法播放的音乐！', 'error');
+      restMusicStatus();
+      setIsLoading(false);
     }
   };
 
   // 是否播放新的音乐
   React.useEffect(() => {
     if (
-      prevPlayingMusic?.id !== playingMusic?.id ||
+      lastPlayedId.current !== playingMusic?.id ||
       playType === 'single' ||
       !audioIsPlaying
     ) {
@@ -330,15 +352,18 @@ const MusicCtrlProvider = React.memo(props => {
   // 加载音乐名
   const renderMarquee = music => {
     const {title, artists} = music;
-    const musicText =
+    let musicText =
       (title ?? '还没有要播放的音乐') +
       ' - ' +
       (artists?.join('/') || '未知歌手');
+    if (isLoading) {
+      musicText = '正在获取音乐...';
+    }
     const speed = musicText.length > 16 ? 0.4 : 0;
     const spacing = musicText.length > 16 ? fullWidth * 0.2 : fullWidth * 0.6;
     return (
       <Marquee
-        key={title}
+        key={title + isLoading}
         speed={speed}
         spacing={spacing}
         style={styles.marquee}>
@@ -386,11 +411,6 @@ const MusicCtrlProvider = React.memo(props => {
     if (userInfo?.id) {
       getAllMusicList(userInfo?.id);
     }
-    return () => {
-      audioPlayer.removePlayBackListener(listener);
-      MusicControl.stopControl();
-      restMusicStatus();
-    };
   }, [userInfo]);
 
   return (
@@ -416,7 +436,7 @@ const MusicCtrlProvider = React.memo(props => {
                       key={playingMusic}
                       size={47}
                       width={3}
-                      fill={progressNum}
+                      fill={playProgress}
                       tintColor={Colors.red40}
                       rotation={0}
                       lineCap="round">
@@ -481,7 +501,8 @@ const MusicCtrlProvider = React.memo(props => {
         IsFavorite={collectMusic.some(item => item.id === playingMusic.id)}
         OnFavorite={editMyFavorite}
         PlayMode={playType}
-        PlayProgress={audioPlayprogress}
+        CurPosition={curPosition}
+        Duration={audioDuration}
         OnSliderChange={value => {
           audioPlayer.seekToPlayer(value);
         }}

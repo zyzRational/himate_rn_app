@@ -29,7 +29,8 @@ const LyricModal = React.memo(props => {
     OnFavorite = () => {},
     PlayMode = 'order',
     OnClose = () => {},
-    PlayProgress = {},
+    CurPosition = 0,
+    Duration = 0,
     OnSliderChange = () => {},
     OnChangeMode = () => {},
     OnBackWard = () => {},
@@ -77,13 +78,13 @@ const LyricModal = React.memo(props => {
 
   // 当前时间和总时长格式化
   const currentTimeFormatted = useMemo(
-    () => formatMilliseconds(PlayProgress?.currentPosition ?? 0),
-    [PlayProgress?.currentPosition],
+    () => formatMilliseconds(CurPosition),
+    [CurPosition],
   );
 
   const durationFormatted = useMemo(
-    () => formatMilliseconds(PlayProgress?.duration ?? 0),
-    [PlayProgress?.duration],
+    () => formatMilliseconds(Duration),
+    [Duration],
   );
 
   // 歌词动画组件
@@ -182,9 +183,9 @@ const LyricModal = React.memo(props => {
                 ) : null}
                 <View marginT-16>
                   <Slider
-                    value={PlayProgress?.currentPosition ?? 0}
+                    value={CurPosition}
                     minimumValue={0}
-                    maximumValue={PlayProgress?.duration ?? 100}
+                    maximumValue={Duration || 100}
                     maximumTrackTintColor={Colors.lyricColor}
                     thumbTintColor={Colors.Primary}
                     thumbStyle={styles.thumbStyle}
@@ -273,7 +274,7 @@ const LyricModal = React.memo(props => {
                   STATIC_URL +
                   (musicMore?.music_cover || 'default_music_cover.jpg')
                 }
-                CurrentTime={PlayProgress?.currentPosition}
+                CurrentTime={CurPosition}
                 OnLyricsChange={setNowLyric}
               />
             </View>

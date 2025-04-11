@@ -94,11 +94,11 @@ yarn android
 如果使用Android14运行先进行如下修改
 
 ```java
-./node_modules/react-native-musicontrol/android/java/com/tanguyantoine/react/MusicControlModule.java:204: 
+./node_modules/react-native-musicontrol/android/java/com/tanguyantoine/react/MusicControlModule.java:204
 原代码：context.registerReceiver(receiver, filter);
 修改为：context.registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED);
 
-./node_modules/rn-fetch-blob/android/src/main/android/java/com/RNFetchBlob/RNFetchBlobReq.java:199: 
+./node_modules/rn-fetch-blob/android/src/main/android/java/com/RNFetchBlob/RNFetchBlobReq.java:199
 原代码：appCtx.registerReceiver(this, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
 修改为：if (Build.VERSION.SDK_INT >= 34 && appCtx.getApplicationInfo().targetSdkVersion >= 34) {
                     appCtx.registerReceiver(this, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE),
@@ -172,16 +172,16 @@ RELEASE_KEY_PASSWORD=
 
 1，升级react-native-gifted-chat组件到2.8.0后，新增相对时间计算，但不太符合国内使用习惯可进行如下优化
 
-./node_modules/react-native-gifted-chat/lib/Constant.js:10/11:
-
 ```js
+./node_modules/react-native-gifted-chat/lib/Constant.js:10/11
+
 export const DATE_FORMAT = 'MM/DD HH:mm';
 export const TIME_FORMAT = 'HH:mm';
 ```
 
+```js
 ./node_modules/react-native-gifted-chat/lib/Day/index.js:20
 
-```js
 const _date = dayjs(createdAt).locale(getLocale());
         if (!now.isSame(date, 'year'))
             return _date.format('YYYY MM/DD HH:mm');
@@ -191,6 +191,28 @@ const _date = dayjs(createdAt).locale(getLocale());
                 ...dateFormatCalendar,
             });  
         return _date.format(dateFormat);
+```
+
+
+
+2，解决使用react-native-audio-recorder-player组件播放音乐时，在网络延迟时导致的卡顿问题
+
+```kotlin
+./node_modules/react-native-audio-recorder-player/android/java/com/dooboolab.audiorecorderplayer/RNAudioRecorderPlayerModule.kt:311
+
+// 使用prepareAsync()替代prepare()
+            mediaPlayer!!.setOnErrorListener { mp, what, extra ->
+                Log.e(tag, "MediaPlayer error occurred. what: $what, extra: $extra")
+                promise.reject("startPlay", "MediaPlayer error occurred. what: $what, extra: $extra")
+                true
+            }
+        
+            mediaPlayer!!.prepareAsync()
+
+324       Log.e(tag, "startPlay() null exception")
+          + promise.reject("startPlay", "Null pointer exception occurred")
+
+
 ```
 
 
