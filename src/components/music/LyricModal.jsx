@@ -185,6 +185,7 @@ const LyricModal = React.memo(props => {
                   <Slider
                     value={CurPosition}
                     minimumValue={0}
+                    disabled={!Duration}
                     maximumValue={Duration || 100}
                     maximumTrackTintColor={Colors.lyricColor}
                     thumbTintColor={Colors.Primary}

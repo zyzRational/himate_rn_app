@@ -1,10 +1,17 @@
-import * as React from 'react';
+import React, {
+  useCallback,
+  useState,
+  useRef,
+  useEffect,
+  createContext,
+  useContext,
+} from 'react';
 import {StyleSheet, ImageBackground} from 'react-native';
 import {Image, View, Text, Colors, TouchableOpacity} from 'react-native-ui-lib';
 import {useSelector, useDispatch} from 'react-redux';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import {AnimatedCircularProgress} from 'react-native-circular-progress';
-import {fullHeight, fullWidth} from '../../styles';
+import {fullWidth} from '../../styles';
 import AudioRecorderPlayer from 'react-native-audio-recorder-player';
 import {Marquee} from '@animatereactnative/marquee';
 import {isEmptyObject, deepClone, getRandomInt} from '../../utils/base';
@@ -27,8 +34,8 @@ import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import LyricModal from './LyricModal';
 import ToBePlayedModal from './ToBePlayedModal';
 
-export const MusicCtrlContext = React.createContext();
-export const useMusicCtrl = () => React.useContext(MusicCtrlContext);
+export const MusicCtrlContext = createContext();
+export const useMusicCtrl = () => useContext(MusicCtrlContext);
 const audioPlayer = new AudioRecorderPlayer();
 
 const MusicCtrlProvider = React.memo(props => {
@@ -46,22 +53,27 @@ const MusicCtrlProvider = React.memo(props => {
   const randomNum = useSelector(state => state.musicStore.randomNum);
   const isRandomPlay = useSelector(state => state.musicStore.isRandomPlay);
 
-  const [musicModalVisible, setMusicModalVisible] = React.useState(false);
-  const [listModalVisible, setListModalVisible] = React.useState(false);
-  const [audioIsPlaying, setAudioIsPlaying] = React.useState(false); // 音频是否正在播放
-  const [curPosition, setCurPosition] = React.useState(0); // 当前播放进度
-  const [audioDuration, setAudioDuration] = React.useState(0); // 音频总时长
-  const lastPlayedId = React.useRef(null); // 记录上一次播放的音乐Id
-  const [playingIndex, setPlayingIndex] = React.useState(0); // 当前播放音乐的索引
-  const [playProgress, setPlayProgress] = React.useState(0); // 进度条数值
-  const [playType, setPlayType] = React.useState('order'); // 列表播放类型 single order random
+  const [musicModalVisible, setMusicModalVisible] = useState(false);
+  const [listModalVisible, setListModalVisible] = useState(false);
+  const [audioIsPlaying, setAudioIsPlaying] = useState(false); // 音频是否正在播放
+  const [curPosition, setCurPosition] = useState(0); // 当前播放进度
+  const [audioDuration, setAudioDuration] = useState(0); // 音频总时长
+  const lastPlayedId = useRef(null); // 记录上一次播放的音乐Id
+  const [playingIndex, setPlayingIndex] = useState(0); // 当前播放音乐的索引
+  const [playProgress, setPlayProgress] = useState(0); // 进度条数值
+  const [playType, setPlayType] = useState('order'); // 列表播放类型 single order random
 
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   // 音乐播放器
-  audioPlayer.addPlayBackListener(playbackMeta => {
+  const subscription = audioPlayer.addPlayBackListener(playbackMeta => {
     const {currentPosition, duration} = playbackMeta;
 
+    setAudioIsPlaying(
+      currentPosition !== curPosition && currentPosition !== seekToPosition,
+    );
+
     setCurPosition(currentPosition);
+
     if (duration !== audioDuration) {
       setAudioDuration(duration);
     }
@@ -105,7 +117,7 @@ const MusicCtrlProvider = React.memo(props => {
   });
 
   // 上一首
-  const previousRemote = React.useCallback(() => {
+  const previousRemote = useCallback(() => {
     if (playingIndex === 0 && playList.length > 0) {
       dispatch(setPlayingMusic(playList[playList.length - 1]));
       showToast('已经是第一首了~', 'warning');
@@ -119,33 +131,23 @@ const MusicCtrlProvider = React.memo(props => {
   }, [playList, playingIndex]);
 
   // 播放或暂停
-  const playOrPauseRemote = React.useCallback(() => {
+  const playOrPauseRemote = useCallback(() => {
     if (isLoading) {
-      showToast('正在获取音乐...', 'warning');
-      setAudioIsPlaying(false);
+      showToast('正在加载音乐...', 'warning', true);
       return;
-    }
-    if (audioIsPlaying) {
+    } else if (audioIsPlaying) {
       audioPlayer.pausePlayer();
-      setAudioIsPlaying(false);
-      MusicControl.updatePlayback({
-        state: MusicControl.STATE_PAUSED,
-      });
     } else {
       if (isEmptyObject(playingMusic)) {
         showToast('没有要播放的音乐~', 'warning');
         return;
       }
       audioPlayer.resumePlayer();
-      setAudioIsPlaying(true);
-      MusicControl.updatePlayback({
-        state: MusicControl.STATE_PLAYING,
-      });
     }
   }, [audioIsPlaying, playingMusic, isLoading]);
 
   // 下一首
-  const nextRemote = React.useCallback(() => {
+  const nextRemote = useCallback(() => {
     if (isRandomPlay) {
       getRandMusic();
       return;
@@ -164,12 +166,38 @@ const MusicCtrlProvider = React.memo(props => {
     }
   }, [isRandomPlay, playList, playingIndex]);
 
+  // 调整播放进度
+  const [seekToPosition, setSeekToPosition] = useState(0);
+  const onSliderChange = useCallback(async position => {
+    setIsLoading(true);
+    setSeekToPosition(parseInt(position, 10));
+    await audioPlayer?.seekToPlayer(position);
+    setAudioIsPlaying(false);
+  }, []);
+
+  //  监听音乐播放状态
+  useEffect(() => {
+    if (audioIsPlaying) {
+      setIsLoading(false);
+      setSeekToPosition(0);
+      MusicControl.updatePlayback({
+        state: MusicControl.STATE_PLAYING,
+      });
+    } else {
+      MusicControl.updatePlayback({
+        state: MusicControl.STATE_PAUSED,
+      });
+    }
+  }, [audioIsPlaying]);
+
   // 重置音乐播放所有状态
   const restMusicStatus = async () => {
     MusicControl.stopControl();
     setCurPosition(0);
     setAudioDuration(0);
     setPlayProgress(0);
+    setSeekToPosition(0);
+    setIsLoading(false);
     setAudioIsPlaying(false);
     try {
       const stopResult = await audioPlayer.stopPlayer();
@@ -238,7 +266,7 @@ const MusicCtrlProvider = React.memo(props => {
     });
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     /* 控件操作 */
     MusicControl.on(Command.pause, () => {
       playOrPauseRemote();
@@ -253,17 +281,16 @@ const MusicCtrlProvider = React.memo(props => {
       previousRemote();
     });
     MusicControl.on(Command.seek, pos => {
-      audioPlayer?.seekToPlayer(pos * 1000);
+      onSliderChange(pos * 1000);
     });
-  }, [playOrPauseRemote, nextRemote, previousRemote]);
+  }, [playOrPauseRemote, nextRemote, previousRemote, onSliderChange]);
 
   // 是否要定时关闭音乐
   let timer = null;
-  React.useEffect(() => {
+  useEffect(() => {
     if (closeTime) {
       timer = setTimeout(() => {
         audioPlayer.pausePlayer();
-        setAudioIsPlaying(false);
         MusicControl.updatePlayback({
           state: MusicControl.STATE_PAUSED,
         });
@@ -277,7 +304,7 @@ const MusicCtrlProvider = React.memo(props => {
   }, [closeTime]);
 
   // 获取随机歌曲
-  const getRandMusic = React.useCallback(async () => {
+  const getRandMusic = useCallback(async () => {
     const index = getRandomInt(randomNum.min, randomNum.max);
     try {
       const res = await getMusicList({pageNum: index, pageSize: 1});
@@ -292,7 +319,7 @@ const MusicCtrlProvider = React.memo(props => {
   }, [randomNum.max, randomNum.min]);
 
   // 随机播放
-  React.useEffect(() => {
+  useEffect(() => {
     if (isRandomPlay && playList.length === 0) {
       getRandMusic();
     }
@@ -322,7 +349,6 @@ const MusicCtrlProvider = React.memo(props => {
 
       const index = playList.findIndex(item => item.id === playingMusic.id);
       lastPlayedId.current = playingMusic.id;
-      setAudioIsPlaying(true);
       setPlayingIndex(index);
       startNotification(playingMusic);
 
@@ -339,7 +365,7 @@ const MusicCtrlProvider = React.memo(props => {
   };
 
   // 是否播放新的音乐
-  React.useEffect(() => {
+  useEffect(() => {
     if (
       lastPlayedId.current !== playingMusic?.id ||
       playType === 'single' ||
@@ -350,30 +376,35 @@ const MusicCtrlProvider = React.memo(props => {
   }, [playingMusic, playType]);
 
   // 加载音乐名
-  const renderMarquee = music => {
-    const {title, artists} = music;
-    let musicText =
-      (title ?? '还没有要播放的音乐') +
-      ' - ' +
-      (artists?.join('/') || '未知歌手');
-    if (isLoading) {
-      musicText = '正在获取音乐...';
-    }
-    const speed = musicText.length > 16 ? 0.4 : 0;
-    const spacing = musicText.length > 16 ? fullWidth * 0.2 : fullWidth * 0.6;
-    return (
-      <Marquee
-        key={title + isLoading}
-        speed={speed}
-        spacing={spacing}
-        style={styles.marquee}>
-        <Text white>{musicText}</Text>
-      </Marquee>
-    );
-  };
+  const renderMarquee = useCallback(
+    music => {
+      const {title, artists} = music;
+      let musicText =
+        (title ?? '还没有要播放的音乐') +
+        ' - ' +
+        (artists?.join('/') || '未知歌手');
+      if (isLoading) {
+        musicText = '正在加载音乐...';
+      }
+      const speed = musicText.length > 16 ? 0.4 : 0;
+      const spacing = musicText.length > 16 ? fullWidth * 0.2 : fullWidth * 0.6;
+      return (
+        <View>
+          <Marquee
+            key={title + isLoading}
+            speed={speed}
+            spacing={spacing}
+            style={styles.marquee}>
+            <Text white>{musicText}</Text>
+          </Marquee>
+        </View>
+      );
+    },
+    [isLoading],
+  );
 
   /* 获取用户收藏的音乐列表 */
-  const [collectMusic, setCollectMusic] = React.useState([]);
+  const [collectMusic, setCollectMusic] = useState([]);
   const getAllMusicList = async userId => {
     try {
       const res = await getFavoritesDetail({
@@ -407,11 +438,20 @@ const MusicCtrlProvider = React.memo(props => {
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (userInfo?.id) {
       getAllMusicList(userInfo?.id);
     }
   }, [userInfo]);
+
+  useEffect(() => {
+    return () => {
+      audioPlayer.removePlayBackListener(subscription);
+      dispatch(setPlayingMusic({}));
+      dispatch(setPlayList([]));
+      restMusicStatus();
+    };
+  }, []);
 
   return (
     <MusicCtrlContext.Provider value={{}}>
@@ -453,7 +493,6 @@ const MusicCtrlProvider = React.memo(props => {
                       )}
                     </AnimatedCircularProgress>
                   </View>
-
                   <View centerV>{renderMarquee(playingMusic)}</View>
                 </TouchableOpacity>
                 <View row centerV>
@@ -504,7 +543,7 @@ const MusicCtrlProvider = React.memo(props => {
         CurPosition={curPosition}
         Duration={audioDuration}
         OnSliderChange={value => {
-          audioPlayer.seekToPlayer(value);
+          onSliderChange(value);
         }}
         OnChangeMode={() => {
           setPlayType(prev => {
@@ -590,7 +629,6 @@ const styles = StyleSheet.create({
   marquee: {
     flex: 1,
     width: fullWidth * 0.56,
-    paddingTop: fullHeight * 0.016,
     overflow: 'hidden',
   },
 });
