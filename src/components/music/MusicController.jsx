@@ -177,6 +177,9 @@ const MusicCtrlProvider = React.memo(props => {
 
   //  监听音乐播放状态
   useEffect(() => {
+    if (isEmptyObject(playingMusic)) {
+      return;
+    }
     if (audioIsPlaying) {
       setIsLoading(false);
       setSeekToPosition(0);
@@ -240,7 +243,7 @@ const MusicCtrlProvider = React.memo(props => {
   /* 开启通知栏控件 */
   const startNotification = musicInfo => {
     const {title, artist, album, duration, musicMore} = musicInfo;
-    MusicControl.setNotificationId(5173, '音乐播放器控制组件');
+    MusicControl.setNotificationId(5173, 'cancelPlayer');
     MusicControl.enableControl('play', true);
     MusicControl.enableControl('pause', true);
     MusicControl.enableControl('stop', false);
@@ -350,6 +353,7 @@ const MusicCtrlProvider = React.memo(props => {
       const index = playList.findIndex(item => item.id === playingMusic.id);
       lastPlayedId.current = playingMusic.id;
       setPlayingIndex(index);
+
       startNotification(playingMusic);
 
       if (realm) {
@@ -445,7 +449,6 @@ const MusicCtrlProvider = React.memo(props => {
   }, [userInfo]);
 
   useEffect(() => {
-    restMusicStatus();
     return () => {
       audioPlayer.removePlayBackListener(subscription);
       dispatch(setPlayingMusic({}));
