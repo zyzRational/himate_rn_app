@@ -445,6 +445,7 @@ const MusicCtrlProvider = React.memo(props => {
   }, [userInfo]);
 
   useEffect(() => {
+    restMusicStatus();
     return () => {
       audioPlayer.removePlayBackListener(subscription);
       dispatch(setPlayingMusic({}));
