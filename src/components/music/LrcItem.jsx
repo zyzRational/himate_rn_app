@@ -25,6 +25,7 @@ const LrcItem = React.memo(
       TransVisible = false,
       RomaVisible = false,
       OnItemLayout = () => {},
+      IsHorizontal = false,
     } = props;
 
     // 共享动画值
@@ -93,7 +94,12 @@ const LrcItem = React.memo(
       // 批量更新动画值
       if (isActive) {
         scale.value = withTiming(1.3, {duration: 200});
-        paddingH.value = withTiming(fullWidth * 0.105, {duration: 400});
+        paddingH.value = withTiming(
+          IsHorizontal ? (fullWidth / 2) * 0.1 : fullWidth * 0.105,
+          {
+            duration: 400,
+          },
+        );
         textWidth.value = withTiming(Progress, {
           duration: 390,
           easing: Easing.in,

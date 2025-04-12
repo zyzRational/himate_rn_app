@@ -107,7 +107,10 @@ export const setPlayingMusic = createAsyncThunk(
   'music/fetchMusicDetail',
   async (music, {rejectWithValue}) => {
     try {
-      const {id} = music;
+      const {id} = music || {};
+      if (!id) {
+        return music;
+      }
       if (typeof id === 'string') {
         return music;
       }

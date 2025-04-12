@@ -134,8 +134,8 @@ const MusicCtrlProvider = React.memo(props => {
   const playOrPauseRemote = useCallback(() => {
     if (isLoading) {
       showToast('正在加载音乐...', 'warning', true);
-      return;
-    } else if (audioIsPlaying) {
+    }
+    if (audioIsPlaying) {
       audioPlayer.pausePlayer();
     } else {
       if (isEmptyObject(playingMusic)) {
@@ -169,10 +169,10 @@ const MusicCtrlProvider = React.memo(props => {
   // 调整播放进度
   const [seekToPosition, setSeekToPosition] = useState(0);
   const onSliderChange = useCallback(async position => {
-    setIsLoading(true);
     setSeekToPosition(parseInt(position, 10));
     await audioPlayer?.seekToPlayer(position);
     setAudioIsPlaying(false);
+    setIsLoading(true);
   }, []);
 
   //  监听音乐播放状态
@@ -479,7 +479,7 @@ const MusicCtrlProvider = React.memo(props => {
                       fill={playProgress}
                       tintColor={Colors.red40}
                       rotation={0}
-                      lineCap="round">
+                      lineCap="square">
                       {() => (
                         <Image
                           source={{

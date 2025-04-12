@@ -107,6 +107,7 @@ const ToBePlayedModal = React.memo(props => {
     <Modal
       animationType="fade"
       statusBarTranslucent
+      hardwareAccelerated={true}
       transparent={true}
       visible={Visible}
       onRequestClose={OnClose}>

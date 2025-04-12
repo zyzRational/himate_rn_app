@@ -11,6 +11,7 @@ import {setLrcFlag, setSwitchCount} from '../../stores/store-slice/musicStore';
 
 const LrcView = React.memo(props => {
   const {
+    IsHorizontal = false,
     Music = {},
     Cover = '',
     CurrentTime,
@@ -219,6 +220,7 @@ const LrcView = React.memo(props => {
           TransVisible={transVisible && haveTrans}
           RomaVisible={romaVisible && haveRoma}
           OnItemLayout={OnItemLayout}
+          IsHorizontal={IsHorizontal}
         />
       );
     },
@@ -234,38 +236,47 @@ const LrcView = React.memo(props => {
     ],
   );
 
+  const lrcHeight = useMemo(() => {
+    const h = fullHeight * 0.78;
+    return h - (h % 68);
+  }, [fullWidth]);
+
   // 基本FlatList配置
   const contentContainerStyle = {
-    paddingVertical: (fullHeight * 0.76) / 2 - 46,
+    paddingVertical: isTwoLines.current
+      ? lrcHeight / 2 - 48
+      : lrcHeight / 2 - 68,
   };
 
   return (
     <View>
-      <View flexS row centerV paddingV-16 paddingH-20 paddingB-20>
-        {Music?.music_name ? (
-          <Image
-            source={{uri: Cover}}
-            style={[styles.image, {borderColor: Colors.lyricColor}]}
-          />
-        ) : null}
-        <View>
-          <Text
-            color={Colors.lyricColor}
-            text70BO
-            width={fullWidth * 0.78}
-            numberOfLines={1}>
-            {Music?.music_name}
-          </Text>
-          <Text
-            color={Colors.lyricColor}
-            marginT-2
-            width={fullWidth * 0.78}
-            numberOfLines={1}>
-            {Music?.music_singer}
-          </Text>
+      {IsHorizontal ? null : (
+        <View flexS row centerV paddingV-16 paddingH-20 paddingB-20>
+          {Music?.music_name ? (
+            <Image
+              source={{uri: Cover}}
+              style={[styles.image, {borderColor: Colors.lyricColor}]}
+            />
+          ) : null}
+          <View>
+            <Text
+              color={Colors.lyricColor}
+              text70BO
+              width={fullWidth * 0.78}
+              numberOfLines={1}>
+              {Music?.music_name}
+            </Text>
+            <Text
+              color={Colors.lyricColor}
+              marginT-2
+              width={fullWidth * 0.78}
+              numberOfLines={1}>
+              {Music?.music_singer}
+            </Text>
+          </View>
         </View>
-      </View>
-      <View height={fullHeight * 0.76}>
+      )}
+      <View height={lrcHeight}>
         {parsedLrc.length ? (
           <FlatList
             ref={flatListRef}
@@ -297,7 +308,6 @@ const LrcView = React.memo(props => {
 });
 
 const styles = StyleSheet.create({
-  // 保持原有样式不变
   lyricText: {
     fontSize: 16,
     color: Colors.lyricColor,
