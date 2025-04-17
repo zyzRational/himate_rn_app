@@ -1,32 +1,42 @@
 import {createSlice, createAsyncThunk} from '@reduxjs/toolkit';
 import {getMusicDetail} from '../../api/music';
-import {addStorage} from '../../utils/Storage';
+import {addStorage, getkeyStorage} from '../../utils/Storage';
+
+const defaultState = {
+  playingMusic: {},
+  playList: [],
+  showMusicCtrl: false,
+  closeTime: 0,
+  isClosed: false,
+  randomNum: {min: 1, max: 1},
+  isRandomPlay: false,
+  yrcVisible: false,
+  transVisible: true,
+  romaVisible: false,
+  switchCount: 0,
+};
 
 export const musicSlice = createSlice({
   name: 'musicStore',
-  initialState: {
-    playingMusic: {},
-    playList: [],
-    showMusicCtrl: false,
-    closeTime: 0,
-    isClosed: false,
-    randomNum: {min: 1, max: 1},
-    isRandomPlay: false,
-    yrcVisible: false,
-    transVisible: true,
-    romaVisible: false,
-    switchCount: 0,
-  },
+  initialState: defaultState,
   extraReducers: builder => {
     builder
-      .addCase(setPlayingMusic.fulfilled, (state, action) => {
-        state.playingMusic = action.payload || {};
-        state.playingMusic.playtime = Date.now();
+      .addCase(initMusicStore.fulfilled, (state, action) => {
+        const {yrcVisible, transVisible, romaVisible, switchCount} =
+          action.payload || {};
+        state.yrcVisible = yrcVisible ?? false;
+        state.transVisible = transVisible ?? true;
+        state.romaVisible = romaVisible ?? false;
+        state.switchCount = switchCount || 0;
+        state.playingMusic = {};
+        state.playList = [];
       })
-      .addCase(setPlayingMusic.rejected, (state, action) => {
-        state.playingMusic = action.payload || {};
-        state.playingMusic.playtime = Date.now();
-      });
+      .addCase(initMusicStore.rejected, () => defaultState);
+
+    builder.addCase(setPlayingMusic.fulfilled, (state, action) => {
+      state.playingMusic = action.payload || {};
+      state.playingMusic.playtime = Date.now();
+    });
   },
   reducers: {
     setPlayList: (state, action) => {
@@ -35,19 +45,16 @@ export const musicSlice = createSlice({
       }
     },
     setLrcFlag: (state, action) => {
-      const {yrcVisible, transVisible, romaVisible} = action.payload;
-      if (yrcVisible === null) {
-        return;
-      }
-      state.yrcVisible = yrcVisible;
-      state.transVisible = transVisible;
-      state.romaVisible = romaVisible;
+      const {yrcVisible, transVisible, romaVisible} = action.payload || {};
+      state.yrcVisible = yrcVisible ?? false;
+      state.transVisible = transVisible ?? true;
+      state.romaVisible = romaVisible ?? false;
       addStorage('music', 'yrcVisible', state.yrcVisible);
       addStorage('music', 'transVisible', state.transVisible);
       addStorage('music', 'romaVisible', state.romaVisible);
     },
     setSwitchCount: (state, action) => {
-      state.switchCount = action.payload ?? 1;
+      state.switchCount = action.payload || 1;
       addStorage('music', 'switchCount', state.switchCount);
     },
     addPlayList: (state, action) => {
@@ -92,10 +99,10 @@ export const musicSlice = createSlice({
       state.closeTime = action.payload || 0;
     },
     setIsClosed: (state, action) => {
-      state.isClosed = action.payload || false;
+      state.isClosed = action.payload ?? false;
     },
     setIsRandomPlay: (state, action) => {
-      state.isRandomPlay = action.payload || false;
+      state.isRandomPlay = action.payload ?? false;
     },
     setRandomNum: (state, action) => {
       state.randomNum = action.payload || {min: 1, max: 1};
@@ -103,9 +110,21 @@ export const musicSlice = createSlice({
   },
 });
 
+export const initMusicStore = createAsyncThunk(
+  'music/initMusicStore',
+  async (_, {rejectWithValue}) => {
+    try {
+      return await getkeyStorage('music');
+    } catch (error) {
+      console.log(error);
+      return rejectWithValue(null); // 错误处理
+    }
+  },
+);
+
 export const setPlayingMusic = createAsyncThunk(
   'music/fetchMusicDetail',
-  async (music, {rejectWithValue}) => {
+  async music => {
     try {
       const {id} = music || {};
       if (!id) {
@@ -115,14 +134,14 @@ export const setPlayingMusic = createAsyncThunk(
         return music;
       }
       const response = await getMusicDetail({id});
-      if (response.code === 200) {
+      if (response.success) {
         return response.data;
       } else {
         return music;
       }
     } catch (error) {
       console.log(error);
-      return rejectWithValue(music); // 错误处理
+      return music; // 错误处理
     }
   },
 );

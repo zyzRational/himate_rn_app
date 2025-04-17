@@ -6,12 +6,12 @@ import ListItem from '../../components/commom/ListItem';
 import MateList from '../../components/mate/MateList';
 
 const Mate = ({navigation}) => {
-  const userInfo = useSelector(state => state.userStore.userInfo);
+  const userId = useSelector(state => state.userStore.userId);
 
   /*   好友列表 */
   const [matelist, setMatelist] = React.useState([]);
-  const getMatelist = userId => {
-    getmatelist({uid: userId, mate_status: 'agreed'})
+  const getMatelist = _userId => {
+    getmatelist({uid: _userId, mate_status: 'agreed'})
       .then(res => {
         if (res.success) {
           setMatelist(res.data.list);
@@ -24,8 +24,8 @@ const Mate = ({navigation}) => {
 
   /* 申请好友数量 */
   const [applycount, setApplycount] = React.useState(null);
-  const getApplylist = userId => {
-    getapplylist(userId)
+  const getApplylist = _userId => {
+    getapplylist(_userId)
       .then(res => {
         if (res.success) {
           setApplycount(res.data.count);
@@ -38,13 +38,13 @@ const Mate = ({navigation}) => {
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      if (userInfo) {
-        getApplylist(userInfo.id);
-        getMatelist(userInfo.id);
+      if (userId) {
+        getApplylist(userId);
+        getMatelist(userId);
       }
     });
     return unsubscribe;
-  }, [navigation, userInfo]);
+  }, [navigation, userId]);
 
   return (
     <View>

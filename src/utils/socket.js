@@ -11,7 +11,7 @@ let timer = null;
 
 const SocketProvider = props => {
   const {children} = props;
-  const userInfo = useSelector(state => state.userStore.userInfo);
+  const userId = useSelector(state => state.userStore.userId);
   const userToken = useSelector(state => state.userStore.userToken);
   const socketReady = useSelector(state => state.chatMsgStore.socketReady);
   // baseConfig
@@ -37,7 +37,7 @@ const SocketProvider = props => {
         {
           type: 'init',
           data: {
-            uid: userInfo?.id,
+            uid: userId,
             clientId: Socket.id,
           },
         },

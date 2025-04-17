@@ -5,18 +5,18 @@ import {getFavoritesDetail} from '../../../api/music';
 import MusicList from '../../../components/music/MusicList';
 
 const MyFavorites = ({navigation}) => {
-  const userInfo = useSelector(state => state.userStore.userInfo);
+  const userId = useSelector(state => state.userStore.userId);
 
   const [music, setMusic] = useState([]);
   const [favoriteId, setFavoriteId] = useState(null);
 
   /* 获取用户收藏的音乐列表 */
   const [pageNum, setPageNum] = useState(1);
-  const getAllMusicList = async userId => {
+  const getAllMusicList = async _userId => {
     try {
       const res = await getFavoritesDetail({
         pageSize: pageNum * 20,
-        creator_uid: userId,
+        creator_uid: _userId,
         is_default: 1,
       });
       if (res.success) {
@@ -30,10 +30,10 @@ const MyFavorites = ({navigation}) => {
   };
 
   useEffect(() => {
-    if (userInfo?.id) {
-      getAllMusicList(userInfo?.id);
+    if (userId) {
+      getAllMusicList(userId);
     }
-  }, [userInfo, pageNum]);
+  }, [userId, pageNum]);
 
   return (
     <View padding-12>
@@ -42,7 +42,7 @@ const MyFavorites = ({navigation}) => {
         List={music}
         FavoriteId={favoriteId}
         RefreshList={() => {
-          getAllMusicList(userInfo?.id);
+          getAllMusicList(userId);
         }}
         IsOwn={true}
         OnEndReached={() => {

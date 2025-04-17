@@ -1,9 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import {
-  FlatList,
-  StyleSheet,
-  Vibration,
-} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {FlatList, StyleSheet, Vibration} from 'react-native';
 import {
   View,
   Checkbox,
@@ -18,7 +14,7 @@ import {
   Badge,
   ProgressBar,
 } from 'react-native-ui-lib';
-import { useSelector, useDispatch } from 'react-redux';
+import {useSelector, useDispatch} from 'react-redux';
 import {
   getUserUploadFiles,
   getUserMsgList,
@@ -28,43 +24,43 @@ import {
 import dayjs from 'dayjs';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import BaseSheet from '../../../components/commom/BaseSheet';
-import { useToast } from '../../../components/commom/Toast';
-import { DownloadFile } from '../../../utils/handle/fileHandle';
-import { requestFolderPermission } from '../../../stores/store-slice/permissionStore';
+import {useToast} from '../../../components/commom/Toast';
+import {DownloadFile} from '../../../utils/handle/fileHandle';
+import {requestFolderPermission} from '../../../stores/store-slice/permissionStore';
 import DocumentPicker from 'react-native-document-picker';
-import { getDocumentfileFormdata } from '../../../utils/base';
+import {getDocumentfileFormdata} from '../../../utils/base';
 import {
   UploadFile,
   getFileColor,
   getFileExt,
   getFileName,
 } from '../../../utils/handle/fileHandle';
-import { useRealm } from '@realm/react';
+import {useRealm} from '@realm/react';
 import {
   setLocalMsg,
   getLocalUser,
   formatMsg,
 } from '../../../utils/handle/chatHandle';
 import BaseDialog from '../../../components/commom/BaseDialog';
-import { getStorage } from '../../../utils/Storage';
+import {getStorage} from '../../../utils/Storage';
 import Clipboard from '@react-native-clipboard/clipboard';
 import BaseTopBar from '../../../components/commom/BaseTopBar';
 import VideoModal from '../../../components/commom/VideoModal';
 import ImgModal from '../../../components/commom/ImgModal';
 
-const DataManager = ({ navigation, route }) => {
-  const userInfo = useSelector(state => state.userStore.userInfo);
+const DataManager = ({navigation, route}) => {
+  const userId = useSelector(state => state.userStore.userId);
   const accessFolder = useSelector(state => state.permissionStore.accessFolder);
 
   // baseConfig
-  const { STATIC_URL, THUMBNAIL_URL } = useSelector(
+  const {STATIC_URL, THUMBNAIL_URL} = useSelector(
     state => state.baseConfigStore.baseConfig,
   );
 
   const dispatch = useDispatch();
   const realm = useRealm();
 
-  const { showToast } = useToast();
+  const {showToast} = useToast();
 
   const [loading, setLoading] = useState(false);
   const getFilesList = async (uid, type) => {
@@ -147,7 +143,7 @@ const DataManager = ({ navigation, route }) => {
     } else if (file.file_type === 'video' || file.file_type === 'audio') {
       setModalVisible(true);
     } else if (file.file_type === 'other' && file.file_name.endsWith('.pdf')) {
-      navigation.navigate('PdfView', { url });
+      navigation.navigate('PdfView', {url});
     } else {
       showToast('暂不支持预览，请下载后查看', 'warning');
     }
@@ -316,8 +312,8 @@ const DataManager = ({ navigation, route }) => {
                   item.chat_type === 'group'
                     ? '群聊'
                     : item.chat_type === 'personal'
-                      ? '私聊'
-                      : '未知'
+                    ? '私聊'
+                    : '未知'
                 }
               />
               <View marginL-6>
@@ -327,12 +323,12 @@ const DataManager = ({ navigation, route }) => {
                     item.msg_type === 'text'
                       ? '文字'
                       : item.msg_type === 'image'
-                        ? '图片'
-                        : item.msg_type === 'audio'
-                          ? '语音'
-                          : item.msg_type === 'video'
-                            ? '视频'
-                            : '未知'
+                      ? '图片'
+                      : item.msg_type === 'audio'
+                      ? '语音'
+                      : item.msg_type === 'video'
+                      ? '视频'
+                      : '未知'
                   }
                 />
               </View>
@@ -343,8 +339,8 @@ const DataManager = ({ navigation, route }) => {
                     item.msg_status === 'unread'
                       ? '未读'
                       : item.msg_status === 'read'
-                        ? '已读'
-                        : '未知'
+                      ? '已读'
+                      : '未知'
                   }
                 />
               </View>
@@ -380,7 +376,7 @@ const DataManager = ({ navigation, route }) => {
           </Text>
         </View>
       }
-      renderItem={({ item, index }) => renderItem(item, index)}
+      renderItem={({item, index}) => renderItem(item, index)}
       ListFooterComponent={<View marginB-140 />}
     />
   );
@@ -409,7 +405,7 @@ const DataManager = ({ navigation, route }) => {
             </Text>
           </View>
         }
-        renderItem={({ item, index }) => renderItem(item, index)}
+        renderItem={({item, index}) => renderItem(item, index)}
       />
       {groupAvaterFilesList.length > 0 ? (
         <View padding-6>
@@ -422,7 +418,7 @@ const DataManager = ({ navigation, route }) => {
           setAvatarPageNum(prev => prev + 1);
         }}
         keyExtractor={(item, index) => item + index}
-        renderItem={({ item, index }) => renderItem(item, index)}
+        renderItem={({item, index}) => renderItem(item, index)}
       />
     </View>
   );
@@ -461,7 +457,7 @@ const DataManager = ({ navigation, route }) => {
           </Text>
         </View>
       }
-      renderItem={({ item, index }) => renderMsgItem(item, index)}
+      renderItem={({item, index}) => renderMsgItem(item, index)}
       ListFooterComponent={<View marginB-140 />}
     />
   );
@@ -483,7 +479,7 @@ const DataManager = ({ navigation, route }) => {
           </Text>
         </View>
       }
-      renderItem={({ item, index }) => renderItem(item, index)}
+      renderItem={({item, index}) => renderItem(item, index)}
       ListFooterComponent={<View marginB-140 />}
     />
   );
@@ -504,7 +500,7 @@ const DataManager = ({ navigation, route }) => {
           setProgress(value);
         },
         {
-          uid: userInfo?.id,
+          uid: userId,
           fileType: mediaRes.type,
           useType: useType,
         },
@@ -699,25 +695,25 @@ const DataManager = ({ navigation, route }) => {
   const [focusedIndex, setFocusedIndex] = useState(0);
   const dataInit = () => {
     if (focusedIndex === 0) {
-      getFilesList(userInfo.id, 'chat');
+      getFilesList(userId, 'chat');
     }
     if (focusedIndex === 1) {
-      getFilesList(userInfo.id, 'user');
-      getFilesList(userInfo.id, 'group');
+      getFilesList(userId, 'user');
+      getFilesList(userId, 'group');
     }
     if (focusedIndex === 2) {
-      getFilesList(userInfo.id, 'upload');
+      getFilesList(userId, 'upload');
     }
     if (focusedIndex === 3) {
-      getMsgList(userInfo.id);
+      getMsgList(userId);
     }
   };
   useEffect(() => {
-    if (userInfo) {
+    if (userId) {
       dataInit();
     }
   }, [
-    userInfo,
+    userId,
     focusedIndex,
     chatPageNum,
     avatarPageNum,
@@ -744,10 +740,10 @@ const DataManager = ({ navigation, route }) => {
 
   /* 顶部导航栏 */
   const routes = [
-    { key: 'chat', title: '聊天文件', screen: ChatFilesScreen },
-    { key: 'avatar', title: '头像文件', screen: AvaterFilesScreen },
-    { key: 'upload', title: '文件存储', screen: UploadFilesScreen },
-    { key: 'msg', title: '聊天消息', screen: MsgFilesScreen },
+    {key: 'chat', title: '聊天文件', screen: ChatFilesScreen},
+    {key: 'avatar', title: '头像文件', screen: AvaterFilesScreen},
+    {key: 'upload', title: '文件存储', screen: UploadFilesScreen},
+    {key: 'msg', title: '聊天消息', screen: MsgFilesScreen},
   ];
 
   return (
@@ -986,7 +982,8 @@ const DataManager = ({ navigation, route }) => {
         OnError={e => {
           showToast('视频加载失败', 'error');
           console.log(e);
-        }} />
+        }}
+      />
       {/* 图片预览 */}
       <ImgModal
         Uri={fullscreenUri}
@@ -999,7 +996,7 @@ const DataManager = ({ navigation, route }) => {
 };
 
 const styles = StyleSheet.create({
-  image: { width: 50, height: 50, borderRadius: 4, marginRight: 12 },
+  image: {width: 50, height: 50, borderRadius: 4, marginRight: 12},
   fileIcon: {
     width: 50,
     height: 50,

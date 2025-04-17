@@ -1,29 +1,37 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet } from 'react-native';
-import { View, Card, Text, Colors, TextField, Avatar, TouchableOpacity } from 'react-native-ui-lib';
-import { useToast } from '../../../components/commom/Toast';
-import { useSelector } from 'react-redux';
+import React, {useEffect, useState} from 'react';
+import {StyleSheet} from 'react-native';
+import {
+  View,
+  Card,
+  Text,
+  Colors,
+  TextField,
+  Avatar,
+  TouchableOpacity,
+} from 'react-native-ui-lib';
+import {useToast} from '../../../components/commom/Toast';
+import {useSelector} from 'react-redux';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import ListItem from '../../../components/commom/ListItem';
-import { getUserdetail } from '../../../api/user';
-import { addmate, editmate, deletemate, getmateStatus } from '../../../api/mate';
-import { DownloadFile } from '../../../utils/handle/fileHandle';
+import {getUserdetail} from '../../../api/user';
+import {addmate, editmate, deletemate, getmateStatus} from '../../../api/mate';
+import {DownloadFile} from '../../../utils/handle/fileHandle';
 import BaseDialog from '../../../components/commom/BaseDialog';
 import ImgModal from '../../../components/commom/ImgModal';
 
-const Mateinfo = ({ navigation, route }) => {
-  const { showToast } = useToast();
-  const userInfo = useSelector(state => state.userStore.userInfo);
+const Mateinfo = ({navigation, route}) => {
+  const {showToast} = useToast();
+  const userId = useSelector(state => state.userStore.userId);
   // baseConfig
-  const { STATIC_URL } = useSelector(state => state.baseConfigStore.baseConfig);
-  const { uid } = route.params || {};
+  const {STATIC_URL} = useSelector(state => state.baseConfigStore.baseConfig);
+  const {uid} = route.params || {};
 
   const [ismate, setIsMate] = useState(false);
   /* 获取用户信息 */
   const [otherUserInfo, setOtherUserInfo] = useState({});
-  const getOtherUserInfo = async userId => {
+  const getOtherUserInfo = async _userId => {
     try {
-      const res = await getUserdetail({ id: userId });
+      const res = await getUserdetail({id: _userId});
       if (res.success) {
         setOtherUserInfo(res.data);
       }
@@ -62,11 +70,11 @@ const Mateinfo = ({ navigation, route }) => {
   const [valmessage, setValMessage] = useState('');
   const addFriend = async () => {
     try {
-      if (userInfo?.id === uid) {
+      if (userId === uid) {
         showToast('不能添加自己为好友', 'error');
         return;
       }
-      const statusRes = await getMateStatus(userInfo?.id, uid);
+      const statusRes = await getMateStatus(userId, uid);
       if (statusRes) {
         showToast('你们已是好友或已申请', 'error');
         return;
@@ -74,7 +82,7 @@ const Mateinfo = ({ navigation, route }) => {
       const addRes = await addmate({
         agree_remark: addremark,
         validate_msg: valmessage,
-        apply_uid: userInfo?.id,
+        apply_uid: userId,
         agree_uid: uid,
       });
       if (addRes.success) {
@@ -98,7 +106,7 @@ const Mateinfo = ({ navigation, route }) => {
     try {
       const editRes = await editmate({
         id: mateInfo.id,
-        uid: userInfo?.id,
+        uid: userId,
         remark: newremark,
       });
       showToast(editRes.message, editRes.success ? 'success' : 'error');
@@ -128,7 +136,7 @@ const Mateinfo = ({ navigation, route }) => {
   const saveAvatar = async (url, name) => {
     setAvatarVisible(false);
     showToast('已开始保存头像...', 'success');
-    const pathRes = await DownloadFile(url, name, () => { }, true);
+    const pathRes = await DownloadFile(url, name, () => {}, true);
     if (pathRes) {
       showToast('图片已保存到' + pathRes, 'success');
     } else {
@@ -140,10 +148,10 @@ const Mateinfo = ({ navigation, route }) => {
     if (uid) {
       getOtherUserInfo(uid);
     }
-    if (uid && userInfo) {
-      getMateStatus(userInfo.id, uid, 'agreed');
+    if (uid && userId) {
+      getMateStatus(userId, uid, 'agreed');
     }
-  }, [uid, userInfo]);
+  }, [uid, userId]);
 
   return (
     <View padding-16>
@@ -176,7 +184,7 @@ const Mateinfo = ({ navigation, route }) => {
               账号：{otherUserInfo.self_account}
             </Text>
             <View flexS row>
-              <View>{ }</View>
+              <View>{}</View>
               <View flexS row centerV padding-4 style={styles.tag}>
                 {otherUserInfo?.sex === 'woman' ? (
                   <FontAwesome name="venus" color={Colors.magenta} size={12} />

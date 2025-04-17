@@ -44,6 +44,7 @@ const MusicCtrlProvider = React.memo(props => {
   const realm = useRealm();
   const dispatch = useDispatch();
   const userInfo = useSelector(state => state.userStore.userInfo);
+  const userId = useSelector(state => state.userStore.userId);
   // baseConfig
   const {STATIC_URL} = useSelector(state => state.baseConfigStore.baseConfig);
   const showMusicCtrl = useSelector(state => state.musicStore.showMusicCtrl);
@@ -409,10 +410,10 @@ const MusicCtrlProvider = React.memo(props => {
 
   /* 获取用户收藏的音乐列表 */
   const [collectMusic, setCollectMusic] = useState([]);
-  const getAllMusicList = async userId => {
+  const getAllMusicList = async _userId => {
     try {
       const res = await getFavoritesDetail({
-        creator_uid: userId,
+        creator_uid: _userId,
         is_default: 1,
       });
       if (res.success) {
@@ -428,12 +429,12 @@ const MusicCtrlProvider = React.memo(props => {
     try {
       const res = await editDefaultFavorites({
         handleType: isFavorite ? 'remove' : 'add',
-        creator_uid: userInfo?.id,
+        creator_uid: userId,
         musicIds: [id],
       });
       if (res.success) {
         showToast(isFavorite ? '已取消收藏' : '已收藏', 'success');
-        getAllMusicList(userInfo?.id);
+        getAllMusicList(userId);
       } else {
         showToast(res.message, 'error');
       }
@@ -443,10 +444,10 @@ const MusicCtrlProvider = React.memo(props => {
   };
 
   useEffect(() => {
-    if (userInfo?.id) {
-      getAllMusicList(userInfo?.id);
+    if (userId) {
+      getAllMusicList(userId);
     }
-  }, [userInfo]);
+  }, [userId]);
 
   useEffect(() => {
     return () => {

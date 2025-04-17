@@ -10,14 +10,16 @@ import {
   requestMultiple,
 } from 'react-native-permissions';
 
+const defaultState = {
+  accessCamera: false, // 相机权限
+  accessMicrophone: false, // 麦克风权限
+  accessFolder: false, // 文件夹权限
+  accessNotify: false, // 通知权限
+};
+
 export const permissionSlice = createSlice({
   name: 'settingStore',
-  initialState: {
-    accessCamera: false, // 相机权限
-    accessMicrophone: false, // 麦克风权限
-    accessFolder: false, // 文件夹权限
-    accessNotify: false, // 通知权限
-  },
+  initialState: defaultState,
   reducers: {
     setAllPermissions: (state, action) => {
       state.accessCamera = action.payload.accessCamera;

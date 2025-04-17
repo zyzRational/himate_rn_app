@@ -53,7 +53,7 @@ const Edituser = ({ navigation, route }) => {
       // console.log(res);
       if (res.success) {
         const { user_avatar, user_name, sex, self_account, birthday } = res.data;
-        dispatch(setUserData(res.data));
+        dispatch(setUserData(userId));
         setUserInfo({ user_avatar, user_name, sex, self_account, birthday });
         setAvatarUri(STATIC_URL + user_avatar);
         setUsername(user_name);

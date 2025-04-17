@@ -46,7 +46,7 @@ const Edituser = ({navigation, route}) => {
       if (res.success) {
         const {account} = res.data;
         setUserInfo({account});
-        dispatch(setUserData(res.data));
+        dispatch(setUserData(userId));
         setUsermail(account);
         setRefreshing(false);
       }

@@ -37,7 +37,7 @@ import {getStorage, addStorage} from '../../utils/Storage';
 
 const Msg = ({navigation}) => {
   const dispatch = useDispatch();
-  const userInfo = useSelector(state => state.userStore.userInfo);
+  const userId = useSelector(state => state.userStore.userId);
   const isPlaySound = useSelector(state => state.settingStore.isPlaySound);
   const acceptMsgData = useSelector(state => state.chatMsgStore.msgData);
   const socketReady = useSelector(state => state.chatMsgStore.socketReady);
@@ -54,10 +54,13 @@ const Msg = ({navigation}) => {
 
   /* 获取会话列表 */
   const [sessionlist, setSessionlist] = useState([]);
-  const sessionDataInit = async userId => {
+  const sessionDataInit = async _userId => {
     try {
       setRefreshing(true);
-      const res = await getUserSessionList({uid: userId, msg_status: 'unread'});
+      const res = await getUserSessionList({
+        uid: _userId,
+        msg_status: 'unread',
+      });
       if (res.success) {
         // console.log(res);
         setSessionlist(res.data.list);
@@ -75,7 +78,7 @@ const Msg = ({navigation}) => {
     try {
       const res = await dleUserSession(sessionId);
       if (res.success) {
-        sessionDataInit(userInfo?.id);
+        sessionDataInit(userId);
       }
       showToast(res.message, res.success ? 'success' : 'error');
     } catch (error) {
@@ -128,11 +131,11 @@ const Msg = ({navigation}) => {
     if (sessionInfo.msgs.length > 0) {
       const newlist = [];
       sessionInfo.msgs.forEach(msg => {
-        readMsg(msg.id, sessionInfo.id, userInfo.id);
+        readMsg(msg.id, sessionInfo.id, userId);
         newlist.push(formatMsg(msg));
       });
       setLocalMsg(realm, newlist);
-      sessionDataInit(userInfo?.id);
+      sessionDataInit(userId);
     }
   };
 
@@ -156,12 +159,12 @@ const Msg = ({navigation}) => {
   // 监听页面聚焦
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      if (userInfo) {
-        sessionDataInit(userInfo.id);
+      if (userId) {
+        sessionDataInit(userId);
       }
     });
     return unsubscribe;
-  }, [navigation, userInfo]);
+  }, [navigation, userId]);
 
   // 监听应用状态
   const appState = useRef(AppState.currentState);
@@ -192,7 +195,7 @@ const Msg = ({navigation}) => {
     sessions.forEach(sessionInfo => {
       if (sessionInfo.chat_type === 'group') {
         const selfGroupInfo = sessionInfo.group?.members.find(
-          item => item.member_uid === userInfo.id,
+          item => item.member_uid === userId,
         );
         const selfRemind = `@${selfGroupInfo?.member_remark}`;
         setSelfRemindList(prev => {
@@ -220,8 +223,8 @@ const Msg = ({navigation}) => {
 
   useEffect(() => {
     //console.log('store接受到的消息', acceptMsgData);
-    if (acceptMsgData?.id && userInfo?.id) {
-      sessionDataInit(userInfo.id);
+    if (acceptMsgData?.id && userId) {
+      sessionDataInit(userId);
       if (
         isPlaySound &&
         nowSessionId !== acceptMsgData.session_id &&
@@ -261,7 +264,7 @@ const Msg = ({navigation}) => {
         });
       }
     }
-  }, [acceptMsgData?.id, userInfo?.id]);
+  }, [acceptMsgData?.id, userId]);
 
   useEffect(() => {
     if (sessionlist?.length > 0 && roomName && socketReady) {
@@ -291,10 +294,10 @@ const Msg = ({navigation}) => {
   }, []);
 
   useEffect(() => {
-    if (userInfo) {
-      sessionDataInit(userInfo.id);
+    if (userId) {
+      sessionDataInit(userId);
     }
-  }, [userInfo]);
+  }, [userId]);
 
   useEffect(() => {
     if (nowSessionId !== '') {
@@ -368,8 +371,8 @@ const Msg = ({navigation}) => {
             <View flexG row centerV spread style={{width: '92%'}}>
               <Text text70BL>{item.session_name}</Text>
               <View flexS row centerV>
-                {userInfo?.id ===
-                item.last_msgUid ? null : item.unread_count === 0 ? null : (
+                {userId === item.last_msgUid ? null : item.unread_count ===
+                  0 ? null : (
                   <Badge
                     marginR-6
                     label={item.unread_count}
@@ -417,8 +420,8 @@ const Msg = ({navigation}) => {
             colors={[Colors.Primary]}
             refreshing={refreshing}
             onRefresh={() => {
-              if (userInfo) {
-                sessionDataInit(userInfo.id);
+              if (userId) {
+                sessionDataInit(userId);
               }
             }}
           />

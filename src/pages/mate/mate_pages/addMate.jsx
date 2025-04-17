@@ -25,7 +25,7 @@ import { requestCameraPermission } from '../../../stores/store-slice/permissionS
 
 const Addmate = ({ navigation, route }) => {
   const { showToast } = useToast();
-  const userInfo = useSelector(state => state.userStore.userInfo);
+  const userId = useSelector(state => state.userStore.userId);
   const isFullScreen = useSelector(state => state.settingStore.isFullScreen);
   const accessCamera = useSelector(state => state.permissionStore.accessCamera);
   // baseConfig
@@ -57,12 +57,12 @@ const Addmate = ({ navigation, route }) => {
   const [message, setMessage] = useState('');
   const addFriend = async () => {
     try {
-      if (userInfo?.id === userDetail.id) {
+      if (userId === userDetail.id) {
         showToast('不能添加自己为好友', 'error');
         return;
       }
       const statusRes = await getmateStatus({
-        selfUid: userInfo?.id,
+        selfUid: userId,
         otherUid: userDetail.id,
       });
       if (statusRes.success) {
@@ -72,7 +72,7 @@ const Addmate = ({ navigation, route }) => {
       const addRes = await addmate({
         agree_remark: remark,
         validate_msg: message,
-        apply_uid: userInfo?.id,
+        apply_uid: userId,
         agree_uid: userDetail.id,
       });
       if (addRes.success) {

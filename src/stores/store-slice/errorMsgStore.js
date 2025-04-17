@@ -1,11 +1,13 @@
 import {createSlice} from '@reduxjs/toolkit';
 
+const defaultState = {
+  errorMsg: null,
+  errorMsgList: [],
+};
+
 export const errorMsgSlice = createSlice({
   name: 'errorMsgStore',
-  initialState: {
-    errorMsg: null,
-    errorMsgList: [],
-  },
+  initialState: defaultState,
   reducers: {
     setErrorMsg: (state, action) => {
       if (!state.errorMsgList.includes(action.payload)) {
@@ -13,9 +15,10 @@ export const errorMsgSlice = createSlice({
         state.errorMsg = action.payload ?? null;
       }
     },
+    clearErrorMsgStore: () => defaultState,
   },
 });
 
-export const {setErrorMsg} = errorMsgSlice.actions;
+export const {setErrorMsg, clearErrorMsgStore} = errorMsgSlice.actions;
 
 export default errorMsgSlice.reducer;

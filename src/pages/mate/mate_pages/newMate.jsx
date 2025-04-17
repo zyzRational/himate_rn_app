@@ -20,15 +20,15 @@ import {
 import BaseDialog from '../../../components/commom/BaseDialog';
 
 const Newmate = ({navigation}) => {
-  const userInfo = useSelector(state => state.userStore.userInfo);
+  const userId = useSelector(state => state.userStore.userId);
   // baseConfig
   const {STATIC_URL} = useSelector(state => state.baseConfigStore.baseConfig);
   const {showToast} = useToast();
 
   /* 申请好友列表 */
   const [applylist, setAplylist] = React.useState([]);
-  const getApplylist = userId => {
-    getapplylist(userId)
+  const getApplylist = _userId => {
+    getapplylist(_userId)
       .then(res => {
         // console.log(res);
         if (res.success) {
@@ -42,12 +42,12 @@ const Newmate = ({navigation}) => {
 
   /*   待通过好友列表 */
   const [waitinglist, setWaitinglist] = React.useState([]);
-  const getWaitinglist = userId => {
-    getmatelist({uid: userId, mate_status: 'waiting'})
+  const getWaitinglist = _userId => {
+    getmatelist({uid: _userId, mate_status: 'waiting'})
       .then(res => {
         if (res.success) {
           const newList = res.data.list.filter(item => {
-            return item.apply_uid === userId;
+            return item.apply_uid === _userId;
           });
           setWaitinglist(newList);
         }
@@ -59,8 +59,8 @@ const Newmate = ({navigation}) => {
 
   /*   拒绝的好友列表 */
   const [refusedlist, setRefusedlist] = React.useState([]);
-  const getRefusedlist = userId => {
-    getmatelist({uid: userId, mate_status: 'refused'})
+  const getRefusedlist = _userId => {
+    getmatelist({uid: _userId, mate_status: 'refused'})
       .then(res => {
         if (res.success) {
           setRefusedlist(res.data.list);
@@ -79,7 +79,7 @@ const Newmate = ({navigation}) => {
   const agreeOrRefuseApply = (status, Id) => {
     editmate({
       id: Id ? Id : mateId,
-      uid: userInfo?.id,
+      uid: userId,
       mate_status: status,
       remark: remark,
     })
@@ -87,7 +87,7 @@ const Newmate = ({navigation}) => {
         // console.log(res);
         if (res.success) {
           showToast(status === 'agreed' ? '已同意' : '已拒绝', 'success');
-          getApplylist(userInfo?.id);
+          getApplylist(userId);
         }
       })
       .catch(error => {
@@ -103,8 +103,8 @@ const Newmate = ({navigation}) => {
       const delRes = await deletemate(delete_id);
       if (delRes.success) {
         setDeleteIsVisible(false);
-        getWaitinglist(userInfo.id);
-        getRefusedlist(userInfo.id);
+        getWaitinglist(userId);
+        getRefusedlist(userId);
       }
       showToast(delRes.message, delRes.success ? 'success' : 'error');
     } catch (error) {
@@ -117,12 +117,12 @@ const Newmate = ({navigation}) => {
   const [refusedId, setRefusedId] = React.useState(null);
 
   useEffect(() => {
-    if (userInfo) {
-      getApplylist(userInfo.id);
-      getWaitinglist(userInfo.id);
-      getRefusedlist(userInfo.id);
+    if (userId) {
+      getApplylist(userId);
+      getWaitinglist(userId);
+      getRefusedlist(userId);
     }
-  }, [userInfo]);
+  }, [userId]);
 
   const renderApplyItem = ({item}) => (
     <View padding-10 flexS backgroundColor={Colors.white} spread row centerV>

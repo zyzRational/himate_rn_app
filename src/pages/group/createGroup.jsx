@@ -8,7 +8,7 @@ import {addGroup} from '../../api/group';
 import {addGroupMember} from '../../api/groupMember';
 
 const CreateGroup = ({navigation, route}) => {
-  const userInfo = useSelector(state => state.userStore.userInfo);
+  const userId = useSelector(state => state.userStore.userId);
   const {showToast} = useToast();
   const {
     uid,
@@ -46,11 +46,11 @@ const CreateGroup = ({navigation, route}) => {
         showToast('邀请群成员成功', 'error');
         navigation.goBack();
       } else {
-        const groupRes = await addGroup({creator_uid: userInfo.id});
+        const groupRes = await addGroup({creator_uid: userId});
         if (groupRes.success) {
           // 群主本身也要加入群聊
           addQueue(
-            [userInfo.id, ...selectUids],
+            [userId, ...selectUids],
             groupRes.data.id,
             groupRes.data.group_id,
           );
@@ -92,10 +92,10 @@ const CreateGroup = ({navigation, route}) => {
   };
 
   useEffect(() => {
-    if (userInfo) {
-      getMatelist(userInfo.id);
+    if (userId) {
+      getMatelist(userId);
     }
-  }, [userInfo]);
+  }, [userId]);
 
   useEffect(() => {
     if (uid) {

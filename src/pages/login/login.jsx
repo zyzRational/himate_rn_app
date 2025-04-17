@@ -18,7 +18,7 @@ import {
   userRegMail,
 } from '../../api/user';
 import {useSelector, useDispatch} from 'react-redux';
-import {setUserInfo, setUserToken} from '../../stores/store-slice/userStore';
+import {setUserToken, setUserId} from '../../stores/store-slice/userStore';
 import {useToast} from '../../components/commom/Toast';
 import {ValidateMail} from '../../utils/base';
 import PasswordEye from '../../components/aboutInput/PasswordEye';
@@ -80,8 +80,9 @@ const Login = ({navigation}) => {
   const dispatch = useDispatch();
   /* 保存Token，个人信息 ,socket链接*/
   const saveInfo = userData => {
-    dispatch(setUserInfo(userData.userInfo));
-    dispatch(setUserToken(userData.userToken));
+    const {userToken, userId} = userData;
+    dispatch(setUserId(userId));
+    dispatch(setUserToken(userToken));
   };
 
   /* 用户登录 */
@@ -157,12 +158,12 @@ const Login = ({navigation}) => {
   };
 
   /* 账号校验 */
-  const accountValidate = account => {
-    if (!account) {
+  const accountValidate = _account => {
+    if (!_account) {
       showToast('请输入账号或邮箱！', 'error');
       return false;
     }
-    if (account.length < 6) {
+    if (_account.length < 6) {
       showToast('请输入正确的账号或邮箱！', 'error');
       return false;
     }
@@ -179,12 +180,12 @@ const Login = ({navigation}) => {
   };
 
   /*  密码校验 */
-  const passwordValidate = password => {
-    if (!password) {
+  const passwordValidate = _password => {
+    if (!_password) {
       showToast('请输入密码！', 'error');
       return false;
     }
-    if (password.length < 6) {
+    if (_password.length < 6) {
       showToast('请输入至少6位密码！', 'error');
       return false;
     }
@@ -192,12 +193,12 @@ const Login = ({navigation}) => {
   };
 
   /* 验证码校验 */
-  const codeValidate = code => {
-    if (!code) {
+  const codeValidate = _code => {
+    if (!_code) {
       showToast('请输入验证码！', 'error');
       return false;
     }
-    if (code.length !== 6) {
+    if (_code.length !== 6) {
       showToast('请输入正确的验证码！', 'error');
       return false;
     }

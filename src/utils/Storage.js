@@ -51,9 +51,15 @@ export const getStorage = async (oldKey, oldId = null) => {
 
 // 查询key下所有数据
 export const getkeyStorage = async oldKey => {
-  let value = null;
+  let value = {};
   try {
-    value = await storage.getAllDataForKey(oldKey);
+    const [keys, values] = await Promise.all([
+      storage.getIdsForKey(oldKey),
+      storage.getAllDataForKey(oldKey),
+    ]);
+    keys.forEach((key, index) => {
+      value[key] = values[index];
+    });
   } catch (error) {
     console.log('key查询失败', error);
   }
@@ -67,8 +73,8 @@ export const delStorage = (oldKey, oldId = null) => {
       key: oldKey,
       id: oldId,
     })
-    .then(res => {
-      console.log('清除单个key-id', res);
+    .then(() => {
+      console.log('清除单个key-id成功');
     })
     .catch(error => {
       console.log('清除单个key-id失败', error);
@@ -80,8 +86,8 @@ export const delkeyStorage = oldKey => {
   // console.log('清除', oldKey);
   storage
     .clearMapForKey(oldKey)
-    .then(res => {
-      console.log('清除key-storage', res);
+    .then(() => {
+      console.log('清除key-storage成功');
     })
     .catch(error => {
       console.log('清除key-storage失败', error);
@@ -92,8 +98,8 @@ export const delkeyStorage = oldKey => {
 export const clearStorage = () => {
   storage
     .clearMap()
-    .then(res => {
-      console.log('清除storage', res);
+    .then(() => {
+      console.log('清除storage成功');
     })
     .catch(error => {
       console.log('清除storage失败', error);

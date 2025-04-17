@@ -14,7 +14,7 @@ import dayjs from 'dayjs';
 import {getAllJoinGroupList} from '../../api/groupMember';
 
 const Grouplist = ({navigation}) => {
-  const userInfo = useSelector(state => state.userStore.userInfo);
+  const userId = useSelector(state => state.userStore.userId);
   // baseConfig
   const {STATIC_URL} = useSelector(state => state.baseConfigStore.baseConfig);
   const {showToast} = useToast();
@@ -44,13 +44,13 @@ const Grouplist = ({navigation}) => {
   };
 
   useEffect(() => {
-    if (userInfo?.id) {
+    if (userId) {
       const timer = setTimeout(() => {
-        getUserGroups(userInfo.id);
+        getUserGroups(userId);
       }, 800);
       return () => clearTimeout(timer);
     }
-  }, [userInfo]);
+  }, [userId]);
 
   const renderGroupItem = ({item}) => (
     <TouchableOpacity
@@ -78,7 +78,7 @@ const Grouplist = ({navigation}) => {
       <View>
         <Text grey40 text100L>
           {dayjs(item.create_time).format('YYYY/MM/DD')}
-          {item.creator_uid === userInfo.id ? ' 创建' : ' 加入'}
+          {item.creator_uid === userId ? ' 创建' : ' 加入'}
         </Text>
       </View>
     </TouchableOpacity>

@@ -19,7 +19,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 const FavoritesDetail = ({navigation, route}) => {
   const {favoritesId} = route.params || {};
 
-  const userInfo = useSelector(state => state.userStore.userInfo);
+  const userId = useSelector(state => state.userStore.userId);
 
   // baseConfig
   const {STATIC_URL, THUMBNAIL_URL} = useSelector(
@@ -84,7 +84,7 @@ const FavoritesDetail = ({navigation, route}) => {
                 </Text>
               </View>
             </View>
-            {favoritesForm?.creator_uid === userInfo?.id ? (
+            {favoritesForm?.creator_uid === userId ? (
               <TouchableOpacity
                 onPress={() => {
                   navigation.navigate('EditFavorites', {
@@ -119,7 +119,7 @@ const FavoritesDetail = ({navigation, route}) => {
           RefreshList={() => {
             getFavorites(favoritesId);
           }}
-          IsOwn={favoritesForm?.creator_uid === userInfo?.id}
+          IsOwn={favoritesForm?.creator_uid === userId}
         />
       </View>
       {loading ? (

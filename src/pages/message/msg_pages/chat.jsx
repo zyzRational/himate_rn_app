@@ -102,6 +102,7 @@ const Chat = React.memo(({navigation, route}) => {
   const {socket} = useSocket();
   const realm = useRealm();
   const userInfo = useSelector(state => state.userStore.userInfo);
+  const userId = useSelector(state => state.userStore.userId);
   const acceptMsgData = useSelector(state => state.chatMsgStore.msgData);
   const socketReady = useSelector(state => state.chatMsgStore.socketReady);
   const secretStr = useSelector(state => state.baseConfigStore.secretStr);
@@ -281,7 +282,7 @@ const Chat = React.memo(({navigation, route}) => {
             }
             if (needUser) {
               msg.user = {
-                _id: userInfo.id === msg.send_uid ? 1 : 2,
+                _id: userId === msg.send_uid ? 1 : 2,
                 avatar: STATIC_URL + needUser.avatar,
                 name: needUser.remark,
                 uid: needUser.uid,
@@ -293,7 +294,7 @@ const Chat = React.memo(({navigation, route}) => {
         return GiftedChat.append(previousMessages, needList, isNew);
       });
     },
-    [session_id, userInfo?.id],
+    [session_id, userId],
   );
 
   /* 添加系统消息 */
@@ -319,7 +320,7 @@ const Chat = React.memo(({navigation, route}) => {
       const baseMsg = {
         sId,
         session_id,
-        send_uid: userInfo.id,
+        send_uid: userId,
         msgdata: message,
         chat_type,
         msg_type,
@@ -352,7 +353,7 @@ const Chat = React.memo(({navigation, route}) => {
         }
       });
     },
-    [sId, session_id, userInfo?.id, chat_type, isEncryptMsg],
+    [sId, session_id, userId, chat_type, isEncryptMsg],
   );
 
   /* 向服务器确认收到消息 */
@@ -368,7 +369,7 @@ const Chat = React.memo(({navigation, route}) => {
                 data: {
                   sId: sess_id,
                   msgId,
-                  uid: userInfo.id,
+                  uid: userId,
                 },
               },
               res => {
@@ -390,7 +391,7 @@ const Chat = React.memo(({navigation, route}) => {
         }
       });
     },
-    [userInfo?.id],
+    [userId],
   );
 
   /* 添加为待上传的媒体消息 */
@@ -429,7 +430,7 @@ const Chat = React.memo(({navigation, route}) => {
             value => {
               setUploadProgress(value);
             },
-            {uid: userInfo?.id, fileType: msgType, useType: 'chat'},
+            {uid: userId, fileType: msgType, useType: 'chat'},
           );
           setNowSendId(null);
           removeUploadIds(message._id);
@@ -547,7 +548,7 @@ const Chat = React.memo(({navigation, route}) => {
 
   /* 滑动加载历史消息 */
   useEffect(() => {
-    if (localMsgList.length  && jionUsers.length ) {
+    if (localMsgList.length && jionUsers.length) {
       addMessage(
         getNowPageMsg(localMsgList, page, searchMsg_cid),
         jionUsers,
@@ -558,12 +559,12 @@ const Chat = React.memo(({navigation, route}) => {
 
   /* 监听接受的消息 */
   useEffect(() => {
-    if (acceptMsgData?.id && sId && userInfo?.id && jionUsers.length) {
+    if (acceptMsgData?.id && sId && userId && jionUsers.length) {
       if (acceptMsgData.session_id !== session_id) {
         return;
       }
       const {id: msgId, send_uid, isReSend} = acceptMsgData || {};
-      if (isLoadingComplete && (send_uid !== userInfo.id || isReSend)) {
+      if (isLoadingComplete && (send_uid !== userId || isReSend)) {
         const msg = formatMsg(acceptMsgData);
         addMessage([msg], jionUsers);
         setLocalMsg(realm, [msg]);
@@ -575,7 +576,7 @@ const Chat = React.memo(({navigation, route}) => {
     session_id,
     sId,
     jionUsers,
-    userInfo?.id,
+    userId,
     isLoadingComplete,
   ]);
 
@@ -757,7 +758,7 @@ const Chat = React.memo(({navigation, route}) => {
         _id: createRandomNumber(),
         clientMsg_id: String(message._id),
         session_id: session_id,
-        send_uid: userInfo.id,
+        send_uid: userId,
         text: message.text,
         chat_type: chat_type,
         msg_type: message.msg_type || 'text',

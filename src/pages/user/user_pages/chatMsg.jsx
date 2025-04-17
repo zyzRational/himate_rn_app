@@ -18,7 +18,7 @@ const ChatMsg = ({navigation, route}) => {
   const {showToast} = useToast();
   const realm = useRealm();
   const dispatch = useDispatch();
-  const userInfo = useSelector(state => state.userStore.userInfo);
+  const userId = useSelector(state => state.userStore.userId);
   const accessFolder = useSelector(state => state.permissionStore.accessFolder);
 
   const [hideflag, setHideflag] = useState(true);
@@ -33,7 +33,7 @@ const ChatMsg = ({navigation, route}) => {
       localMsgs = localMsgs.filtered('session_id == $0', session_id);
     }
     const newlist = localMsgs.toJSON();
-    const exportData = encryptAES(newlist, msgSecret + userInfo?.id);
+    const exportData = encryptAES(newlist, msgSecret + userId);
     // console.log(exportData);
     const writeRes = await writeJSONFile(
       exportData,
@@ -73,7 +73,7 @@ const ChatMsg = ({navigation, route}) => {
       const msgList = decryptAES(
         magData.encryptedData,
         magData.iv,
-        msgSecret + userInfo?.id,
+        msgSecret + userId,
       );
       if (!msgList) {
         showToast('聊天记录密钥错误！', 'error');

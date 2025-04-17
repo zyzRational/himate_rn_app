@@ -44,6 +44,7 @@ const Music = ({navigation}) => {
   const realm = useRealm();
 
   const userInfo = useSelector(state => state.userStore.userInfo);
+  const userId = useSelector(state => state.userStore.userId);
   const isClosed = useSelector(state => state.musicStore.isClosed);
   const randomNum = useSelector(state => state.musicStore.randomNum);
 
@@ -53,13 +54,13 @@ const Music = ({navigation}) => {
   );
 
   useEffect(() => {
-    getUserFavoritesList(userInfo?.id);
-    getDefaultFavoritesCount(userInfo?.id);
+    getUserFavoritesList(userId);
+    getDefaultFavoritesCount(userId);
     getAllMusicList();
     const unsubscribe = navigation.addListener('focus', () => {
-      if (userInfo?.id) {
-        getUserFavoritesList(userInfo.id);
-        getDefaultFavoritesCount(userInfo.id);
+      if (userId) {
+        getUserFavoritesList(userId);
+        getDefaultFavoritesCount(userId);
         getAllMusicList();
         if (realm) {
           getLocalMusicInfo();
@@ -67,7 +68,7 @@ const Music = ({navigation}) => {
       }
     });
     return unsubscribe;
-  }, [navigation, userInfo]);
+  }, [navigation, userId]);
 
   const [showAddDialog, setShowAddDialog] = useState(false);
 
@@ -147,11 +148,11 @@ const Music = ({navigation}) => {
     setShowAddDialog(false);
     try {
       const addRes = await addFavorities({
-        creator_uid: userInfo?.id,
+        creator_uid: userId,
         favorites_name: favoritesName,
       });
       if (addRes.success) {
-        getUserFavoritesList(userInfo?.id);
+        getUserFavoritesList(userId);
       }
       showToast(addRes.message, addRes.success ? 'success' : 'error');
     } catch (error) {
@@ -169,7 +170,7 @@ const Music = ({navigation}) => {
         ids: del_ids || delids,
       });
       if (delRes.success) {
-        getUserFavoritesList(userInfo?.id);
+        getUserFavoritesList(userId);
       }
       showToast(delRes.message, 'success');
       resetMultiSelect();
@@ -250,9 +251,9 @@ const Music = ({navigation}) => {
       if (urls && urls?.[0]) {
         const trueUrl = urls?.[0];
         showToast('歌单导入中...', 'success');
-        const res = await importFavorites({uid: userInfo?.id, url: trueUrl});
+        const res = await importFavorites({uid: userId, url: trueUrl});
         showToast(res.message, res.success ? 'success' : 'error');
-        getUserFavoritesList(userInfo?.id);
+        getUserFavoritesList(userId);
         getAllMusicList();
       }
     } catch (error) {

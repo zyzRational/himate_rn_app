@@ -1,13 +1,23 @@
-import {createSlice} from '@reduxjs/toolkit';
-import {addStorage} from '../../utils/Storage';
+import {createSlice, createAsyncThunk} from '@reduxjs/toolkit';
+import {addStorage, getkeyStorage} from '../../utils/Storage';
+
+const defaultState = {
+  socketReady: false, // socket连接状态
+  msgData: {}, // 从服务器获取到的消息数据
+  nowSessionId: '', // 当前聊天会话id
+  notRemindSessionIds: [], // 不用提醒的会话id列表
+};
 
 export const chatMsgSlice = createSlice({
   name: 'chatMsgStore',
-  initialState: {
-    socketReady: false, // socket连接状态
-    msgData: {}, // 从服务器获取到的消息数据
-    nowSessionId: '', // 当前聊天会话id
-    notRemindSessionIds: [], // 不用提醒的会话id列表
+  initialState: defaultState,
+  extraReducers: builder => {
+    builder
+      .addCase(initChatMsgStore.fulfilled, (state, action) => {
+        const {notRemindSessionIds} = action.payload || {};
+        state.notRemindSessionIds = notRemindSessionIds || [];
+      })
+      .addCase(initChatMsgStore.rejected, () => defaultState);
   },
   reducers: {
     setChatMsg: (state, action) => {
@@ -26,26 +36,34 @@ export const chatMsgSlice = createSlice({
       state.notRemindSessionIds.push(action.payload);
       addStorage('chat', 'notRemindSessionIds', state.notRemindSessionIds);
     },
-    initNotRemindSessionIds: (state, action) => {
-      state.notRemindSessionIds = action.payload ?? [];
-      addStorage('chat', 'notRemindSessionIds', state.notRemindSessionIds);
-    },
     delNotRemindSessionIds: (state, action) => {
       const index = state.notRemindSessionIds.indexOf(action.payload);
-      if (index > -1) {
-        state.notRemindSessionIds.splice(index, 1);
+      if (index === -1) {
+        return;
       }
+      state.notRemindSessionIds.splice(index, 1);
       addStorage('chat', 'notRemindSessionIds', state.notRemindSessionIds);
     },
   },
 });
+
+export const initChatMsgStore = createAsyncThunk(
+  'chat/initChatMsgStore',
+  async (_, {rejectWithValue}) => {
+    try {
+      return await getkeyStorage('chat');
+    } catch (error) {
+      console.log(error);
+      return rejectWithValue(null); // 错误处理
+    }
+  },
+);
 
 export const {
   setChatMsg,
   setSocketState,
   setNowSessionId,
   setNotRemindSessionIds,
-  initNotRemindSessionIds,
   delNotRemindSessionIds,
 } = chatMsgSlice.actions;
 

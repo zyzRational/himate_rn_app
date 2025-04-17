@@ -32,11 +32,11 @@ import {
   requestFolderPermission,
 } from '../../stores/store-slice/permissionStore';
 import {formatMsg, setLocalMsg} from '../../utils/handle/chatHandle';
-import { getUserMsgList } from '../../api/dataManager';
+import {getUserMsgList} from '../../api/dataManager';
 
 const GroupInfo = ({navigation, route}) => {
   const {session_id} = route.params || {};
-  const userInfo = useSelector(state => state.userStore.userInfo);
+  const userId = useSelector(state => state.userStore.userId);
   const accessCamera = useSelector(state => state.permissionStore.accessCamera);
   const accessFolder = useSelector(state => state.permissionStore.accessFolder);
 
@@ -98,7 +98,7 @@ const GroupInfo = ({navigation, route}) => {
       // 修改头像
       if (truekey === 'group_avatar') {
         const res = await UploadFile(fileData, () => {}, {
-          uid: userInfo?.id,
+          uid: userId,
           fileType: 'image',
           useType: 'group',
         });
@@ -240,18 +240,16 @@ const GroupInfo = ({navigation, route}) => {
 
   /* 我的权限 */
   useEffect(() => {
-    if (groupInfo?.members?.length > 0 && userInfo) {
+    if (groupInfo?.members?.length > 0 && userId) {
       setAllMemberIds(groupInfo.members.map(item => item.member_uid));
-      const member = groupInfo.members.find(
-        item => item.member_uid === userInfo.id,
-      );
+      const member = groupInfo.members.find(item => item.member_uid === userId);
       if (member) {
         setGroupRole(member.member_role);
         setNickname(member.member_remark);
         setMemberId(member.id);
       }
     }
-  }, [groupInfo?.members, userInfo]);
+  }, [groupInfo?.members, userId]);
 
   /* 长按群成员头像操作 */
   const [showActionSheet, setShowActionSheet] = useState(false);

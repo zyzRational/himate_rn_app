@@ -8,7 +8,7 @@ import {setErrorMsg} from '../../stores/store-slice/errorMsgStore.js';
 const {BASE_URL} = store.getState().baseConfigStore.baseConfig;
 
 // 创建axios实例
-console.log('BASE_URL ',BASE_URL);
+console.log('BASE_URL ', BASE_URL);
 
 const instance = axios.create({
   baseURL: BASE_URL || '',
@@ -35,14 +35,12 @@ instance.interceptors.response.use(
     if (response.data.code === 200) {
       return response.data;
     } else {
-      console.log(response.data);
       return Promise.resolve(response.data);
     }
   },
 
   function (error) {
     console.log(error);
-
     let {message} = error;
     if (message === 'Network Error') {
       message = '网络连接异常';

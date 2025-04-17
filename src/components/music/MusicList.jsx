@@ -51,14 +51,14 @@ const MusicList = props => {
     state => state.baseConfigStore.baseConfig,
   );
   const playingMusic = useSelector(state => state.musicStore.playingMusic);
-  const userInfo = useSelector(state => state.userStore.userInfo);
+  const userId = useSelector(state => state.userStore.userId);
 
   /* 获取用户收藏的音乐列表 */
   const [collectMusic, setCollectMusic] = useState([]);
-  const getAllMusicList = async userId => {
+  const getAllMusicList = async _userId => {
     try {
       const res = await getFavoritesDetail({
-        creator_uid: userId,
+        creator_uid: _userId,
         is_default: 1,
       });
       if (res.success) {
@@ -149,7 +149,7 @@ const MusicList = props => {
         }
         editDefaultFavorites({
           handleType: isFavorite(nowMusic?.id) ? 'remove' : 'add',
-          creator_uid: userInfo?.id,
+          creator_uid: userId,
           musicIds,
         })
           .then(res => {
@@ -163,7 +163,7 @@ const MusicList = props => {
             }
             setNowMusic({});
             setModalVisible(false);
-            getAllMusicList(userInfo?.id);
+            getAllMusicList(userId);
           })
           .catch(error => {
             console.log(error);
@@ -321,11 +321,11 @@ const MusicList = props => {
   };
 
   useEffect(() => {
-    if (userInfo?.id) {
-      getAllMusicList(userInfo?.id);
-      getUserFavoritesList(userInfo?.id);
+    if (userId) {
+      getAllMusicList(userId);
+      getUserFavoritesList(userId);
     }
-  }, [userInfo]);
+  }, [userId]);
 
   const renderItem = ({item}) => (
     <View row centerV>
