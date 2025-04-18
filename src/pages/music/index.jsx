@@ -252,6 +252,8 @@ const Music = ({navigation}) => {
         showToast(res.message, res.success ? 'success' : 'error');
         getUserFavoritesList(userId);
         getAllMusicList();
+      } else {
+        showToast('请输入正确的歌单链接', 'error');
       }
     } catch (error) {
       console.error(error);
