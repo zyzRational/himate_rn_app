@@ -25,7 +25,7 @@ const MyFavorites = ({navigation}) => {
         setMusic(res.data.music);
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 

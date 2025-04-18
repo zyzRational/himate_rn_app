@@ -36,7 +36,7 @@ const Mateinfo = ({navigation, route}) => {
         setOtherUserInfo(res.data);
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
@@ -60,7 +60,7 @@ const Mateinfo = ({navigation, route}) => {
         return false;
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
@@ -90,7 +90,7 @@ const Mateinfo = ({navigation, route}) => {
       }
       showToast(addRes.message, addRes.success ? 'success' : 'error');
     } catch (error) {
-      console.log(error);
+      console.error(error);
       cancelAddmate();
     }
   };
@@ -111,7 +111,7 @@ const Mateinfo = ({navigation, route}) => {
       });
       showToast(editRes.message, editRes.success ? 'success' : 'error');
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
@@ -126,7 +126,7 @@ const Mateinfo = ({navigation, route}) => {
       }
       showToast(delRes.message, delRes.success ? 'success' : 'error');
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 

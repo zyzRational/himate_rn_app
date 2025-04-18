@@ -18,7 +18,7 @@ import {
   userRegMail,
 } from '../../api/user';
 import {useSelector, useDispatch} from 'react-redux';
-import {setUserToken, setUserId} from '../../stores/store-slice/userStore';
+import {setIsLogin} from '../../stores/store-slice/userStore';
 import {useToast} from '../../components/commom/Toast';
 import {ValidateMail} from '../../utils/base';
 import PasswordEye from '../../components/aboutInput/PasswordEye';
@@ -61,7 +61,7 @@ const Login = ({navigation}) => {
       const mailRes = await getCodeBymail(account);
       showToast(mailRes.message, mailRes.success ? 'success' : 'error');
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
@@ -78,11 +78,9 @@ const Login = ({navigation}) => {
   const [code, setCode] = useState(null);
 
   const dispatch = useDispatch();
-  /* 保存Token，个人信息 ,socket链接*/
+  /* 保存Token，userId 到redux */
   const saveInfo = userData => {
-    const {userToken, userId} = userData;
-    dispatch(setUserId(userId));
-    dispatch(setUserToken(userToken));
+    dispatch(setIsLogin(userData));
   };
 
   /* 用户登录 */
@@ -108,7 +106,7 @@ const Login = ({navigation}) => {
           showToast(res.message, res.success ? 'success' : 'error');
           setButdisabled(false);
         } catch (error) {
-          console.log(error);
+          console.error(error);
           setButdisabled(false);
         }
       }
@@ -124,7 +122,7 @@ const Login = ({navigation}) => {
           showToast(res.message, res.success ? 'success' : 'error');
           setButdisabled(false);
         } catch (error) {
-          console.log(error);
+          console.error(error);
           setButdisabled(false);
         }
       }
@@ -151,7 +149,7 @@ const Login = ({navigation}) => {
         showToast(regRes.message, regRes.success ? 'success' : 'error');
         setButdisabled(false);
       } catch (error) {
-        console.log(error);
+        console.error(error);
         setButdisabled(false);
       }
     }

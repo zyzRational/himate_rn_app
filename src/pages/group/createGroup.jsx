@@ -20,15 +20,15 @@ const CreateGroup = ({navigation, route}) => {
 
   /*   好友列表 */
   const [matelist, setMatelist] = React.useState([]);
-  const getMatelist = userId => {
-    getmatelist({uid: userId, mate_status: 'agreed'})
+  const getMatelist = _userId => {
+    getmatelist({uid: _userId, mate_status: 'agreed'})
       .then(res => {
         if (res.success) {
           setMatelist(res.data.list);
         }
       })
       .catch(error => {
-        console.log(error);
+        console.error(error);
       });
   };
 
@@ -59,7 +59,7 @@ const CreateGroup = ({navigation, route}) => {
         showToast(groupRes.message, groupRes.success ? 'success' : 'error');
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
@@ -85,7 +85,7 @@ const CreateGroup = ({navigation, route}) => {
         return addQueue(list, gId, group_id);
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
       count++;
       return addQueue(list, gId, group_id);
     }

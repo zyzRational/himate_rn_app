@@ -12,9 +12,10 @@ import {
 // 默认配置对象
 const defaultConfig = {
   BASE_URL,
-  STATIC_URL,
   SOCKET_URL,
+  STATIC_URL,
   FAST_STATIC_URL,
+  LOW_STATIC_URL: STATIC_URL,
   MSG_SECRET,
   THUMBNAIL_URL: `${BASE_URL}Thumbnail/`,
 };
@@ -34,6 +35,7 @@ export const getBaseConfig = async () => {
     const {data} = response;
     return {
       ...data,
+      LOW_STATIC_URL: data.STATIC_URL,
       THUMBNAIL_URL: `${data.BASE_URL}Thumbnail/`,
     };
   } catch (error) {

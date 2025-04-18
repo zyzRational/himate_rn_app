@@ -68,7 +68,7 @@ const Msg = ({navigation}) => {
         setRefreshing(false);
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
       setRefreshing(false);
     }
   };
@@ -82,7 +82,7 @@ const Msg = ({navigation}) => {
       }
       showToast(res.message, res.success ? 'success' : 'error');
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
@@ -284,7 +284,7 @@ const Msg = ({navigation}) => {
         }
       })
       .catch(error => {
-        console.log(error);
+        console.error(error);
       });
     getStorage('chat', 'remindSessions').then(res => {
       if (res) {

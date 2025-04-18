@@ -18,7 +18,7 @@ const Mate = ({navigation}) => {
         }
       })
       .catch(error => {
-        console.log(error);
+        console.error(error);
       });
   };
 
@@ -32,7 +32,7 @@ const Mate = ({navigation}) => {
         }
       })
       .catch(error => {
-        console.log(error);
+        console.error(error);
       });
   };
 

@@ -207,7 +207,7 @@ const MusicCtrlProvider = React.memo(props => {
       const stopResult = await audioPlayer.stopPlayer();
       return stopResult;
     } catch (error) {
-      console.log(error);
+      console.error(error);
       return false;
     }
   };
@@ -318,7 +318,7 @@ const MusicCtrlProvider = React.memo(props => {
         dispatch(addPlayList([music]));
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   }, [randomNum.max, randomNum.min]);
 
@@ -362,7 +362,7 @@ const MusicCtrlProvider = React.memo(props => {
       }
       setIsLoading(false);
     } catch (error) {
-      console.log(error);
+      console.error(error);
       showToast('无法播放的音乐！', 'error');
       restMusicStatus();
       setIsLoading(false);
@@ -420,7 +420,7 @@ const MusicCtrlProvider = React.memo(props => {
         setCollectMusic(res.data.music);
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 

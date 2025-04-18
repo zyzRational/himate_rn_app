@@ -61,7 +61,7 @@ const EditFavorites = ({navigation, route}) => {
       }
       setLoading(false);
     } catch (error) {
-      console.log(error);
+      console.error(error);
       setLoading(false);
     }
   };
@@ -101,7 +101,7 @@ const EditFavorites = ({navigation, route}) => {
             console.log('清除缓存的图片成功!');
           })
           .catch(error => {
-            console.log(error);
+            console.error(error);
           });
       }
       const updateRes = await updateFavorites({
@@ -114,7 +114,7 @@ const EditFavorites = ({navigation, route}) => {
       showToast(updateRes.message, updateRes.success ? 'success' : 'error');
       setLoading(false);
     } catch (error) {
-      console.log(error);
+      console.error(error);
       setLoading(false);
     }
   };

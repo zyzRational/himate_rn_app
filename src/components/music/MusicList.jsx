@@ -65,25 +65,25 @@ const MusicList = props => {
         setCollectMusic(res.data.music);
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
   // 个人歌单列表
   const [pageNum, setPageNum] = useState(1);
   const [favoritesList, setFavoritesList] = useState([]);
-  const getUserFavoritesList = async userId => {
+  const getUserFavoritesList = async _userId => {
     try {
       const res = await getFavoritesList({
         pageSize: pageNum * 20,
-        creator_uid: userId,
+        creator_uid: _userId,
       });
       if (res.success) {
         // console.log(res.data.list);
         setFavoritesList(res.data.list);
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
@@ -166,7 +166,7 @@ const MusicList = props => {
             getAllMusicList(userId);
           })
           .catch(error => {
-            console.log(error);
+            console.error(error);
             setNowMusic({});
             setModalVisible(false);
           });
@@ -221,7 +221,7 @@ const MusicList = props => {
             setModalVisible(false);
           })
           .catch(error => {
-            console.log(error);
+            console.error(error);
             setNowMusic({});
             setModalVisible(false);
           });
@@ -265,7 +265,7 @@ const MusicList = props => {
       setNowMusic({});
     } catch (error) {
       showToast('添加歌曲到歌单失败', 'error');
-      console.log(error);
+      console.error(error);
     }
   };
 

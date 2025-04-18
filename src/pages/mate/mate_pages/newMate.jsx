@@ -53,7 +53,7 @@ const Newmate = ({navigation}) => {
         }
       })
       .catch(error => {
-        console.log(error);
+        console.error(error);
       });
   };
 
@@ -68,7 +68,7 @@ const Newmate = ({navigation}) => {
         }
       })
       .catch(error => {
-        console.log(error);
+        console.error(error);
       });
   };
 
@@ -91,7 +91,7 @@ const Newmate = ({navigation}) => {
         }
       })
       .catch(error => {
-        console.log(error);
+        console.error(error);
       });
   };
 
@@ -108,7 +108,7 @@ const Newmate = ({navigation}) => {
       }
       showToast(delRes.message, delRes.success ? 'success' : 'error');
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 

@@ -3,9 +3,11 @@ import {addStorage, delStorage, getkeyStorage} from '../../utils/Storage';
 import {getUserdetail} from '../../api/user';
 
 const defaultState = {
-  userInfo: {},
-  userToken: null,
-  userId: null,
+  userInfo: {}, // 用户信息
+  userToken: null, // 用户token
+  userId: null, // 用户id
+  isLogin: false, // 是否登录
+  userLoading: false, // 用户信息加载状态
 };
 
 export const userSlice = createSlice({
@@ -13,10 +15,15 @@ export const userSlice = createSlice({
   initialState: defaultState,
   extraReducers: builder => {
     builder
+      .addCase(initUserStore.pending, state => {
+        state.userLoading = true;
+      })
       .addCase(initUserStore.fulfilled, (state, action) => {
         const {userToken, userId} = action.payload || {};
         state.userToken = userToken || null;
         state.userId = userId || null;
+        state.isLogin = state.userToken && state.userId;
+        state.userLoading = false;
       })
       .addCase(initUserStore.rejected, () => defaultState);
 
@@ -27,12 +34,12 @@ export const userSlice = createSlice({
       .addCase(setUserInfo.rejected, () => defaultState);
   },
   reducers: {
-    setUserId: (state, action) => {
-      state.userId = action.payload || null;
+    setIsLogin: (state, action) => {
+      const {userToken, userId} = action.payload || {};
+      state.userToken = userToken || null;
+      state.userId = userId || null;
+      state.isLogin = state.userToken && state.userId;
       addStorage('user', 'userId', state.userId);
-    },
-    setUserToken: (state, action) => {
-      state.userToken = action.payload || null;
       addStorage('user', 'userToken', state.userToken);
     },
     clearUserStore: () => {
@@ -49,7 +56,7 @@ export const initUserStore = createAsyncThunk(
     try {
       return await getkeyStorage('user');
     } catch (error) {
-      console.log(error);
+      console.error(error);
       return rejectWithValue(null); // 错误处理
     }
   },
@@ -66,12 +73,12 @@ export const setUserInfo = createAsyncThunk(
         return rejectWithValue(null);
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
       return rejectWithValue(null); // 错误处理
     }
   },
 );
 
-export const {setUserToken, setUserId, clearUserStore} = userSlice.actions;
+export const {setIsLogin, clearUserStore} = userSlice.actions;
 
 export default userSlice.reducer;

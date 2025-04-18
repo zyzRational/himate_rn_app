@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {StyleSheet} from 'react-native';
 import {
   Colors,
@@ -10,7 +10,7 @@ import {
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
-const AudioMsg = React.memo(props => {
+const AudioMsg = props => {
   const {
     Msg = {},
     OnPress = () => {},
@@ -22,6 +22,10 @@ const AudioMsg = React.memo(props => {
     OnPlay = () => {},
     OnValueChange = () => {},
   } = props;
+
+  useEffect(() => {
+    console.log('NowReadyAudioId', NowReadyAudioId);
+  }, [NowReadyAudioId]);
 
   return (
     <View style={styles.audioBut}>
@@ -79,7 +83,7 @@ const AudioMsg = React.memo(props => {
       </TouchableOpacity>
     </View>
   );
-});
+};
 
 const styles = StyleSheet.create({
   audioBut: {

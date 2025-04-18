@@ -19,7 +19,7 @@ const Stack = createStackNavigator();
 const RootScreen = () => {
   const dispatch = useDispatch();
 
-  const userToken = useSelector(state => state.userStore.userToken);
+  const isLogin = useSelector(state => state.userStore.isLogin);
   const themeColor = useSelector(state => state.settingStore.themeColor);
   const isFullScreen = useSelector(state => state.settingStore.isFullScreen);
   const navigationRef = useNavigationContainerRef();
@@ -37,7 +37,7 @@ const RootScreen = () => {
         dispatch(setShowMusicCtrl(curRouteName));
       }}>
       <Stack.Navigator>
-        {userToken ? (
+        {isLogin ? (
           <Stack.Screen
             name="Root"
             component={DrawerScreen}
@@ -45,7 +45,7 @@ const RootScreen = () => {
               headerShown: Platform.OS === 'ios' ? true : false,
               headerStatusBarHeight: 0,
               headerStyle: {
-                backgroundColor: userToken
+                backgroundColor: isLogin
                   ? isFullScreen
                     ? Colors.$backgroundNeutral
                     : themeColor
@@ -71,7 +71,7 @@ const RootScreen = () => {
               <TouchableOpacity paddingH-26 onPress={() => navigation.goBack()}>
                 <FontAwesome
                   name="angle-left"
-                  color={userToken ? Colors.white : Colors.black}
+                  color={isLogin ? Colors.white : Colors.black}
                   size={26}
                 />
               </TouchableOpacity>

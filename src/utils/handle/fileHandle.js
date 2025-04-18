@@ -63,7 +63,7 @@ export const DownloadFile = async (
       })
       .catch(error => {
         resolve(null);
-        console.log(error);
+        console.error(error);
       });
   });
 };
@@ -79,7 +79,7 @@ export const writeJSONFile = async (jsonData, fileName) => {
   if (!isDirExists) {
     const flag = await RNFetchBlob.fs.mkdir(path);
     if (!flag) {
-      console.error('创建文件夹失败:', path);
+      console.log('创建文件夹失败:', path);
       return false;
     }
   }
@@ -92,7 +92,7 @@ export const writeJSONFile = async (jsonData, fileName) => {
         // console.log('文件写入成功:', path);
       })
       .catch(error => {
-        console.error('文件写入失败:', error);
+        console.log('文件写入失败:', error);
         resolve(false);
       });
   });
@@ -108,7 +108,7 @@ export const readJSONFile = async path => {
     // console.log('文件读取成功:', jsonData);
     return jsonData;
   } catch (error) {
-    console.error('文件读取失败:', error);
+    console.log('文件读取失败:', error);
     return null;
   }
 };
@@ -149,7 +149,7 @@ export const getFileName = url => {
     const fileName = parts[parts.length - 1];
     return fileName;
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return '';
   }
 };

@@ -14,7 +14,7 @@ const BasePdfView = ({ route }) => {
     <Pdf style={styles.pdfView} source={{ uri: url, cache: true }} trustAllCerts={false} o
       onError={(error) => {
         showToast('加载pdf失败', 'error');
-        console.log(error);
+        console.error(error);
       }}
     />
 

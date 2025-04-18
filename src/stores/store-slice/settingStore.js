@@ -83,7 +83,7 @@ export const initSettingStore = createAsyncThunk(
     try {
       return await getkeyStorage('setting');
     } catch (error) {
-      console.log(error);
+      console.error(error);
       return rejectWithValue(null); // 错误处理
     }
   },

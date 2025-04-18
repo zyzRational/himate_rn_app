@@ -47,7 +47,7 @@ const Addmate = ({ navigation, route }) => {
       }
       showToast(userRes.message, userRes.success ? 'success' : 'error');
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
@@ -80,7 +80,7 @@ const Addmate = ({ navigation, route }) => {
       }
       showToast(addRes.message, addRes.success ? 'success' : 'error');
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
   const cancelAddmate = () => {

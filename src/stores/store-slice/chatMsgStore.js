@@ -21,13 +21,13 @@ export const chatMsgSlice = createSlice({
   },
   reducers: {
     setChatMsg: (state, action) => {
-      state.msgData = action.payload ?? {};
+      state.msgData = action.payload || {};
     },
     setSocketState: (state, action) => {
       state.socketReady = action.payload ?? false;
     },
     setNowSessionId: (state, action) => {
-      state.nowSessionId = action.payload ?? '';
+      state.nowSessionId = action.payload || '';
     },
     setNotRemindSessionIds: (state, action) => {
       if (state.notRemindSessionIds.includes(action.payload)) {
@@ -53,7 +53,7 @@ export const initChatMsgStore = createAsyncThunk(
     try {
       return await getkeyStorage('chat');
     } catch (error) {
-      console.log(error);
+      console.error(error);
       return rejectWithValue(null); // 错误处理
     }
   },

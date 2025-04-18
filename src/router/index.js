@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 import {StatusBar} from 'react-native';
 import RootScreen from './RootScreen';
 import {Colors, LoaderScreen} from 'react-native-ui-lib';
@@ -18,20 +18,24 @@ import {
   setErrorMsg,
   clearErrorMsgStore,
 } from '../stores/store-slice/errorMsgStore';
-import {isEmptyObject} from '../utils/base';
 import 'react-native-get-random-values';
 
 const RootView = () => {
   const {showToast} = useToast();
   const dispatch = useDispatch();
 
-  const userToken = useSelector(state => state.userStore.userToken);
+  const isLogin = useSelector(state => state.userStore.isLogin);
   const userId = useSelector(state => state.userStore.userId);
+  const userLoading = useSelector(state => state.userStore.userLoading);
+
   const themeColor = useSelector(state => state.settingStore.themeColor);
   const isFullScreen = useSelector(state => state.settingStore.isFullScreen);
   const isFastStatic = useSelector(state => state.settingStore.isFastStatic);
   // getUrl
   const baseConfig = useSelector(state => state.baseConfigStore.baseConfig);
+  const configLoading = useSelector(
+    state => state.baseConfigStore.configLoading,
+  );
 
   /*  初始化应用设置 */
   const settingInit = async () => {
@@ -42,27 +46,35 @@ const RootView = () => {
     dispatch(checkPermissions());
   };
 
-  // 登陆验证
-  const [loading, setLoading] = useState(false);
+  /**
+   * 监听baseConfig变化，当基本配置信息加载完成后初始化用户存储
+   * @effect
+   * @dependencies baseConfig
+   */
   useEffect(() => {
-    if (!isEmptyObject(baseConfig)) {
+    if (baseConfig?.BASE_URL) {
       dispatch(initUserStore());
     }
-  }, [baseConfig]);
+  }, [baseConfig?.BASE_URL]);
 
+  /**
+   * 监听isLogin变化，当用户登录状态变化时，更新用户信息
+   * @effect
+   * @dependencies isLogin, userId
+   */
   useEffect(() => {
-    if (userToken && userId) {
+    if (isLogin && userId) {
       dispatch(setUserInfo(userId));
     }
-  }, [userToken, userId]);
+  }, [isLogin, userId]);
 
   // 是否启用高速静态资源
   useEffect(() => {
-    if (isFastStatic && !isEmptyObject(baseConfig)) {
+    if (isFastStatic && baseConfig?.FAST_STATIC_URL) {
       const config = {...baseConfig, STATIC_URL: baseConfig.FAST_STATIC_URL};
       dispatch(setBaseConfig(config));
     }
-  }, [isFastStatic, baseConfig]);
+  }, [isFastStatic, baseConfig?.FAST_STATIC_URL]);
 
   // http请求错误提示
   const errorMsg = useSelector(state => state.errorMsgStore.errorMsg);
@@ -71,9 +83,7 @@ const RootView = () => {
       showToast(errorMsg, 'error');
       dispatch(setErrorMsg(null));
     }
-    return () => {
-      dispatch(clearErrorMsgStore());
-    };
+    return () => dispatch(clearErrorMsgStore());
   }, [errorMsg]);
 
   // 应用初始化
@@ -85,14 +95,14 @@ const RootView = () => {
     <>
       <StatusBar
         backgroundColor={
-          userToken
+          isLogin
             ? isFullScreen
               ? Colors.$backgroundNeutral
               : themeColor
             : Colors.white
         }
         barStyle={
-          userToken
+          isLogin
             ? isFullScreen
               ? 'dark-content'
               : 'light-content'
@@ -101,7 +111,7 @@ const RootView = () => {
         translucent={false} // 将状态栏填充的高度隐藏
         hidden={false}
       />
-      {loading ? (
+      {configLoading || userLoading ? (
         <LoaderScreen
           message={appDisplayName + ' 初始化中...'}
           color={themeColor}

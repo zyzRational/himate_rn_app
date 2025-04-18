@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {View, Text, Card, Colors, Button, Avatar} from 'react-native-ui-lib';
 import {useSelector} from 'react-redux';
+import {isEmptyObject} from '../../../utils/base';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import QRCode from 'react-native-qrcode-svg';
 
@@ -16,12 +17,12 @@ const BaseQRCode = ({navigation, route}) => {
   useEffect(() => {
     if (qrInfo) {
       setQrCodeInfo(qrInfo);
-    } else if (userInfo) {
+    } else if (!isEmptyObject(userInfo)) {
       setQrCodeInfo({
-        value: userInfo.self_account,
-        avatar: STATIC_URL + userInfo.user_avatar,
-        name: userInfo.user_name,
-        account: userInfo.self_account,
+        value: userInfo?.self_account,
+        avatar: STATIC_URL + userInfo?.user_avatar,
+        name: userInfo?.user_name,
+        account: userInfo?.self_account,
         tips: '扫描二维码，加我为好友',
       });
     }

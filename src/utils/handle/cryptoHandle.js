@@ -40,7 +40,7 @@ export const decryptAES = (encryptedData, iv, secretKey) => {
   try {
     return JSON.parse(decrypted);
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return null;
   }
 };

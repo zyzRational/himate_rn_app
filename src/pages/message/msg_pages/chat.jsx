@@ -36,6 +36,7 @@ import {
   setLocalMsg,
   getLocalMsg,
   getLocalUser,
+  delLocalMsg,
   addOrUpdateLocalUser,
 } from '../../../utils/handle/chatHandle';
 import {setIsPlaySound} from '../../../stores/store-slice/settingStore';
@@ -46,6 +47,7 @@ import {
   getDocumentfileFormdata,
   createRandomNumber,
   getRecordfileFormdata,
+  isEmptyObject,
 } from '../../../utils/base';
 import {
   UploadFile,
@@ -150,7 +152,7 @@ const Chat = React.memo(({navigation, route}) => {
   const [sId, setSId] = useState(null); // session的数字id
   const [jionUsers, setJionUsers] = useState(getLocalUser(realm) || []);
   const getUnreadMsg = async (sessionId, chatType, user_info) => {
-    const {id: userId, user_name, user_avatar} = user_info || {};
+    const {id: user_id, user_name, user_avatar} = user_info || {};
     try {
       const unreadRes = await getSessionDetail({
         session_id: sessionId,
@@ -164,8 +166,8 @@ const Chat = React.memo(({navigation, route}) => {
         //将消息格式化，向服务器发送已读消息
         const newlist = [];
         msgs.forEach(item => {
-          if (item.send_uid !== userId) {
-            readMessage(item.id, sess_id, userId);
+          if (item.send_uid !== user_id) {
+            readMessage(item.id, sess_id, user_id);
             newlist.push(formatMsg(item));
           }
         });
@@ -180,7 +182,7 @@ const Chat = React.memo(({navigation, route}) => {
             apply_remark,
             apply_avatar,
           } = mate || {};
-          if (userId === apply_uid) {
+          if (user_id === apply_uid) {
             joinUserList.push(
               ...[
                 formatJoinUser(
@@ -189,12 +191,12 @@ const Chat = React.memo(({navigation, route}) => {
                   agree_avatar,
                   session_id,
                 ),
-                formatJoinUser(userId, user_name, user_avatar, session_id),
+                formatJoinUser(user_id, user_name, user_avatar, session_id),
               ],
             );
             route.params.to_uid = agree_uid;
           }
-          if (userId === agree_uid) {
+          if (user_id === agree_uid) {
             joinUserList.push(
               ...[
                 formatJoinUser(
@@ -203,7 +205,7 @@ const Chat = React.memo(({navigation, route}) => {
                   apply_avatar,
                   session_id,
                 ),
-                formatJoinUser(userId, user_name, user_avatar, session_id),
+                formatJoinUser(user_id, user_name, user_avatar, session_id),
               ],
             );
             route.params.to_uid = apply_uid;
@@ -212,7 +214,7 @@ const Chat = React.memo(({navigation, route}) => {
         if (chat_type === 'group') {
           setGroupMembers(group.members);
           const selfInfo = group.members.find(
-            item => item.member_uid === userId,
+            item => item.member_uid === user_id,
           );
           if (selfInfo) {
             setUserInGroupInfo(selfInfo);
@@ -239,11 +241,11 @@ const Chat = React.memo(({navigation, route}) => {
         setIsLoadingComplete(true);
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
-  /*  添加消息  */
+  /*  添加来自数据库的消息 */
   const addMessage = useCallback(
     (msgList = [], userList = [], isNew = true) => {
       if (!msgList.length && !userList.length) {
@@ -297,24 +299,76 @@ const Chat = React.memo(({navigation, route}) => {
     [session_id, userId],
   );
 
+  /* 移除消息 */
+  const removeMessage = useCallback(
+    cmsg_id => {
+      setMessages(previousMessages => {
+        const filteredItems = previousMessages.filter(
+          item => item.clientMsg_id !== cmsg_id,
+        );
+        return GiftedChat.append(filteredItems, []);
+      });
+      delLocalMsg(realm, cmsg_id);
+    },
+    [realm],
+  );
+
+  /* 更改消息状态 */
+  const updateMessage = useCallback((msgId, status) => {
+    setMessages(previousMessages => {
+      const index = previousMessages.findIndex(item => item._id === msgId);
+      if (index !== -1) {
+        const formattedMsg = addFailedMsg(previousMessages[index]);
+        previousMessages[index] = {...previousMessages[index], ...formattedMsg};
+      }
+      return GiftedChat.append(previousMessages, []);
+    });
+  }, []);
+
+  /* 添加失败的消息 */
+  const addFailedMsg = useCallback(
+    message => {
+      const newMsg = {
+        _id: createRandomNumber(),
+        clientMsg_id: String(message._id),
+        session_id: session_id,
+        send_uid: userId,
+        text: message.text,
+        chat_type: chat_type,
+        msg_type: message.msg_type || 'text',
+        msg_status: 'unread',
+        createdAt: message.createdAt,
+        status: 'failed',
+      };
+      setLocalMsg(realm, [newMsg]);
+      return newMsg;
+    },
+    [realm, userId],
+  );
+
   /* 添加系统消息 */
   const addSystemMsg = useCallback(msg => {
-    const newMsg = {
-      text: msg,
-      system: true,
-      _id: Date.now().toString(),
-      createdAt: new Date(),
-    };
     setMessages(prevMsgs => {
-      if (prevMsgs.find(item => item.system === true)) {
-        return prevMsgs;
-      }
-      return GiftedChat.append(prevMsgs, [newMsg]);
+      const filteredMsgs = prevMsgs.filter(item => !item?.system);
+      const newMsg = {
+        text: msg,
+        system: true,
+        _id: Date.now().toString(),
+        createdAt: new Date(),
+      };
+      return GiftedChat.append(filteredMsgs, [newMsg]);
+    });
+  }, []);
+
+  /* 移除系统消息 */
+  const removeSystemMsg = useCallback(() => {
+    setMessages(prevMsgs => {
+      const filteredMsgs = prevMsgs.filter(item => !item?.system);
+      return GiftedChat.append(filteredMsgs);
     });
   }, []);
 
   /* 发送消息 */
-  const [failMsgList, setFailMsgList] = useState([]);
   const sendMessage = useCallback(
     (message, msg_type = 'text', isReSend = false) => {
       const baseMsg = {
@@ -382,7 +436,7 @@ const Chat = React.memo(({navigation, route}) => {
               },
             );
           } catch (error) {
-            console.log(error);
+            console.error(error);
             reject(new Error(error));
           }
         } else {
@@ -402,58 +456,62 @@ const Chat = React.memo(({navigation, route}) => {
         newIds.push(item._id);
       }
     });
-    setUploadIds(prevIds => [...prevIds, ...newIds]);
+    setUploadIds(prevIds => Array.from(new Set([...prevIds, ...newIds])));
   }, []);
-  /* 上传完毕移除 */
-  const removeUploadIds = useCallback(message_id => {
+
+  /* 上传完成的媒体消息移除 */
+  const removeUploadId = useCallback(message_id => {
     setUploadIds(prevIds => prevIds.filter(id => id !== message_id));
   }, []);
 
   const [nowSendId, setNowSendId] = useState(null);
   const [uploadIds, setUploadIds] = useState([]);
   const [uploadProgress, setUploadProgress] = useState(0);
+
   /* 本地发送 */
   const onSend = useCallback(
     async (_messages = []) => {
       setMessages(previousMessages =>
         GiftedChat.append(previousMessages, _messages),
       );
+
       addUploadIds(_messages);
-      for (let i = 0; i < _messages.length; i++) {
-        const message = _messages[i];
-        const msgType = message?.msg_type;
-        let msgContent = message.text;
-        if (msgType && msgType !== 'text') {
-          setNowSendId(message._id);
-          const res = await UploadFile(
-            message.file,
-            value => {
-              setUploadProgress(value);
-            },
-            {uid: userId, fileType: msgType, useType: 'chat'},
-          );
-          setNowSendId(null);
-          removeUploadIds(message._id);
-          setUploadProgress(0); // 重置媒体消息进度
-          const upRes = JSON.parse(res.text());
-          if (upRes.success) {
-            msgContent = upRes.data.file_name;
-          } else {
-            continue;
+
+      for (const message of _messages) {
+        try {
+          const {msg_type: msgType = 'text', _id, text, file} = message;
+          let msgContent = text;
+
+          // 处理非文本消息的上传
+          if (msgType && msgType !== 'text') {
+            setNowSendId(_id);
+            try {
+              const res = await UploadFile(
+                file,
+                value => setUploadProgress(value),
+                {uid: userId, fileType: msgType, useType: 'chat'},
+              );
+              const upRes = JSON.parse(res.text());
+              if (!upRes.success) {
+                continue;
+              }
+              msgContent = upRes.data.file_name;
+            } finally {
+              setNowSendId(null);
+              removeUploadId(_id);
+              setUploadProgress(0);
+            }
           }
+
+          const result = await sendMessage(msgContent, msgType);
+          const msg = formatMsg(result);
+          setLocalMsg(realm, [msg]);
+          removeSystemMsg();
+        } catch (error) {
+          console.error('消息发送失败:', error);
+          addSystemMsg('发送失败！');
+          updateMessage(message._id, 'failed');
         }
-        sendMessage(msgContent, msgType)
-          .then(reslut => {
-            const msg = formatMsg(reslut);
-            setLocalMsg(realm, [msg]);
-          })
-          .catch(error => {
-            setFailMsgList(previousFailMsgIds => [
-              ...previousFailMsgIds,
-              message._id,
-            ]);
-            console.log(error);
-          });
       }
     },
     [realm],
@@ -486,13 +544,14 @@ const Chat = React.memo(({navigation, route}) => {
             _id: 1,
             name:
               chat_type === 'group'
-                ? userInGroupInfo.member_remark
-                : userInfo.user_name,
-            avatar: STATIC_URL + userInfo.user_avatar,
+                ? userInGroupInfo?.member_remark
+                : userInfo?.user_name,
+            avatar: STATIC_URL + userInfo?.user_avatar,
           },
         };
         if (media_type === 'image') {
           mediaMsg.image = mediaRes.uri;
+          mediaMsg.originalImage = mediaRes.uri;
         }
         if (media_type === 'video') {
           mediaMsg.video = mediaRes.uri;
@@ -582,7 +641,7 @@ const Chat = React.memo(({navigation, route}) => {
 
   /* 首次加载未读消息 */
   useEffect(() => {
-    if (userInfo && session_id && chat_type) {
+    if (!isEmptyObject(userInfo) && session_id && chat_type) {
       getUnreadMsg(session_id, chat_type, userInfo);
     }
   }, [userInfo, session_id, chat_type]);
@@ -655,7 +714,7 @@ const Chat = React.memo(({navigation, route}) => {
   /* 点击头像 */
   const onAvatarPress = User => {
     navigation.navigate('Mateinfo', {
-      uid: User.uid,
+      uid: User._id === 1 ? userId : User?.uid,
     });
   };
 
@@ -752,26 +811,11 @@ const Chat = React.memo(({navigation, route}) => {
   };
 
   /* 自定义消息状态 */
-  const renderTicks = message => {
-    if (failMsgList.includes(message._id)) {
-      const newMsg = {
-        _id: createRandomNumber(),
-        clientMsg_id: String(message._id),
-        session_id: session_id,
-        send_uid: userId,
-        text: message.text,
-        chat_type: chat_type,
-        msg_type: message.msg_type || 'text',
-        msg_status: 'unread',
-        createdAt: message.createdAt,
-        status: 'failed',
-      };
-      setLocalMsg(realm, [newMsg]);
-    }
-    if (failMsgList.includes(message._id) || message.status === 'failed') {
+  const renderTicks = useCallback(message => {
+    if (message.status === 'failed') {
       return (
         <View flexS>
-          <Text text100L white center>
+          <Text text100L red40 center>
             <FontAwesome
               name="exclamation-circle"
               color={Colors.error}
@@ -803,39 +847,16 @@ const Chat = React.memo(({navigation, route}) => {
         );
       }
     }
-  };
-
-  /* 重新发送消息的回调 */
-  const onResendMsg = useCallback(
-    (res, _curMessage) => {
-      if (res) {
-        setMessages(previousMessages => {
-          const filteredItems = previousMessages.filter(
-            item => item.clientMsg_id !== _curMessage.clientMsg_id,
-          );
-          return GiftedChat.append(filteredItems, []);
-        });
-        const toDelete = realm
-          .objects('ChatMsg')
-          .filtered('clientMsg_id == $0', _curMessage.clientMsg_id);
-        realm.write(() => {
-          realm.delete(toDelete);
-        });
-      }
-    },
-    [realm],
-  );
+  }, []);
 
   /* 自定义长按消息 */
   const onLongPress = (context, currentMessage) => {
     if (currentMessage.msg_type === 'text') {
       Vibration.vibrate(50);
-      let options = ['复制消息', '取消'];
+      const options = ['复制消息', '取消'];
       const cancelButtonIndex = options.length - 1;
-      if (
-        failMsgList.includes(currentMessage._id) ||
-        currentMessage.status === 'failed'
-      ) {
+      if (currentMessage.status === 'failed') {
+        options.unshift('取消发送');
         options.unshift('重新发送');
       }
       context.actionSheet().showActionSheetWithOptions(
@@ -844,20 +865,30 @@ const Chat = React.memo(({navigation, route}) => {
           cancelButtonIndex,
         },
         buttonIndex => {
-          if (
-            (failMsgList.includes(currentMessage._id) ||
-              currentMessage.status === 'failed') &&
-            buttonIndex === 0
-          ) {
+          const showMsghandle = currentMessage.status === 'failed';
+
+          if (showMsghandle && buttonIndex === 0) {
             sendMessage(currentMessage?.text, 'text', true)
               .then(res => {
-                onResendMsg(res, currentMessage);
+                if (res) {
+                  removeMessage(currentMessage.clientMsg_id);
+                  removeSystemMsg();
+                }
               })
               .catch(error => {
-                console.log(error);
+                addSystemMsg('发送失败！');
+                console.error(error);
               });
-            return;
-          } else if (buttonIndex === 0) {
+          }
+
+          if (showMsghandle && buttonIndex === 1) {
+            removeMessage(currentMessage.clientMsg_id);
+          }
+
+          if (
+            (showMsghandle && buttonIndex === 2) ||
+            (!showMsghandle && buttonIndex === 0)
+          ) {
             Clipboard.setString(currentMessage.text);
             showToast('已复制到剪贴板', 'success');
             return;
@@ -951,87 +982,82 @@ const Chat = React.memo(({navigation, route}) => {
   /* 自定义视频消息 */
   const renderMessageVideo = props => {
     const videoMsg = props.currentMessage;
-    if (videoMsg?.video) {
-      return (
-        <View padding-4>
-          <VideoMsg
-            Msg={videoMsg}
-            OnPress={() => {
-              setFullscreenUri(videoMsg.video);
-              setModalVisible(true);
-            }}
-            OnLongPress={() => {
-              Vibration.vibrate(50);
-              setIsInCameraRoll(true);
-              setSavePath(videoMsg.video);
-              setShowActionSheet(true);
-            }}
-            UploadIds={uploadIds}
-            NowSendId={nowSendId}
-            UploadProgress={uploadProgress}
-          />
-        </View>
-      );
-    }
+    return (
+      <View padding-4>
+        <VideoMsg
+          Msg={videoMsg}
+          OnPress={() => {
+            setFullscreenUri(videoMsg.video);
+            setModalVisible(true);
+          }}
+          OnLongPress={() => {
+            Vibration.vibrate(50);
+            setIsInCameraRoll(true);
+            setSavePath(videoMsg.video);
+            setShowActionSheet(true);
+          }}
+          UploadIds={uploadIds}
+          NowSendId={nowSendId}
+          UploadProgress={uploadProgress}
+        />
+      </View>
+    );
   };
 
   /* 自定义音频消息 */
   const [audioIsPlaying, setAudioIsPlaying] = useState(false);
   const [nowReadyAudioId, setNowReadyAudioId] = useState(null);
   const [audioPlayprogress, setAudioPlayprogress] = useState({});
-  const playAudio = audioMsg => {
+  const playAudio = async audioMsg => {
     const {clientMsg_id, audio} = audioMsg;
     if (nowReadyAudioId === clientMsg_id) {
       return;
-    } else {
-      audioRecorderPlayer.stopPlayer();
     }
     setNowReadyAudioId(clientMsg_id);
+    await audioRecorderPlayer.stopPlayer();
     audioRecorderPlayer
       .startPlayer(audio)
       .then(() => {
         setAudioIsPlaying(true);
       })
       .catch(error => {
-        console.log(error);
+        console.error(error);
         showToast('无法播放音频', 'error');
       });
   };
 
   const renderMessageAudio = props => {
     const audioMsg = props.currentMessage;
-    if (audioMsg?.audio) {
-      return (
-        <AudioMsg
-          Msg={audioMsg}
-          OnPress={() => {
-            playAudio(audioMsg);
-          }}
-          OnLongPress={() => {
-            Vibration.vibrate(50);
-            setSavePath(audioMsg.audio);
-            setIsInCameraRoll(false);
-            setShowActionSheet(true);
-          }}
-          NowReadyAudioId={nowReadyAudioId}
-          AudioPlayprogress={audioPlayprogress}
-          AudioIsPlaying={audioIsPlaying}
-          OnPause={() => {
-            audioRecorderPlayer
-              .pausePlayer()
-              .then(() => setAudioIsPlaying(false));
-          }}
-          OnPlay={() => {
-            audioRecorderPlayer
-              .resumePlayer()
-              .then(() => setAudioIsPlaying(true));
-          }}
-          OnValueChange={value => {
-            audioRecorderPlayer.seekToPlayer(value);
-          }}
-        />
-      );
-    }
+    return (
+      <AudioMsg
+        Msg={audioMsg}
+        OnPress={() => {
+          playAudio(audioMsg);
+        }}
+        OnLongPress={() => {
+          Vibration.vibrate(50);
+          setSavePath(audioMsg.audio);
+          setIsInCameraRoll(false);
+          setShowActionSheet(true);
+        }}
+        NowReadyAudioId={nowReadyAudioId}
+        AudioPlayprogress={audioPlayprogress}
+        AudioIsPlaying={audioIsPlaying}
+        OnPause={() => {
+          audioRecorderPlayer
+            .pausePlayer()
+            .then(() => setAudioIsPlaying(false));
+        }}
+        OnPlay={() => {
+          audioRecorderPlayer
+            .resumePlayer()
+            .then(() => setAudioIsPlaying(true));
+        }}
+        OnValueChange={value => {
+          audioRecorderPlayer.seekToPlayer(value);
+        }}
+      />
+    );
   };
 
   /* 语音消息 */
@@ -1089,7 +1115,7 @@ const Chat = React.memo(({navigation, route}) => {
         setRecordTimeValue();
       })
       .catch(error => {
-        console.log(error);
+        console.error(error);
         recorderVisible.value = false;
         showToast('无法开始录制语音', 'error');
       });
@@ -1108,7 +1134,7 @@ const Chat = React.memo(({navigation, route}) => {
         }
       })
       .catch(error => {
-        console.log(error);
+        console.error(error);
       })
       .finally(() => {
         setShowMore(false);
@@ -1179,7 +1205,7 @@ const Chat = React.memo(({navigation, route}) => {
         showToast('请先等待当前消息发送完成!', 'warning');
         return;
       }
-      if (userInGroupInfo.member_status === 'forbidden') {
+      if (userInGroupInfo?.member_status === 'forbidden') {
         showToast('你已被禁言，无法使用!', 'error');
         return;
       }
@@ -1424,7 +1450,7 @@ const Chat = React.memo(({navigation, route}) => {
     <>
       <GiftedChat
         placeholder={
-          userInGroupInfo.member_status === 'forbidden'
+          userInGroupInfo?.member_status === 'forbidden'
             ? '您已被禁言!'
             : '开始聊天吧~'
         }
@@ -1464,17 +1490,17 @@ const Chat = React.memo(({navigation, route}) => {
         renderMessageAudio={renderMessageAudio}
         renderSystemMessage={renderSystemMessage}
         renderMessageText={renderFileMessage}
-        onSend={msgs => onSend(msgs)}
+        onSend={onSend}
         textInputProps={{
-          readOnly: userInGroupInfo.member_status === 'forbidden',
+          readOnly: userInGroupInfo?.member_status === 'forbidden',
         }}
         user={{
           _id: 1,
-          avatar: STATIC_URL + userInfo.user_avatar,
+          avatar: STATIC_URL + userInfo?.user_avatar,
           name:
             chat_type === 'group'
-              ? userInGroupInfo.member_remark
-              : userInfo.user_name,
+              ? userInGroupInfo?.member_remark
+              : userInfo?.user_name,
         }}
       />
 

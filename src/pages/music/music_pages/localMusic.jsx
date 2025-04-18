@@ -119,7 +119,7 @@ const LocalMusic = ({navigation}) => {
         setDirList(dirList);
       } catch (error) {
         showToast('没有权限访问该目录', 'error', true);
-        console.log(error);
+        console.error(error);
       }
     };
     setNowDirPath(directory);
@@ -132,7 +132,7 @@ const LocalMusic = ({navigation}) => {
       const isDir = await RNFetchBlob.fs.isDir(path);
       return isDir;
     } catch (error) {
-      console.log(error);
+      console.error(error);
       throw new Error(error);
     }
   };

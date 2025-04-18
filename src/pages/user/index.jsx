@@ -25,10 +25,12 @@ import {
 import DeviceInfo from 'react-native-device-info';
 import RNFetchBlob from 'rn-fetch-blob';
 import ImgModal from '../../components/commom/ImgModal';
+import {isEmptyObject} from '../../utils/base';
 
 const User = ({navigation}) => {
   const {showToast} = useToast();
   const userInfo = useSelector(state => state.userStore.userInfo);
+  const userId = useSelector(state => state.userStore.userId);
 
   // baseConfig
   const {STATIC_URL} = useSelector(state => state.baseConfigStore.baseConfig);
@@ -36,7 +38,7 @@ const User = ({navigation}) => {
   // 预览头像
   const [avatarShow, setAvatarShow] = useState(false);
   const isShowAvatar = () => {
-    if (userInfo.user_avatar) {
+    if (userInfo?.user_avatar) {
       setAvatarShow(true);
     } else {
       showToast('您还没有头像!', 'warning');
@@ -111,7 +113,7 @@ const User = ({navigation}) => {
       }
       setUpdateLoading(false);
     } catch (error) {
-      console.log(error);
+      console.error(error);
       showToast('检查更新失败', 'error');
       setUpdateLoading(false);
       setShowAppUpate(false);
@@ -151,7 +153,12 @@ const User = ({navigation}) => {
 
   return (
     <>
-      {userInfo ? (
+      {isEmptyObject(userInfo) ? (
+        <LoaderScreen
+          message={appDisplayName + ' 加载中...'}
+          color={Colors.Primary}
+        />
+      ) : (
         <View flexG top paddingH-16 paddingT-16>
           <Card
             flexS
@@ -162,7 +169,7 @@ const User = ({navigation}) => {
             padding-16
             onPress={() => {
               navigation.navigate('Edituser', {
-                userId: userInfo?.id,
+                userId: userId,
               });
             }}>
             <TouchableOpacity
@@ -170,7 +177,7 @@ const User = ({navigation}) => {
                 isShowAvatar();
               }}>
               <Image
-                source={{uri: STATIC_URL + userInfo.user_avatar}}
+                source={{uri: STATIC_URL + userInfo?.user_avatar}}
                 style={styles.image}
               />
             </TouchableOpacity>
@@ -221,7 +228,7 @@ const User = ({navigation}) => {
               isBottomLine={true}
               Fun={() => {
                 navigation.navigate('UserSafe', {
-                  userId: userInfo?.id,
+                  userId: userId,
                 });
               }}
             />
@@ -300,7 +307,9 @@ const User = ({navigation}) => {
                       {newAppInfo?.app_version}
                     </Text>
                   </Text>
-                  <Text marginT-2 grey30>版本说明：{newAppInfo?.app_description}</Text>
+                  <Text marginT-2 grey30>
+                    版本说明：{newAppInfo?.app_description}
+                  </Text>
                   {showProgress ? null : (
                     <View flexS marginT-16>
                       <Button
@@ -327,20 +336,15 @@ const User = ({navigation}) => {
 
           {/* 图片预览弹窗 */}
           <ImgModal
-            Uri={STATIC_URL + userInfo.user_avatar}
+            Uri={STATIC_URL + userInfo?.user_avatar}
             Visible={avatarShow}
             OnClose={() => {
               setAvatarShow(false);
             }}
             IsSave={true}
-            OnSave={url => saveAvatar(url, userInfo.user_avatar)}
+            OnSave={url => saveAvatar(url, userInfo?.user_avatar)}
           />
         </View>
-      ) : (
-        <LoaderScreen
-          message={appDisplayName + ' 加载中...'}
-          color={Colors.Primary}
-        />
       )}
     </>
   );

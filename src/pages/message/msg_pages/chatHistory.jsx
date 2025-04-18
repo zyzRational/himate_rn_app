@@ -42,7 +42,7 @@ const ChatHistory = ({navigation, route}) => {
       showToast(res.message, res.success ? 'success' : 'error');
     } catch (error) {
       setLoading(false);
-      console.log(error);
+      console.error(error);
     }
   };
 

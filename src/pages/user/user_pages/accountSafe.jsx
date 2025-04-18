@@ -51,7 +51,7 @@ const Edituser = ({navigation, route}) => {
         setRefreshing(false);
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
       setRefreshing(false);
     }
   };
@@ -92,7 +92,7 @@ const Edituser = ({navigation, route}) => {
         showToast('请勿重复操作', 'warning');
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
@@ -118,7 +118,7 @@ const Edituser = ({navigation, route}) => {
       setUploading(true);
       if (trueKey === 'account') {
         const validateRes = await mailValidate({
-          account: userInfo.account,
+          account: userInfo?.account,
           code,
         });
         showToast(
@@ -151,7 +151,7 @@ const Edituser = ({navigation, route}) => {
       }
       showToast(res.message, res.success ? 'success' : 'error');
     } catch (error) {
-      console.log(error);
+      console.error(error);
       setUploading(false);
     }
   };

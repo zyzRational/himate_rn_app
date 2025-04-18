@@ -71,24 +71,25 @@ const Setting = ({navigation}) => {
   const [showDefaultApp, setShowDefaultApp] = useState(false);
 
   // 设置静态资源地址
-  const [staticUrl, setStaticUrl] = useState('');
-  const getBaseUrlInfo = async () => {
+  const getStaticUrl = async () => {
     try {
       const {STATIC_URL} = await getBaseConfig();
-      setStaticUrl(STATIC_URL);
+      return STATIC_URL;
     } catch (error) {
-      console.log(error);
+      console.error(error);
+      return null;
     }
   };
 
   // 设置静态资源地址
-  const settingStaticUrl = value => {
+  const settingStaticUrl = async value => {
     const newUrlInfo = deepClone(baseConfig);
+    const staticUrl = await getStaticUrl();
+    const {FAST_STATIC_URL, LOW_STATIC_URL} = baseConfig;
     if (value) {
-      const {FAST_STATIC_URL} = baseConfig;
       newUrlInfo.STATIC_URL = FAST_STATIC_URL;
     } else {
-      newUrlInfo.STATIC_URL = staticUrl;
+      newUrlInfo.STATIC_URL = staticUrl || LOW_STATIC_URL;
     }
     dispatch(setBaseConfig(newUrlInfo));
   };
@@ -98,14 +99,16 @@ const Setting = ({navigation}) => {
   const getSoundName = async () => {
     try {
       const _soundName = await getStorage('setting', 'soundName');
-      setSoundName(_soundName);
+      if (_soundName) {
+        setSoundName(_soundName);
+      }
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
   useEffect(() => {
-    getBaseUrlInfo();
+    getStaticUrl();
     getSoundName();
   }, []);
 

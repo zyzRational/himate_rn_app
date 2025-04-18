@@ -44,7 +44,7 @@ export const getStorage = async (oldKey, oldId = null) => {
       id: oldId,
     });
   } catch (error) {
-    console.log('key-id查询失败', error);
+    console.error('key-id查询失败', error);
   }
   return value;
 };
@@ -61,7 +61,7 @@ export const getkeyStorage = async oldKey => {
       value[key] = values[index];
     });
   } catch (error) {
-    console.log('key查询失败', error);
+    console.error('key查询失败', error);
   }
   return value;
 };

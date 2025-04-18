@@ -98,7 +98,7 @@ const DataManager = ({navigation, route}) => {
       }
       setLoading(false);
     } catch (error) {
-      console.log(error);
+      console.error(error);
       setLoading(false);
     }
   };
@@ -440,7 +440,7 @@ const DataManager = ({navigation, route}) => {
       setLoading(false);
     } catch (error) {
       setLoading(false);
-      console.log(error);
+      console.error(error);
     }
   };
   const MsgFilesScreen = (
@@ -693,24 +693,24 @@ const DataManager = ({navigation, route}) => {
   };
 
   const [focusedIndex, setFocusedIndex] = useState(0);
-  const dataInit = () => {
+  const dataInit = _userId => {
     if (focusedIndex === 0) {
-      getFilesList(userId, 'chat');
+      getFilesList(_userId, 'chat');
     }
     if (focusedIndex === 1) {
-      getFilesList(userId, 'user');
-      getFilesList(userId, 'group');
+      getFilesList(_userId, 'user');
+      getFilesList(_userId, 'group');
     }
     if (focusedIndex === 2) {
-      getFilesList(userId, 'upload');
+      getFilesList(_userId, 'upload');
     }
     if (focusedIndex === 3) {
-      getMsgList(userId);
+      getMsgList(_userId);
     }
   };
   useEffect(() => {
     if (userId) {
-      dataInit();
+      dataInit(userId);
     }
   }, [
     userId,

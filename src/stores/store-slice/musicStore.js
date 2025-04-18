@@ -116,7 +116,7 @@ export const initMusicStore = createAsyncThunk(
     try {
       return await getkeyStorage('music');
     } catch (error) {
-      console.log(error);
+      console.error(error);
       return rejectWithValue(null); // 错误处理
     }
   },
@@ -140,13 +140,15 @@ export const setPlayingMusic = createAsyncThunk(
         return music;
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
       return music; // 错误处理
     }
   },
 );
 
 export const {
+  setLrcFlag,
+  setSwitchCount,
   setPlayList,
   addPlayList,
   unshiftPlayList,
@@ -156,8 +158,6 @@ export const {
   setIsClosed,
   setIsRandomPlay,
   setRandomNum,
-  setLrcFlag,
-  setSwitchCount,
 } = musicSlice.actions;
 
 export default musicSlice.reducer;

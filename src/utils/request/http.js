@@ -40,7 +40,7 @@ instance.interceptors.response.use(
   },
 
   function (error) {
-    console.log(error);
+    console.error(error);
     let {message} = error;
     if (message === 'Network Error') {
       message = '网络连接异常';

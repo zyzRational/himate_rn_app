@@ -63,7 +63,7 @@ const Edituser = ({ navigation, route }) => {
         setRefreshing(false);
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
       setRefreshing(false);
     }
   };
@@ -115,7 +115,7 @@ const Edituser = ({ navigation, route }) => {
             console.log('清除缓存的头像tmp');
           })
           .catch(error => {
-            console.log(error);
+            console.error(error);
           });
       }
 
@@ -143,7 +143,7 @@ const Edituser = ({ navigation, route }) => {
       setUploading(false);
     } catch (error) {
       setUploading(false);
-      console.log(error);
+      console.error(error);
     }
   };
 

@@ -28,7 +28,7 @@ const SearchMusic = ({navigation}) => {
         setMusic(prev => [...prev, ...list]);
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 

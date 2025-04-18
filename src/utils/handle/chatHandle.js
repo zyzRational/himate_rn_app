@@ -87,7 +87,7 @@ export const setLocalMsg = async (realm, msgs) => {
       }
     }
   } catch (error) {
-    console.log('写入本地消息失败', error);
+    console.error('写入本地消息失败', error);
   }
 };
 
@@ -102,6 +102,16 @@ export const getLocalMsg = (realm, session_id) => {
     list,
     count: list.length,
   };
+};
+
+/* 删除指定本地消息 */
+export const delLocalMsg = (realm, cmsg_id) => {
+  const toDelete = realm
+    .objects('ChatMsg')
+    .filtered('clientMsg_id == $0', cmsg_id);
+  realm.write(() => {
+    realm.delete(toDelete);
+  });
 };
 
 /* 写入本地用户信息 */

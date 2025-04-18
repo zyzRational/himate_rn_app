@@ -28,7 +28,7 @@ const FindFavorites = ({navigation}) => {
         setFavoritesList(prev => [...prev, ...list]);
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 

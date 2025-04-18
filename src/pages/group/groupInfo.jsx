@@ -65,7 +65,7 @@ const GroupInfo = ({navigation, route}) => {
         setRefreshing(false);
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
       setRefreshing(false);
     }
   };
@@ -112,7 +112,7 @@ const GroupInfo = ({navigation, route}) => {
             console.log('清除缓存的头像tmp');
           })
           .catch(error => {
-            console.log(error);
+            console.error(error);
           });
       }
 
@@ -134,7 +134,7 @@ const GroupInfo = ({navigation, route}) => {
       showToast(res.message, res.success ? 'success' : 'error');
     } catch (error) {
       setUploading(false);
-      console.log(error);
+      console.error(error);
     }
   };
 
@@ -167,7 +167,7 @@ const GroupInfo = ({navigation, route}) => {
       }
       showToast(addRes.message, addRes.success ? 'success' : 'error');
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
@@ -183,7 +183,7 @@ const GroupInfo = ({navigation, route}) => {
       }
       showToast('退出失败！', 'error');
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
@@ -217,7 +217,7 @@ const GroupInfo = ({navigation, route}) => {
       showToast(addRes.message, addRes.success ? 'success' : 'error');
       setUploading(false);
     } catch (error) {
-      console.log(error);
+      console.error(error);
       setUploading(false);
     }
   };
@@ -233,7 +233,7 @@ const GroupInfo = ({navigation, route}) => {
       showToast(addRes.message, addRes.success ? 'success' : 'error');
       setShowActionSheet(false);
     } catch (error) {
-      console.log(error);
+      console.error(error);
       setShowActionSheet(false);
     }
   };
@@ -271,7 +271,7 @@ const GroupInfo = ({navigation, route}) => {
       showToast(res.message, res.success ? 'success' : 'error');
     } catch (error) {
       setRefreshing(true);
-      console.log(error);
+      console.error(error);
     }
   };
 

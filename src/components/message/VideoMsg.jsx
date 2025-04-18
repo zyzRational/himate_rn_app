@@ -36,7 +36,7 @@ const VideoMsg = React.memo(props => {
         })
         .catch(error => {
           setVideoLoading(false);
-          console.log(error);
+          console.error(error);
         });
     }
   }, [Msg]);

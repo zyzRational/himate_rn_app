@@ -54,9 +54,6 @@ const Music = ({navigation}) => {
   );
 
   useEffect(() => {
-    getUserFavoritesList(userId);
-    getDefaultFavoritesCount(userId);
-    getAllMusicList();
     const unsubscribe = navigation.addListener('focus', () => {
       if (userId) {
         getUserFavoritesList(userId);
@@ -108,11 +105,11 @@ const Music = ({navigation}) => {
   const [pageNum, setPageNum] = useState(1);
   const [favoritesList, setFavoritesList] = useState([]);
   const [favoritesCount, setFavoritesCount] = useState(0);
-  const getUserFavoritesList = async userId => {
+  const getUserFavoritesList = async _userId => {
     try {
       const res = await getFavoritesList({
         pageSize: pageNum * 20,
-        creator_uid: userId,
+        creator_uid: _userId,
       });
       if (res.success) {
         // console.log(res.data.list);
@@ -120,16 +117,16 @@ const Music = ({navigation}) => {
         setFavoritesCount(res.data.count);
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
   /* 默认收藏数量 */
-  const getDefaultFavoritesCount = async userId => {
+  const getDefaultFavoritesCount = async _userId => {
     try {
       const res = await getFavoritesList({
         is_default: 1,
-        creator_uid: userId,
+        creator_uid: _userId,
       });
       if (res.success) {
         setItemData(prev => {
@@ -138,7 +135,7 @@ const Music = ({navigation}) => {
         });
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
@@ -156,7 +153,7 @@ const Music = ({navigation}) => {
       }
       showToast(addRes.message, addRes.success ? 'success' : 'error');
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
@@ -175,7 +172,7 @@ const Music = ({navigation}) => {
       showToast(delRes.message, 'success');
       resetMultiSelect();
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
@@ -237,7 +234,7 @@ const Music = ({navigation}) => {
         dispatch(setRandomNum({min: 1, max: res.data.count}));
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
@@ -257,7 +254,7 @@ const Music = ({navigation}) => {
         getAllMusicList();
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
       showToast('歌单导入失败', 'error');
     }
   };
