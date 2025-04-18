@@ -6,10 +6,6 @@ import {
   audioExtNames,
   imageExtNames,
   videoExtNames,
-  textExtNames,
-  docTypes,
-  excelTypes,
-  pptTypes,
 } from '../constants/baseConst';
 
 // 判断是否为空字符串
@@ -159,15 +155,9 @@ export const getDocumentfileFormdata = (
     type = 'video';
   } else if (baseType.startsWith('audio/') || audioExtNames.includes(ext)) {
     type = 'audio';
-  } else if (
-    textExtNames.includes(ext) ||
-    docTypes.includes(ext) ||
-    excelTypes.includes(ext) ||
-    pptTypes.includes(ext) ||
-    pptTypes.includes(ext)
-  ) {
-    type = 'text';
   }
+
+  console.log(ext);
 
   const file = {
     name: 'file',

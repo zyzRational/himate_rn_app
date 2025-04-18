@@ -237,9 +237,9 @@ const LrcView = React.memo(props => {
   );
 
   const lrcHeight = useMemo(() => {
-    const h = fullHeight * 0.78;
+    const h = IsHorizontal ? fullHeight * 0.9 : fullHeight * 0.78;
     return h - (h % 68);
-  }, [fullWidth]);
+  }, [fullWidth, IsHorizontal]);
 
   // 基本FlatList配置
   const contentContainerStyle = {

@@ -11,7 +11,7 @@ import {
   Drawer,
   Checkbox,
   Button,
-  Slider,
+  Incubator,
   Switch,
   PanningProvider,
   Dialog,
@@ -629,7 +629,7 @@ const Music = ({navigation}) => {
             <Text text90L grey30 marginV-6>
               将在{alarmTime}分钟后停止播放
             </Text>
-            <Slider
+            <Incubator.Slider
               thumbTintColor={Colors.Primary}
               minimumTrackTintColor={Colors.Primary}
               minimumValue={0}
@@ -677,7 +677,7 @@ const Music = ({navigation}) => {
             <Text text90L grey30 marginV-6>
               将在曲库中第{randomNum.min}-{randomNum.max}首歌曲之间随机播放
             </Text>
-            <Slider
+            <Incubator.Slider
               thumbTintColor={Colors.Primary}
               minimumTrackTintColor={Colors.Primary}
               minimumValue={1}

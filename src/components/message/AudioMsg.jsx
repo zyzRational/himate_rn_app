@@ -4,7 +4,7 @@ import {
   Colors,
   TouchableOpacity,
   View,
-  Slider,
+  Incubator,
   Text,
 } from 'react-native-ui-lib';
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -23,9 +23,7 @@ const AudioMsg = props => {
     OnValueChange = () => {},
   } = props;
 
-  useEffect(() => {
-    console.log('NowReadyAudioId', NowReadyAudioId);
-  }, [NowReadyAudioId]);
+  const {duration = 10, currentPosition = 0} = AudioPlayprogress;
 
   return (
     <View style={styles.audioBut}>
@@ -57,11 +55,11 @@ const AudioMsg = props => {
             )}
             <View row centerV marginL-8>
               <View style={styles.audioProgress}>
-                <Slider
+                <Incubator.Slider
                   thumbStyle={styles.audioThumb}
-                  value={AudioPlayprogress?.currentPosition}
+                  value={currentPosition}
                   minimumValue={0}
-                  maximumValue={AudioPlayprogress?.duration}
+                  maximumValue={duration}
                   minimumTrackTintColor={Colors.Primary}
                   onValueChange={value => {
                     OnValueChange(value);
@@ -69,7 +67,7 @@ const AudioMsg = props => {
                 />
               </View>
               <Text marginL-4 grey30 text90L>
-                {Math.round(AudioPlayprogress?.duration / 1000)}s
+                {Math.round(duration / 1000)}s
               </Text>
             </View>
           </>
@@ -97,9 +95,11 @@ const styles = StyleSheet.create({
     width: 50,
   },
   audioThumb: {
-    width: 1,
+    width: 2,
+    height: 24,
     backgroundColor: Colors.red30,
     borderWidth: 1,
+    borderRadius: 1,
     borderColor: Colors.red30,
   },
 });

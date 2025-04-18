@@ -12,7 +12,7 @@ import {
   Colors,
   Image,
   TouchableOpacity,
-  Slider,
+  Incubator,
   Carousel,
 } from 'react-native-ui-lib';
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -143,7 +143,7 @@ const LyricModal = React.memo(props => {
             <View flexS row spread>
               {/* 第一页：音乐信息 */}
               <View width={'50%'} paddingH-50>
-                <View flexS center marginT-20>
+                <View flexS center marginT-8>
                   <Image
                     source={{
                       uri:
@@ -175,7 +175,7 @@ const LyricModal = React.memo(props => {
                       </TouchableOpacity>
                     </View>
                     <View marginT-8>
-                      <Slider
+                      <Incubator.Slider
                         value={CurPosition}
                         minimumValue={0}
                         disabled={!Duration}
@@ -333,7 +333,7 @@ const LyricModal = React.memo(props => {
                     </View>
                   ) : null}
                   <View marginT-16>
-                    <Slider
+                    <Incubator.Slider
                       value={CurPosition}
                       minimumValue={0}
                       disabled={!Duration}
@@ -479,6 +479,7 @@ const styles = StyleSheet.create({
     height: 12,
     borderRadius: 6,
     borderWidth: 2,
+    borderColor: Colors.white,
   },
 });
 

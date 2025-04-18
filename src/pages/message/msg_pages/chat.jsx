@@ -133,6 +133,7 @@ const Chat = React.memo(({navigation, route}) => {
         if (value.isFinished) {
           setNowReadyAudioId(null);
           setAudioIsPlaying(false);
+          setAudioPlayprogress({});
         }
       });
     });
@@ -318,16 +319,16 @@ const Chat = React.memo(({navigation, route}) => {
     setMessages(previousMessages => {
       const index = previousMessages.findIndex(item => item._id === msgId);
       if (index !== -1) {
-        const formattedMsg = addFailedMsg(previousMessages[index]);
+        const formattedMsg = addMsgToLocal(previousMessages[index], status);
         previousMessages[index] = {...previousMessages[index], ...formattedMsg};
       }
       return GiftedChat.append(previousMessages, []);
     });
   }, []);
 
-  /* 添加失败的消息 */
-  const addFailedMsg = useCallback(
-    message => {
+  /* 添加消息到本地数据库 */
+  const addMsgToLocal = useCallback(
+    (message, status = 'failed') => {
       const newMsg = {
         _id: createRandomNumber(),
         clientMsg_id: String(message._id),
@@ -338,7 +339,7 @@ const Chat = React.memo(({navigation, route}) => {
         msg_type: message.msg_type || 'text',
         msg_status: 'unread',
         createdAt: message.createdAt,
-        status: 'failed',
+        status: status,
       };
       setLocalMsg(realm, [newMsg]);
       return newMsg;
@@ -347,24 +348,19 @@ const Chat = React.memo(({navigation, route}) => {
   );
 
   /* 添加系统消息 */
-  const addSystemMsg = useCallback(msg => {
+  const handleSystemMsg = useCallback((msg, isAdd = true) => {
     setMessages(prevMsgs => {
       const filteredMsgs = prevMsgs.filter(item => !item?.system);
-      const newMsg = {
-        text: msg,
-        system: true,
-        _id: Date.now().toString(),
-        createdAt: new Date(),
-      };
-      return GiftedChat.append(filteredMsgs, [newMsg]);
-    });
-  }, []);
-
-  /* 移除系统消息 */
-  const removeSystemMsg = useCallback(() => {
-    setMessages(prevMsgs => {
-      const filteredMsgs = prevMsgs.filter(item => !item?.system);
-      return GiftedChat.append(filteredMsgs);
+      const newMsgs = [];
+      if (isAdd) {
+        newMsgs.push({
+          text: msg,
+          system: true,
+          _id: 'system' + Date.now().toString(),
+          createdAt: new Date(),
+        });
+      }
+      return GiftedChat.append(filteredMsgs, newMsgs);
     });
   }, []);
 
@@ -469,53 +465,46 @@ const Chat = React.memo(({navigation, route}) => {
   const [uploadProgress, setUploadProgress] = useState(0);
 
   /* 本地发送 */
-  const onSend = useCallback(
-    async (_messages = []) => {
-      setMessages(previousMessages =>
-        GiftedChat.append(previousMessages, _messages),
-      );
+  const onSend = useCallback(async (_messages = []) => {
+    setMessages(previousMessages =>
+      GiftedChat.append(previousMessages, _messages),
+    );
+    addUploadIds(_messages);
 
-      addUploadIds(_messages);
-
-      for (const message of _messages) {
-        try {
-          const {msg_type: msgType = 'text', _id, text, file} = message;
-          let msgContent = text;
-
-          // 处理非文本消息的上传
-          if (msgType && msgType !== 'text') {
-            setNowSendId(_id);
-            try {
-              const res = await UploadFile(
-                file,
-                value => setUploadProgress(value),
-                {uid: userId, fileType: msgType, useType: 'chat'},
-              );
-              const upRes = JSON.parse(res.text());
-              if (!upRes.success) {
-                continue;
-              }
-              msgContent = upRes.data.file_name;
-            } finally {
-              setNowSendId(null);
-              removeUploadId(_id);
-              setUploadProgress(0);
-            }
+    for (const message of _messages) {
+      const {_id, msg_type, text, file} = message;
+      let content = text;
+      try {
+        if (msg_type && msg_type !== 'text' && file) {
+          setNowSendId(_id);
+          const res = await UploadFile(
+            file,
+            value => {
+              setUploadProgress(value);
+            },
+            {uid: userId, fileType: msg_type, useType: 'chat'},
+          );
+          setNowSendId(null);
+          removeUploadId(_id);
+          setUploadProgress(0);
+          const upRes = JSON.parse(res.text());
+          if (!upRes.success) {
+            continue;
           }
-
-          const result = await sendMessage(msgContent, msgType);
-          const msg = formatMsg(result);
-          setLocalMsg(realm, [msg]);
-          removeSystemMsg();
-        } catch (error) {
-          console.error('消息发送失败:', error);
-          addSystemMsg('发送失败！');
-          updateMessage(message._id, 'failed');
+          content = upRes.data.file_name;
         }
+
+        const reslut = await sendMessage(content, msg_type);
+        const msg = formatMsg(reslut);
+        setLocalMsg(realm, [msg]);
+        handleSystemMsg(null, false);
+      } catch (error) {
+        console.error('消息发送失败:', error);
+        handleSystemMsg('发送失败！');
+        updateMessage(_id, 'failed');
       }
-    },
-    [realm],
-  );
+    }
+  }, []);
 
   /* 媒体消息 */
   const sendMediaMsg = useCallback(
@@ -566,7 +555,7 @@ const Chat = React.memo(({navigation, route}) => {
       }
       onSend(mediaMsgs);
     },
-    [userInfo, chat_type, userInGroupInfo, createRandomNumber, onSend],
+    [userInfo, userInGroupInfo],
   );
 
   /* 加载本地消息 */
@@ -811,43 +800,47 @@ const Chat = React.memo(({navigation, route}) => {
   };
 
   /* 自定义消息状态 */
-  const renderTicks = useCallback(message => {
-    if (message.status === 'failed') {
-      return (
-        <View flexS>
-          <Text text100L red40 center>
-            <FontAwesome
-              name="exclamation-circle"
-              color={Colors.error}
-              size={11}
-            />
-            &nbsp;未发送
-          </Text>
-        </View>
-      );
-    }
-    if (message.msg_type && message.msg_type !== 'text') {
-      if (uploadIds.includes(message._id) && nowSendId === message._id) {
+  const renderTicks = useCallback(
+    message => {
+      const {_id, status, msg_type} = message;
+      if (status === 'failed') {
         return (
-          <View flexG row center marginT-4>
-            <ActivityIndicator color={Colors.Primary} size={14} />
-            <Text marginL-4 grey30 text100L>
-              发送中...{uploadProgress.toFixed(0)}%
+          <View flexS>
+            <Text text100L red40 center>
+              <FontAwesome
+                name="exclamation-circle"
+                color={Colors.error}
+                size={11}
+              />
+              &nbsp;未发送
             </Text>
           </View>
         );
       }
-      if (uploadIds.includes(message._id) && nowSendId !== message._id) {
-        return (
-          <View flexG row center marginT-4>
-            <Text marginL-4 grey30 text100L>
-              等待发送
-            </Text>
-          </View>
-        );
+      if (msg_type && msg_type !== 'text') {
+        if (uploadIds.includes(_id) && nowSendId === _id) {
+          return (
+            <View flexG row center marginT-4>
+              <ActivityIndicator color={Colors.Primary} size={14} />
+              <Text marginL-4 grey30 text100L>
+                发送中...{uploadProgress.toFixed(0)}%
+              </Text>
+            </View>
+          );
+        }
+        if (uploadIds.includes(_id) && nowSendId !== _id) {
+          return (
+            <View flexG row center marginT-4>
+              <Text marginL-4 grey30 text100L>
+                等待发送
+              </Text>
+            </View>
+          );
+        }
       }
-    }
-  }, []);
+    },
+    [uploadIds, nowSendId, uploadProgress],
+  );
 
   /* 自定义长按消息 */
   const onLongPress = (context, currentMessage) => {
@@ -872,11 +865,11 @@ const Chat = React.memo(({navigation, route}) => {
               .then(res => {
                 if (res) {
                   removeMessage(currentMessage.clientMsg_id);
-                  removeSystemMsg();
+                  handleSystemMsg(null, false);
                 }
               })
               .catch(error => {
-                addSystemMsg('发送失败！');
+                handleSystemMsg('发送失败！');
                 console.error(error);
               });
           }
@@ -1008,6 +1001,7 @@ const Chat = React.memo(({navigation, route}) => {
   const [audioIsPlaying, setAudioIsPlaying] = useState(false);
   const [nowReadyAudioId, setNowReadyAudioId] = useState(null);
   const [audioPlayprogress, setAudioPlayprogress] = useState({});
+
   const playAudio = async audioMsg => {
     const {clientMsg_id, audio} = audioMsg;
     if (nowReadyAudioId === clientMsg_id) {
@@ -1201,14 +1195,6 @@ const Chat = React.memo(({navigation, route}) => {
         easing: Easing.linear,
         duration: 300,
       });
-      if (uploadIds.length > 0) {
-        showToast('请先等待当前消息发送完成!', 'warning');
-        return;
-      }
-      if (userInGroupInfo?.member_status === 'forbidden') {
-        showToast('你已被禁言，无法使用!', 'error');
-        return;
-      }
     } else {
       rotate.value = withTiming('0deg', {
         easing: Easing.linear,
@@ -1222,7 +1208,17 @@ const Chat = React.memo(({navigation, route}) => {
       <View flexS center style={{marginBottom: fullHeight * 0.008}}>
         <TouchableOpacity
           onPress={() => {
-            setShowMore(!showMore);
+            setShowMore(prev => {
+              if (userInGroupInfo?.member_status === 'forbidden') {
+                showToast('你已被禁言，无法使用!', 'error');
+                return false;
+              }
+              if (uploadIds.length > 0) {
+                showToast('请先等待当前消息发送完成', 'error');
+                return false;
+              }
+              return !prev;
+            });
           }}>
           <Animated.View style={rotateAnimatedStyle}>
             <Ionicons
@@ -1438,13 +1434,18 @@ const Chat = React.memo(({navigation, route}) => {
     }
   };
 
-  /* 格式化时间 */
-  const FormatCalendarObj = {
-    sameDay: '[今天] HH:mm',
-    lastDay: '[昨天] HH:mm',
-    lastWeek: '[上周] DDDD HH:mm',
-    sameElse: 'YYYY-MM-DD HH:mm',
-  };
+  const shouldUpdateMessage = useCallback(
+    (currentProps, prevProps) => {
+      const {currentMessage} = currentProps;
+      return (
+        currentMessage.clientMsg_id === nowReadyAudioId ||
+        currentMessage._id === nowSendId ||
+        uploadIds.includes(currentMessage._id) ||
+        uploadProgress > 0
+      );
+    },
+    [nowReadyAudioId, nowSendId, uploadIds, uploadProgress],
+  );
 
   return (
     <>
@@ -1458,7 +1459,6 @@ const Chat = React.memo(({navigation, route}) => {
         dateFormat={'MM/DD HH:mm'}
         timeFormat={'HH:mm'}
         renderDay={renderDay}
-        dateFormatCalendar={FormatCalendarObj}
         messages={messages}
         text={msgText}
         onInputTextChanged={text => setMsgText(text)}
@@ -1472,7 +1472,7 @@ const Chat = React.memo(({navigation, route}) => {
         loadEarlier={!allLoaded}
         isLoadingEarlier={isLoadingEarlier}
         onLoadEarlier={onLoadEarlier}
-        isScrollToBottomEnabled={true}
+        scrollToBottom={true}
         scrollToBottomComponent={scrollToBottomComponent}
         onLongPress={onLongPress}
         onPressAvatar={onAvatarPress}
@@ -1491,6 +1491,7 @@ const Chat = React.memo(({navigation, route}) => {
         renderSystemMessage={renderSystemMessage}
         renderMessageText={renderFileMessage}
         onSend={onSend}
+        shouldUpdateMessage={shouldUpdateMessage}
         textInputProps={{
           readOnly: userInGroupInfo?.member_status === 'forbidden',
         }}

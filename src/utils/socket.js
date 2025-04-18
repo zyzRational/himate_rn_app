@@ -57,10 +57,10 @@ const SocketProvider = props => {
   };
 
   useEffect(() => {
-    if (userToken && !isEmptyObject(baseConfig) && !socketReady) {
+    if (userToken && baseConfig?.SOCKET_URL && !socketReady) {
       socketInit(baseConfig?.SOCKET_URL, userToken);
     }
-  }, [userToken, baseConfig]);
+  }, [userToken, baseConfig?.SOCKET_URL]);
 
   return (
     <SocketContext.Provider value={{socket}}>{children}</SocketContext.Provider>

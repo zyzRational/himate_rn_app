@@ -1570,7 +1570,7 @@
     semver "^7.6.0"
     xml2js "0.6.0"
 
-"@expo/react-native-action-sheet@^4.1.1":
+"@expo/react-native-action-sheet@^4.1.0":
   version "4.1.1"
   resolved "https://registry.npmmirror.com/@expo/react-native-action-sheet/-/react-native-action-sheet-4.1.1.tgz#a94a11088b8f146ac86b3ae710deef609a922d82"
   integrity sha512-4KRaba2vhqDRR7ObBj6nrD5uJw8ePoNHdIOMETTpgGTX7StUbrF4j/sfrP1YUyaPEa1P8FXdwG6pB+2WtrJd1A==
@@ -9102,19 +9102,21 @@ react-native-get-random-values@^1.11.0:
   dependencies:
     fast-base64-decode "^1.0.0"
 
-react-native-gifted-chat@^2.8.1:
-  version "2.8.1"
-  resolved "https://registry.npmmirror.com/react-native-gifted-chat/-/react-native-gifted-chat-2.8.1.tgz#92380aceb56024103de7c0003e3b43572c5a5641"
-  integrity sha512-x4Kq0YvmaHqQg/ENAmFzwcjJyH31cGrCWETFzUMmTZgWsXkkiJ1MamTnkLGQp6deVxM6G0QNxrF7IZnBOeMbsw==
+react-native-gifted-chat@2.6.5:
+  version "2.6.5"
+  resolved "https://registry.npmmirror.com/react-native-gifted-chat/-/react-native-gifted-chat-2.6.5.tgz#e9495fa50817ca47874f775a32d0203d5d07c1a0"
+  integrity sha512-RmniF3kze0jC6kNxyonzX3yLlXWDCU3dQBLpMKht/MN9cgdPzS1XU1Ape8rn13vU7AUb4WJat4Qgolu8sNwG/w==
   dependencies:
-    "@expo/react-native-action-sheet" "^4.1.1"
+    "@expo/react-native-action-sheet" "^4.1.0"
     "@types/lodash.isequal" "^4.5.8"
     dayjs "^1.11.13"
     lodash.isequal "^4.5.0"
+    prop-types "^15.8.1"
     react-native-communications "^2.2.1"
     react-native-iphone-x-helper "^1.3.1"
     react-native-lightbox-v2 "^0.9.2"
     react-native-parsed-text "^0.0.22"
+    uuid "^11.0.4"
 
 react-native-haptic-feedback@^2.2.0:
   version "2.3.3"
@@ -11089,6 +11091,11 @@ utils-merge@1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/utils-merge/-/utils-merge-1.0.1.tgz#9f95710f50a267947b2ccc124741c1028427e713"
   integrity sha512-pMZTvIkT1d+TFGvDOqodOclx0QWkkgi6Tdoa8gC8ffGAAqz9pzPTZWAybbsHHoED/ztMtkv/VoYTYyShUn81hA==
+
+uuid@^11.0.4:
+  version "11.1.0"
+  resolved "https://registry.npmmirror.com/uuid/-/uuid-11.1.0.tgz#9549028be1753bb934fc96e2bca09bb4105ae912"
+  integrity sha512-0/A9rDy9P7cJ+8w1c9WD9V//9Wj15Ce2MPz8Ri6032usz+NfePxx5AcN3bN+r6ZL6jEo066/yNYB3tn4pQEx+A==
 
 uuid@^7.0.3:
   version "7.0.3"

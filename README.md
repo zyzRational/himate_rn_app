@@ -170,32 +170,7 @@ RELEASE_KEY_PASSWORD=
 
 ### 优化
 
-1，升级react-native-gifted-chat组件到2.8.0后，新增相对时间计算，但不太符合国内使用习惯可进行如下优化
-
-```js
-./node_modules/react-native-gifted-chat/lib/Constant.js:10/11
-
-export const DATE_FORMAT = 'MM/DD HH:mm';
-export const TIME_FORMAT = 'HH:mm';
-```
-
-```js
-./node_modules/react-native-gifted-chat/lib/Day/index.js:20
-
-const _date = dayjs(createdAt).locale(getLocale());
-        if (!now.isSame(date, 'year'))
-            return _date.format('YYYY MM/DD HH:mm');
-        if (now.diff(date, 'days') < 1)
-            return _date.calendar(now, {
-                sameDay: '[今天] HH:mm',
-                ...dateFormatCalendar,
-            });  
-        return _date.format(dateFormat);
-```
-
-
-
-2，解决使用react-native-audio-recorder-player组件播放音乐时，在网络延迟时导致的卡顿问题
+1，解决使用react-native-audio-recorder-player组件播放音乐时，在网络延迟时导致的卡顿问题
 
 ```kotlin
 ./node_modules/react-native-audio-recorder-player/android/java/com/dooboolab.audiorecorderplayer/RNAudioRecorderPlayerModule.kt:311
