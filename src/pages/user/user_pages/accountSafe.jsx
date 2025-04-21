@@ -135,7 +135,6 @@ const Edituser = ({navigation, route}) => {
       }
       const res = await EditUserInfo(value);
       if (res.success) {
-        setUploading(false);
         dataInit();
         if (trueKey === 'account') {
           setMailshow(false);
@@ -152,6 +151,7 @@ const Edituser = ({navigation, route}) => {
       showToast(res.message, res.success ? 'success' : 'error');
     } catch (error) {
       console.error(error);
+    } finally {
       setUploading(false);
     }
   };
@@ -165,7 +165,7 @@ const Edituser = ({navigation, route}) => {
   const rederLine = () => {
     const arr = [1, 2, 3, 4, 5, 6];
     return arr.map(item => {
-      return <View key={item} style={styles.codeboxline}></View>;
+      return <View key={item} style={styles.codeboxline} />;
     });
   };
 

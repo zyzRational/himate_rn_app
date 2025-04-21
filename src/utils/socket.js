@@ -2,7 +2,6 @@ import React, {createContext, useContext, useState, useEffect} from 'react';
 import {io} from 'socket.io-client';
 import {useDispatch, useSelector} from 'react-redux';
 import {setSocketState} from '../stores/store-slice/chatMsgStore';
-import {isEmptyObject} from './base';
 
 export const SocketContext = createContext();
 export const useSocket = () => useContext(SocketContext);
