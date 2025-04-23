@@ -47,7 +47,7 @@ const Grouplist = ({navigation}) => {
     if (userId) {
       const timer = setTimeout(() => {
         getUserGroups(userId);
-      }, 800);
+      }, 500);
       return () => clearTimeout(timer);
     }
   }, [userId]);

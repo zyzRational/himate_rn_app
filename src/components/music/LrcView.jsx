@@ -7,7 +7,16 @@ import LrcItem from './LrcItem';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useToast} from '../commom/Toast';
 import {useSelector, useDispatch} from 'react-redux';
-import {setLrcFlag, setSwitchCount} from '../../stores/store-slice/musicStore';
+import {setSwitchCount} from '../../stores/store-slice/musicStore';
+
+const MODES = [
+  {name: 'lrc+trans', label: '普通+翻译歌词'},
+  {name: 'lrc+roma', label: '普通+音译歌词'},
+  {name: 'lrc', label: '普通歌词'},
+  {name: 'yrc+trans', label: '逐字+翻译歌词'},
+  {name: 'yrc+roma', label: '逐字+音译歌词'},
+  {name: 'yrc', label: '逐字歌词'},
+];
 
 const LrcView = React.memo(props => {
   const {
@@ -22,14 +31,15 @@ const LrcView = React.memo(props => {
   const flatListRef = useRef(null);
 
   const dispatch = useDispatch();
-  const yrcVisible = useSelector(state => state.musicStore.yrcVisible);
-  const transVisible = useSelector(state => state.musicStore.transVisible);
-  const romaVisible = useSelector(state => state.musicStore.romaVisible);
   const switchCount = useSelector(state => state.musicStore.switchCount);
 
   const [haveYrc, setHaveYrc] = useState(false);
   const [haveTrans, setHaveTrans] = useState(false);
   const [haveRoma, setHaveRoma] = useState(false);
+  const [availableModes, setAvailableModes] = useState([]);
+  const [transVisible, setTransVisible] = useState(true);
+  const [romaVisible, setRomaVisible] = useState(false);
+  const [yrcVisible, setYrcVisible] = useState(false);
 
   // 解析歌词
   useEffect(() => {
@@ -43,43 +53,94 @@ const LrcView = React.memo(props => {
     setHaveYrc(_haveYrc);
     setHaveRoma(_haveRoma);
     setHaveTrans(_haveTrans);
+
     setItemHeights(() => new Map());
     shouldSkip.current = false;
   }, [Music]);
 
+  // 过滤出可用的歌词模式
+  useEffect(() => {
+    const modes = MODES.filter(mode => {
+      switch (mode.name) {
+        case 'lrc+trans':
+          return haveTrans;
+        case 'lrc+roma':
+          return haveRoma;
+        case 'lrc':
+          return true;
+        case 'yrc+trans':
+          return haveTrans && haveYrc;
+        case 'yrc+roma':
+          return haveRoma && haveYrc;
+        case 'yrc':
+          return haveYrc;
+        default:
+          return false;
+      }
+    });
+    setAvailableModes(modes);
+  }, [haveYrc, haveTrans, haveRoma]);
+
   // 切换歌词
   const switchLyric = useCallback(() => {
-    shouldSkip.current = false;
     setItemHeights(() => new Map());
-    dispatch(
-      setLrcFlag({
-        yrcVisible: haveYrc && [3, 4, 5].includes(switchCount),
-        transVisible: haveTrans && [0, 3].includes(switchCount),
-        romaVisible: haveRoma && [1, 4].includes(switchCount),
-      }),
-    );
-    if (haveTrans && [0, 3].includes(switchCount)) {
-      showToast('已切换到翻译歌词', 'success', true);
-    }
-    if (haveRoma && [1, 4].includes(switchCount)) {
-      showToast('已切换到音译歌词', 'success', true);
-    }
+    shouldSkip.current = false;
 
-    let skip = 0;
-    let maxCount = haveYrc ? 5 : 2;
-    if (!haveTrans && [5, 2].includes(switchCount)) {
-      skip += 1;
+    const currentModeIndex = (switchCount + 1) % availableModes.length;
+    const currentMode = availableModes[currentModeIndex];
+    showLyric(currentMode);
+    showToast(`已切换为：${currentMode.label}`);
+
+    dispatch(setSwitchCount(currentModeIndex));
+  }, [switchCount, availableModes]);
+
+  useEffect(() => {
+    const currentMode = availableModes[switchCount];
+    if (currentMode) {
+      showLyric(currentMode);
     }
-    if (!haveRoma && [0, 3].includes(switchCount)) {
-      skip += 1;
-    }
-    if (!haveTrans && !haveRoma) {
-      skip += 1;
-    }
-    dispatch(
-      setSwitchCount(switchCount < maxCount ? switchCount + skip + 1 : 0),
-    );
-  }, [haveRoma, haveTrans, haveYrc, switchCount]);
+  }, [switchCount, availableModes]);
+
+  // 显示对应歌词
+  const showLyric = useCallback(
+    _mode => {
+      switch (_mode.name) {
+        case 'lrc+trans':
+          setTransVisible(true);
+          setRomaVisible(false);
+          break;
+        case 'lrc+roma':
+          setTransVisible(false);
+          setRomaVisible(true);
+          break;
+        case 'lrc':
+          setTransVisible(true);
+          setRomaVisible(false);
+          break;
+        case 'yrc+trans':
+          setTransVisible(true);
+          setRomaVisible(false);
+          setYrcVisible(true);
+          break;
+        case 'yrc+roma':
+          setTransVisible(false);
+          setRomaVisible(true);
+          setYrcVisible(true);
+          break;
+        case 'yrc':
+          setTransVisible(true);
+          setRomaVisible(false);
+          setYrcVisible(true);
+          break;
+        default:
+          setTransVisible(true);
+          setRomaVisible(false);
+          setYrcVisible(false);
+          break;
+      }
+    },
+    [setTransVisible, setRomaVisible, setYrcVisible],
+  );
 
   // 查找当前行
   const findCurrentLineIndex = useCallback(() => {
@@ -236,6 +297,7 @@ const LrcView = React.memo(props => {
     ],
   );
 
+  // 歌词高度
   const lrcHeight = useMemo(() => {
     const h = IsHorizontal ? fullHeight * 0.9 : fullHeight * 0.78;
     return h - (h % 68);

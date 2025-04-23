@@ -45,6 +45,7 @@ export const settingSlice = createSlice({
     setPrimaryColor: (state, action) => {
       state.themeColor = action.payload || '#5A48F4';
       addStorage('setting', 'PrimaryColor', state.themeColor);
+      SystemThemeInit(state.themeColor);
     },
     setToastType: (state, action) => {
       state.toastType = action.payload || 'System';

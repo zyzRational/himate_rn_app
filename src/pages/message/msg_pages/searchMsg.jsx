@@ -1,5 +1,5 @@
 import React from 'react';
-import { FlatList, StyleSheet } from 'react-native';
+import {FlatList, StyleSheet} from 'react-native';
 import {
   View,
   Text,
@@ -9,17 +9,17 @@ import {
   TextField,
 } from 'react-native-ui-lib';
 import dayjs from 'dayjs';
-import { useRealm } from '@realm/react';
-import { showMediaType, getLocalUser } from '../../../utils/handle/chatHandle';
-import { useSelector } from 'react-redux';
-import { fullHeight, fullWidth } from '../../../styles';
+import {useRealm} from '@realm/react';
+import {showMediaType, getLocalUser} from '../../../utils/handle/chatHandle';
+import {useSelector} from 'react-redux';
+import {fullHeight, fullWidth} from '../../../styles';
 
-const SearchMsg = ({ navigation, route }) => {
-  const { session_id } = route.params || {};
+const SearchMsg = ({navigation, route}) => {
+  const {session_id} = route.params || {};
   const realm = useRealm();
 
   // baseConfig
-  const { STATIC_URL } = useSelector(state => state.baseConfigStore.baseConfig);
+  const {STATIC_URL} = useSelector(state => state.baseConfigStore.baseConfig);
 
   // 群聊列表
   const [msgList, setMsgList] = React.useState([]);
@@ -39,12 +39,17 @@ const SearchMsg = ({ navigation, route }) => {
       let user_msg = [];
       if (sessionId) {
         user_msg = local_msgs
-          .filtered('send_uid == $0 && session_id == $1', item.uid, sessionId)
+          .filtered(
+            'send_uid == $0 && session_id == $1 && msg_type == $2',
+            item.uid,
+            sessionId,
+            'text',
+          )
           .sorted('createdAt', true)
           .toJSON();
       } else {
         user_msg = local_msgs
-          .filtered('send_uid == $0', item.uid)
+          .filtered('send_uid == $0 && msg_type == $1', item.uid, 'text')
           .sorted('createdAt', true)
           .toJSON();
       }
@@ -133,7 +138,7 @@ const SearchMsg = ({ navigation, route }) => {
     }
   };
 
-  const renderMsgItem = ({ item }) => {
+  const renderMsgItem = ({item}) => {
     return (
       <TouchableOpacity
         key={item._id}
@@ -160,11 +165,11 @@ const SearchMsg = ({ navigation, route }) => {
                 item.session_id,
               )?.avatar
                 ? STATIC_URL +
-                matchAvatarAndRemark(
-                  matchInfoList,
-                  item.send_uid,
-                  item.session_id,
-                )?.avatar
+                  matchAvatarAndRemark(
+                    matchInfoList,
+                    item.send_uid,
+                    item.session_id,
+                  )?.avatar
                 : STATIC_URL + 'default_empty.png',
             }}
           />

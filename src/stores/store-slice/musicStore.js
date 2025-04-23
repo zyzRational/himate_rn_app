@@ -1,6 +1,7 @@
 import {createSlice, createAsyncThunk} from '@reduxjs/toolkit';
 import {getMusicDetail} from '../../api/music';
 import {addStorage, getkeyStorage} from '../../utils/Storage';
+import {isEmptyObject} from '../../utils/base';
 
 const defaultState = {
   playingMusic: {},
@@ -10,9 +11,6 @@ const defaultState = {
   isClosed: false,
   randomNum: {min: 1, max: 1},
   isRandomPlay: false,
-  yrcVisible: false,
-  transVisible: true,
-  romaVisible: false,
   switchCount: 0,
 };
 
@@ -22,11 +20,7 @@ export const musicSlice = createSlice({
   extraReducers: builder => {
     builder
       .addCase(initMusicStore.fulfilled, (state, action) => {
-        const {yrcVisible, transVisible, romaVisible, switchCount} =
-          action.payload || {};
-        state.yrcVisible = yrcVisible ?? false;
-        state.transVisible = transVisible ?? true;
-        state.romaVisible = romaVisible ?? false;
+        const {switchCount} = action.payload || {};
         state.switchCount = switchCount || 0;
         state.playingMusic = {};
         state.playList = [];
@@ -35,6 +29,9 @@ export const musicSlice = createSlice({
 
     builder.addCase(setPlayingMusic.fulfilled, (state, action) => {
       state.playingMusic = action.payload || {};
+      if (isEmptyObject(state.playingMusic)) {
+        return state;
+      }
       state.playingMusic.playtime = Date.now();
     });
   },
@@ -43,15 +40,6 @@ export const musicSlice = createSlice({
       if (Array.isArray(action.payload)) {
         state.playList = action.payload;
       }
-    },
-    setLrcFlag: (state, action) => {
-      const {yrcVisible, transVisible, romaVisible} = action.payload || {};
-      state.yrcVisible = yrcVisible ?? false;
-      state.transVisible = transVisible ?? true;
-      state.romaVisible = romaVisible ?? false;
-      addStorage('music', 'yrcVisible', state.yrcVisible);
-      addStorage('music', 'transVisible', state.transVisible);
-      addStorage('music', 'romaVisible', state.romaVisible);
     },
     setSwitchCount: (state, action) => {
       state.switchCount = action.payload || 1;
@@ -127,10 +115,7 @@ export const setPlayingMusic = createAsyncThunk(
   async music => {
     try {
       const {id} = music || {};
-      if (!id) {
-        return music;
-      }
-      if (typeof id === 'string') {
+      if (!id || typeof id !== 'number') {
         return music;
       }
       const response = await getMusicDetail({id});
@@ -147,7 +132,6 @@ export const setPlayingMusic = createAsyncThunk(
 );
 
 export const {
-  setLrcFlag,
   setSwitchCount,
   setPlayList,
   addPlayList,
