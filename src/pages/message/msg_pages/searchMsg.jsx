@@ -39,17 +39,12 @@ const SearchMsg = ({navigation, route}) => {
       let user_msg = [];
       if (sessionId) {
         user_msg = local_msgs
-          .filtered(
-            'send_uid == $0 && session_id == $1 && msg_type == $2',
-            item.uid,
-            sessionId,
-            'text',
-          )
+          .filtered('send_uid == $0 && session_id == $1', item.uid, sessionId)
           .sorted('createdAt', true)
           .toJSON();
       } else {
         user_msg = local_msgs
-          .filtered('send_uid == $0 && msg_type == $1', item.uid, 'text')
+          .filtered('send_uid == $0', item.uid)
           .sorted('createdAt', true)
           .toJSON();
       }
@@ -61,15 +56,16 @@ const SearchMsg = ({navigation, route}) => {
     if (sessionId && keyword) {
       Msgs = localMsgs
         .filtered(
-          'session_id == $0 && text CONTAINS $1',
+          'session_id == $0 && text CONTAINS $1 && msg_type == $2',
           sessionId,
           keyword.trim(),
+          'text',
         )
         .sorted('createdAt', true)
         .toJSON();
     } else {
       Msgs = localMsgs
-        .filtered('text CONTAINS $0', keyword.trim())
+        .filtered('text CONTAINS $0 && msg_type == $1', keyword.trim(), 'text')
         .sorted('createdAt', true)
         .toJSON();
     }
@@ -148,13 +144,14 @@ const SearchMsg = ({navigation, route}) => {
         spread
         row
         centerV
+        marginB-1
         onPress={() => {
-          // navigation.navigate('Chat', {
-          //   session_id: item.session_id,
-          //   chat_type: item.chat_type,
-          //   to_remark: getChatRemark(item),
-          //   searchMsg_cid: item.clientMsg_id,
-          // });
+          navigation.navigate('Chat', {
+            session_id: item.session_id,
+            chat_type: item.chat_type,
+            to_remark: getChatRemark(item),
+            searchMsg_cid: item.clientMsg_id,
+          });
         }}>
         <View flexS row centerV>
           <Avatar

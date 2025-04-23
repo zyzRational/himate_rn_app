@@ -42,13 +42,10 @@ const LrcItem = React.memo(
       height: 24,
     });
 
-    const itemLayout = useCallback(
-      index => event => {
-        const {height} = event.nativeEvent.layout;
-        OnItemLayout(index, height);
-      },
-      [],
-    );
+    const itemLayout = index => event => {
+      const {height} = event.nativeEvent.layout;
+      OnItemLayout(index, height);
+    };
 
     // 处理文本布局
     const handleTextLayout = useCallback(event => {
@@ -152,7 +149,6 @@ const LrcItem = React.memo(
             </Text>
           </Animated.Text>
         )}
-
         {TransVisible && isTextVisible(Item.trans) && (
           <Animated.Text style={transAnimatedStyle}>
             <Text color={Colors.lyricColor} text80L>

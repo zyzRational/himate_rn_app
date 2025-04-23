@@ -42,7 +42,7 @@ export const musicSlice = createSlice({
       }
     },
     setSwitchCount: (state, action) => {
-      state.switchCount = action.payload || 1;
+      state.switchCount = action.payload || 0;
       addStorage('music', 'switchCount', state.switchCount);
     },
     addPlayList: (state, action) => {

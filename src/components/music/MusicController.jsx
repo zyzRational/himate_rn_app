@@ -378,7 +378,7 @@ const MusicCtrlProvider = React.memo(props => {
     ) {
       playNewMusic();
     }
-  }, [playingMusic, playType]);
+  }, [playingMusic]);
 
   // 加载音乐名
   const renderMarquee = useCallback(

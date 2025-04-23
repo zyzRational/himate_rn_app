@@ -22,6 +22,7 @@ import {
   Composer,
   Day,
   MessageText,
+  Message,
 } from 'react-native-gifted-chat';
 import Clipboard from '@react-native-clipboard/clipboard';
 import ImagePicker from 'react-native-image-crop-picker';
@@ -573,9 +574,25 @@ const Chat = React.memo(({navigation, route}) => {
   const [isLoadingEarlier, setIsLoadingEarlier] = useState(false);
   const [allLoaded, setAllLoaded] = useState(false);
 
+  const [searchIndex, setSearchIndex] = useState(-1);
+
   const pageSize = 30;
   const getNowPageMsg = useCallback((list = [], _page, cid) => {
     setIsLoadingEarlier(true);
+
+    // 搜索消息
+    if (cid) {
+      averageHeight.current = 0;
+      offsetCount.current = 0;
+      const index = list.findIndex(item => item.clientMsg_id === cid);
+      setSearchIndex(index);
+
+      setAllLoaded(true);
+      setIsLoadingEarlier(false);
+      return list;
+    }
+
+    // 正常分页
     const start = _page * pageSize;
     const end = start + pageSize;
     const newList = list.slice(start, end);
@@ -634,6 +651,34 @@ const Chat = React.memo(({navigation, route}) => {
       getUnreadMsg(session_id, chat_type, userInfo);
     }
   }, [userInfo, session_id, chat_type]);
+
+  // 监听消息高度
+  const messageContainerRef = useRef(null);
+  const averageHeight = useRef(0);
+  const offsetCount = useRef(0);
+  const onMessageLayout = useCallback(
+    event => {
+      if (searchIndex !== -1) {
+        const {height} = event.nativeEvent.layout;
+        averageHeight.current += height;
+        offsetCount.current++;
+        if (offsetCount.current === searchIndex) {
+          messageContainerRef.current?.scrollToOffset({
+            offset: averageHeight.current,
+            animated: true,
+          });
+        }
+      }
+    },
+    [messageContainerRef.current, searchIndex],
+  );
+
+  /* 自定义消息（用于计算高度） */
+  const renderMessage = props => (
+    <View onLayout={e => onMessageLayout(e)}>
+      <Message {...props} />
+    </View>
+  );
 
   /* 自定义气泡 */
   const renderBubble = props => {
@@ -1450,6 +1495,7 @@ const Chat = React.memo(({navigation, route}) => {
   return (
     <>
       <GiftedChat
+        messageContainerRef={messageContainerRef}
         placeholder={
           userInGroupInfo?.member_status === 'forbidden'
             ? '您已被禁言!'
@@ -1485,6 +1531,7 @@ const Chat = React.memo(({navigation, route}) => {
         renderInputToolbar={renderInputToolbar}
         renderComposer={renderComposer}
         renderAccessory={renderAccessory}
+        renderMessage={renderMessage}
         renderMessageImage={renderMessageImage}
         renderMessageVideo={renderMessageVideo}
         renderMessageAudio={renderMessageAudio}

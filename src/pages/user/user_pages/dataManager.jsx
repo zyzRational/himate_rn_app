@@ -227,10 +227,10 @@ const DataManager = ({navigation, route}) => {
           <Text text70L numberOfLines={1} ellipsizeMode={'middle'}>
             {item.file_name}
           </Text>
-          <View row marginT-4>
+          <View row marginT-4 bottom spread>
             <Text grey30>{(item.file_size / 1000000).toFixed(2)}M</Text>
-            <Text marginL-8 grey30>
-              {dayjs(item.create_time).format('MM月DD日 HH:mm')}
+            <Text grey40 text90L>
+              {dayjs(item.create_time).format('MM/DD HH:mm')}
             </Text>
           </View>
         </View>
@@ -350,7 +350,7 @@ const DataManager = ({navigation, route}) => {
                 </View>
               ) : null}
             </View>
-            <Text marginL-8 text90 grey40>
+            <Text marginL-8 text90L grey40>
               {dayjs(item.create_time).format('YYYY/MM/DD HH:mm:ss')}
             </Text>
           </View>
