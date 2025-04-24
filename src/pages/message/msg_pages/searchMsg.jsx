@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {FlatList, StyleSheet} from 'react-native';
 import {
   View,
@@ -20,6 +20,13 @@ const SearchMsg = ({navigation, route}) => {
 
   // baseConfig
   const {STATIC_URL} = useSelector(state => state.baseConfigStore.baseConfig);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      getMsgList(keyword, session_id);
+    });
+    return unsubscribe;
+  }, [navigation, keyword, session_id]);
 
   // 群聊列表
   const [msgList, setMsgList] = React.useState([]);
@@ -205,6 +212,7 @@ const SearchMsg = ({navigation, route}) => {
         <TextField
           containerStyle={styles.input}
           placeholder={'请输入聊天记录关键字/昵称'}
+          value={keyword}
           onChangeText={value => {
             setKeyword(value);
             setMsgList(getMsgList(value, session_id)._j);

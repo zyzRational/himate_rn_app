@@ -582,8 +582,8 @@ const Chat = React.memo(({navigation, route}) => {
 
     // 搜索消息
     if (cid) {
-      averageHeight.current = 0;
       offsetCount.current = 0;
+      setAverageHeight(0);
       const index = list.findIndex(item => item.clientMsg_id === cid);
       setSearchIndex(index);
 
@@ -652,26 +652,31 @@ const Chat = React.memo(({navigation, route}) => {
     }
   }, [userInfo, session_id, chat_type]);
 
-  // 监听消息高度
+  /* 跳转到指定消息 */
   const messageContainerRef = useRef(null);
-  const averageHeight = useRef(0);
+  const [averageHeight, setAverageHeight] = useState(0);
+
   const offsetCount = useRef(0);
   const onMessageLayout = useCallback(
     event => {
       if (searchIndex !== -1) {
         const {height} = event.nativeEvent.layout;
-        averageHeight.current += height;
-        offsetCount.current++;
         if (offsetCount.current === searchIndex) {
-          messageContainerRef.current?.scrollToOffset({
-            offset: averageHeight.current,
-            animated: true,
-          });
+          return;
         }
+        setAverageHeight(prevH => prevH + height);
+        offsetCount.current++;
       }
     },
-    [messageContainerRef.current, searchIndex],
+    [messageContainerRef.current, searchIndex, offsetCount.current],
   );
+
+  useEffect(() => {
+    messageContainerRef.current?.scrollToOffset({
+      offset: averageHeight,
+      animated: true,
+    });
+  }, [messageContainerRef.current, averageHeight]);
 
   /* 自定义消息（用于计算高度） */
   const renderMessage = props => (
