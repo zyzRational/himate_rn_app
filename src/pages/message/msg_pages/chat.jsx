@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useEffect, useCallback, useState, useRef} from 'react';
+import React, {useEffect, useCallback, useState, useRef, useMemo} from 'react';
 import {ActivityIndicator, StyleSheet, Vibration, Modal} from 'react-native';
 import {
   View,
@@ -8,7 +8,6 @@ import {
   Colors,
   TouchableOpacity,
   Card,
-  LoaderScreen,
   Avatar,
 } from 'react-native-ui-lib';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -578,21 +577,19 @@ const Chat = React.memo(({navigation, route}) => {
 
   const pageSize = 30;
   const getNowPageMsg = useCallback((list = [], _page, cid) => {
-    setIsLoadingEarlier(true);
-
     // 搜索消息
     if (cid) {
+      setOffsetHeight(0);
       offsetCount.current = 0;
-      setAverageHeight(0);
+      heightSum.current = 0;
       const index = list.findIndex(item => item.clientMsg_id === cid);
       setSearchIndex(index);
-
       setAllLoaded(true);
-      setIsLoadingEarlier(false);
       return list;
     }
 
     // 正常分页
+    setIsLoadingEarlier(true);
     const start = _page * pageSize;
     const end = start + pageSize;
     const newList = list.slice(start, end);
@@ -652,31 +649,45 @@ const Chat = React.memo(({navigation, route}) => {
     }
   }, [userInfo, session_id, chat_type]);
 
-  /* 跳转到指定消息 */
+  /* 滚动的相关状态 */
   const messageContainerRef = useRef(null);
-  const [averageHeight, setAverageHeight] = useState(0);
-
   const offsetCount = useRef(0);
+  const heightSum = useRef(0);
+  const [offsetHeight, setOffsetHeight] = useState(0);
+
+  /* 获取需要滚动的高度 */
   const onMessageLayout = useCallback(
     event => {
       if (searchIndex !== -1) {
         const {height} = event.nativeEvent.layout;
         if (offsetCount.current === searchIndex) {
+          setOffsetHeight(heightSum.current);
           return;
         }
-        setAverageHeight(prevH => prevH + height);
+        heightSum.current += height;
         offsetCount.current++;
+        // 每10次测量更新一次高度
+        if (offsetCount.current % 10 === 0) {
+          setOffsetHeight(heightSum.current);
+        }
       }
     },
-    [messageContainerRef.current, searchIndex, offsetCount.current],
+    [searchIndex, offsetCount.current, heightSum.current],
   );
 
+  /* 滚动到指定消息 */
   useEffect(() => {
     messageContainerRef.current?.scrollToOffset({
-      offset: averageHeight,
+      offset: offsetHeight - 4,
       animated: true,
     });
-  }, [messageContainerRef.current, averageHeight]);
+  }, [offsetHeight]);
+
+  useEffect(() => {
+    if (searchIndex !== -1) {
+      showToast('正在尝试跳转到搜索结果', 'success');
+    }
+  }, [searchIndex]);
 
   /* 自定义消息（用于计算高度） */
   const renderMessage = props => (
@@ -1500,6 +1511,7 @@ const Chat = React.memo(({navigation, route}) => {
   return (
     <>
       <GiftedChat
+        key={searchMsg_cid || 'GiftedChat'}
         messageContainerRef={messageContainerRef}
         placeholder={
           userInGroupInfo?.member_status === 'forbidden'
@@ -1652,14 +1664,6 @@ const Chat = React.memo(({navigation, route}) => {
           />
         </View>
       </Modal>
-      {isLoadingEarlier && searchMsg_cid ? (
-        <LoaderScreen
-          message={'跳转中...'}
-          color={Colors.Primary}
-          backgroundColor={Colors.hyalineWhite}
-          overlay={true}
-        />
-      ) : null}
     </>
   );
 });

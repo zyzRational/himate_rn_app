@@ -89,7 +89,7 @@ const LrcView = React.memo(props => {
     const currentMode = availableModes[currentModeIndex];
     showLyric(currentMode);
     dispatch(setSwitchCount(currentModeIndex));
-    showToast(`已切换为${currentMode.label}`);
+    showToast(`已切换为${currentMode.label}`, 'success', true);
   }, [switchCount, availableModes]);
 
   useEffect(() => {
@@ -326,7 +326,6 @@ const LrcView = React.memo(props => {
       <View height={lrcHeight}>
         {parsedLrc.length ? (
           <FlatList
-            key={`${Music.id}-${switchCount}`}
             ref={flatListRef}
             data={parsedLrc}
             renderItem={renderItem}
