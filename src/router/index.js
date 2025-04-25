@@ -19,8 +19,10 @@ import {
   clearErrorMsgStore,
 } from '../stores/store-slice/errorMsgStore';
 import 'react-native-get-random-values';
+import { install } from 'react-native-quick-crypto';
 
 const RootView = () => {
+  install();
   const {showToast} = useToast();
   const dispatch = useDispatch();
 

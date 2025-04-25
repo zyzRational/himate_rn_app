@@ -69,6 +69,16 @@
     "rn-fetch-blob": "^0.12.0",
     "socket.io-client": "^4.7.5"
   },
+  "expo": {
+    "autolinking": {
+      "exclude": [
+        "expo-keep-awake",
+        "expo-application",
+        "expo-file-system",
+        "expo-font"
+      ]
+    }
+  },
   "devDependencies": {
     "@babel/core": "^7.20.0",
     "@babel/preset-env": "^7.20.0",
