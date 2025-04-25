@@ -1,11 +1,9 @@
 import {deepClone} from '../base';
-import {getStorage} from '../Storage';
 import {store} from '../../stores/index';
 import {getTrueSecretKey, decryptAES} from './cryptoHandle';
 
-const secretStr = store.getState().baseConfigStore.secretStr;
-
 /* 解密消息 */
+const secretStr = store.getState().baseConfigStore.secretStr;
 export const decryptMsg = (msg, secret) => {
   if (secret) {
     const {iv, encryptedData} = JSON.parse(msg);
@@ -65,8 +63,8 @@ export const formatJoinUser = (
 };
 
 /* 写入本地消息 */
+const notSaveMsg = store.getState().settingStore.notSaveMsg;
 export const setLocalMsg = async (realm, msgs) => {
-  const notSaveMsg = await getStorage('setting', 'notSaveMsg');
   if (notSaveMsg) {
     return;
   }

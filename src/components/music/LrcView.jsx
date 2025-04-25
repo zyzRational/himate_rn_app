@@ -59,6 +59,7 @@ const LrcView = React.memo(props => {
     setAvailableModes(modes);
     showLyric(modes[switchCount]);
 
+    setItemHeights(new Map());
     shouldSkip.current = false;
   }, [Music]);
 

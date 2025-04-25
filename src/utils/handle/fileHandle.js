@@ -1,7 +1,6 @@
 import {displayName as appDisplayName} from '../../../app.json';
 import {Platform} from 'react-native';
 import RNFetchBlob from 'rn-fetch-blob';
-import {getStorage} from '../../utils/Storage';
 import {store} from '../../stores/index';
 import {
   textExtNames,
@@ -120,7 +119,8 @@ export const UploadFile = async (
   params = {},
 ) => {
   const {BASE_URL} = store.getState().baseConfigStore.baseConfig;
-  const userToken = await getStorage('user', 'userToken');
+  const userToken = store.getState().userStore.userToken;
+
   const {uid, fileType, useType} = params;
 
   // 构建URL

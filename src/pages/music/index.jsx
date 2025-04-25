@@ -261,6 +261,8 @@ const Music = ({navigation}) => {
     }
   };
 
+  const scales = ['00:00', '00:30', '01:00', '01:30', '02:00'];
+
   return (
     <View top padding-16 height={fullHeight}>
       <Card
@@ -627,24 +629,32 @@ const Music = ({navigation}) => {
               }}
             />
           </View>
-          <View marginT-12>
+          <View marginT-8>
             <Text text90L grey30 marginV-6>
               将在{alarmTime}分钟后停止播放
             </Text>
             <Incubator.Slider
               thumbTintColor={Colors.Primary}
               minimumTrackTintColor={Colors.Primary}
+              thumbStyle={styles.thumbStyle}
               minimumValue={0}
               maximumValue={120}
+              value={alarmTime}
+              step={1}
               onValueChange={value => {
                 setAlarmTime(value);
                 if (alarmSwitch) {
                   dispatch(setCloseTime(value));
                 }
               }}
-              value={alarmTime}
-              step={1}
             />
+            <View row centerV spread>
+              {scales.map(item => (
+                <Text text90L grey40 key={item}>
+                  {item}
+                </Text>
+              ))}
+            </View>
           </View>
         </Card>
       </Dialog>
@@ -675,13 +685,14 @@ const Music = ({navigation}) => {
               }}
             />
           </View>
-          <View marginT-12>
-            <Text text90L grey30 marginV-6>
+          <View marginT-8>
+            <Text text90L grey30 marginV-4>
               将在曲库中第{randomNum.min}-{randomNum.max}首歌曲之间随机播放
             </Text>
             <Incubator.Slider
               thumbTintColor={Colors.Primary}
               minimumTrackTintColor={Colors.Primary}
+              thumbStyle={styles.thumbStyle}
               minimumValue={1}
               maximumValue={allMusicNum}
               initialMinimumValue={randomNum?.min}
@@ -724,6 +735,13 @@ const styles = StyleSheet.create({
   rightBox: {
     borderLeftWidth: 1,
     borderColor: Colors.grey80,
+  },
+  thumbStyle: {
+    width: 10,
+    height: 24,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: Colors.white,
   },
 });
 export default Music;

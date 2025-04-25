@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useEffect, useCallback, useState, useRef, useMemo} from 'react';
+import React, {useEffect, useCallback, useState, useRef} from 'react';
 import {ActivityIndicator, StyleSheet, Vibration, Modal} from 'react-native';
 import {
   View,
@@ -923,11 +923,9 @@ const Chat = React.memo(({navigation, route}) => {
 
           if (showMsghandle && buttonIndex === 0) {
             sendMessage(currentMessage?.text, 'text', true)
-              .then(res => {
-                if (res) {
-                  removeMessage(currentMessage.clientMsg_id);
-                  handleSystemMsg(null, false);
-                }
+              .then(() => {
+                removeMessage(currentMessage.clientMsg_id);
+                handleSystemMsg(null, false);
               })
               .catch(error => {
                 handleSystemMsg('发送失败！');

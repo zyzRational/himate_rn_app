@@ -158,8 +158,6 @@ export const getDocumentfileFormdata = (
     type = 'audio';
   }
 
-  console.log(ext);
-
   const file = {
     name: 'file',
     filename: useOriginalName
