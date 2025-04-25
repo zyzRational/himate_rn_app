@@ -7,6 +7,7 @@ import {
   imageExtNames,
   videoExtNames,
 } from '../constants/baseConst';
+import dayjs from 'dayjs';
 
 // 判断是否为空字符串
 export const isEmptyString = str => {
@@ -248,4 +249,23 @@ export const formatMilliseconds = ms => {
 
   // 返回格式化的时间字符串
   return `${formattedMinutes}:${formattedSeconds}`;
+};
+
+/* 格式化时间 */
+export const formatDateTime = inputDate => {
+  const date = dayjs(inputDate);
+  const now = dayjs();
+
+  // 判断是否是今天
+  const isToday = date.isSame(now, 'day');
+  // 判断是否是今年
+  const isSameYear = date.isSame(now, 'year');
+
+  if (isToday) {
+    return date.format('HH:mm');
+  } else if (isSameYear) {
+    return date.format('MM/DD HH:mm');
+  } else {
+    return date.format('YYYY/MM/DD');
+  }
 };

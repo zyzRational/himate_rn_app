@@ -40,6 +40,8 @@ const LrcView = React.memo(props => {
   const [transVisible, setTransVisible] = useState(true);
   const [romaVisible, setRomaVisible] = useState(false);
   const [yrcVisible, setYrcVisible] = useState(false);
+  // 歌词是否为两行
+  const [isTwoLines, setIsTwoLines] = useState(true);
 
   // 解析歌词
   useEffect(() => {
@@ -53,33 +55,35 @@ const LrcView = React.memo(props => {
     setHaveYrc(_haveYrc);
     setHaveRoma(_haveRoma);
     setHaveTrans(_haveTrans);
+    const modes = filteredModes(_haveYrc, _haveTrans, _haveRoma);
+    setAvailableModes(modes);
+    showLyric(modes[switchCount]);
 
     shouldSkip.current = false;
-    setItemHeights(new Map());
   }, [Music]);
 
   // 过滤出可用的歌词模式
-  useEffect(() => {
+  const filteredModes = (_haveYrc, _haveTrans, _haveRoma) => {
     const modes = MODES.filter(mode => {
       switch (mode.name) {
         case 'lrc+trans':
-          return haveTrans;
+          return _haveTrans;
         case 'lrc+roma':
-          return haveRoma;
+          return _haveRoma;
         case 'lrc':
           return true;
         case 'yrc+trans':
-          return haveTrans && haveYrc;
+          return _haveTrans && _haveYrc;
         case 'yrc+roma':
-          return haveRoma && haveYrc;
+          return _haveRoma && _haveYrc;
         case 'yrc':
-          return haveYrc;
+          return _haveYrc;
         default:
           return false;
       }
     });
-    setAvailableModes(modes);
-  }, [haveYrc, haveTrans, haveRoma]);
+    return modes;
+  };
 
   // 切换歌词
   const switchLyric = useCallback(() => {
@@ -92,50 +96,51 @@ const LrcView = React.memo(props => {
     showToast(`已切换为${currentMode.label}`, 'success', true);
   }, [switchCount, availableModes]);
 
-  useEffect(() => {
-    const currentMode = availableModes[switchCount];
-    if (currentMode) {
-      showLyric(currentMode);
-    }
-  }, [availableModes]);
-
   // 显示对应歌词
   const showLyric = _mode => {
-    switch (_mode.name) {
+    const {name} = _mode || {};
+    switch (name) {
       case 'lrc+trans':
         setYrcVisible(false);
         setTransVisible(true);
         setRomaVisible(false);
+        setIsTwoLines(true);
         break;
       case 'lrc+roma':
         setYrcVisible(false);
         setTransVisible(false);
         setRomaVisible(true);
+        setIsTwoLines(true);
         break;
       case 'lrc':
         setYrcVisible(false);
         setTransVisible(false);
         setRomaVisible(false);
+        setIsTwoLines(false);
         break;
       case 'yrc+trans':
         setYrcVisible(true);
         setTransVisible(true);
         setRomaVisible(false);
+        setIsTwoLines(true);
         break;
       case 'yrc+roma':
         setYrcVisible(true);
         setTransVisible(false);
         setRomaVisible(true);
+        setIsTwoLines(true);
         break;
       case 'yrc':
         setYrcVisible(true);
         setTransVisible(false);
         setRomaVisible(false);
+        setIsTwoLines(false);
         break;
       default:
         setYrcVisible(false);
         setTransVisible(true);
         setRomaVisible(false);
+        setIsTwoLines(true);
         break;
     }
   };
@@ -167,13 +172,7 @@ const LrcView = React.memo(props => {
     } else {
       OnLyricsChange('');
     }
-  }, [CurrentTime, findCurrentLineIndex, OnLyricsChange, parsedLrc]);
-
-  // 歌词是否为两行
-  const [isTwoLines, setIsTwoLines] = useState(true);
-  useEffect(() => {
-    setIsTwoLines((transVisible && haveTrans) || (romaVisible && haveRoma));
-  }, [transVisible, haveTrans, romaVisible, haveRoma]);
+  }, [findCurrentLineIndex, parsedLrc]);
 
   // 每行歌词高度变化
   const [itemHeights, setItemHeights] = useState(() => new Map());
@@ -199,13 +198,13 @@ const LrcView = React.memo(props => {
         return newMap;
       });
     },
-    [parsedLrc?.length, shouldSkip.current, isTwoLines, setItemHeights],
+    [parsedLrc.length, shouldSkip.current, isTwoLines],
   );
 
   const itemLayouts = useMemo(() => {
     const newLengths = new Map();
     const newOffsets = new Map();
-    if (!parsedLrc?.length || itemHeights.size === 0 || !shouldSkip.current) {
+    if (!parsedLrc.length || itemHeights.size === 0 || !shouldSkip.current) {
       return {lengths: newLengths, offsets: newOffsets};
     }
 
@@ -226,7 +225,7 @@ const LrcView = React.memo(props => {
       lengths: newLengths,
       offsets: newOffsets,
     };
-  }, [isTwoLines, itemHeights, parsedLrc?.length, shouldSkip.current]);
+  }, [isTwoLines, itemHeights, parsedLrc.length, shouldSkip.current]);
 
   // 计算每行歌词高度
   const getItemLayout = useCallback(

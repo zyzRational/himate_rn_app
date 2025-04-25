@@ -21,14 +21,13 @@ import {
   delUserMsgs,
   delUserUploadFiles,
 } from '../../../api/dataManager';
-import dayjs from 'dayjs';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import BaseSheet from '../../../components/commom/BaseSheet';
 import {useToast} from '../../../components/commom/Toast';
 import {DownloadFile} from '../../../utils/handle/fileHandle';
 import {requestFolderPermission} from '../../../stores/store-slice/permissionStore';
 import DocumentPicker from 'react-native-document-picker';
-import {getDocumentfileFormdata} from '../../../utils/base';
+import {getDocumentfileFormdata, formatDateTime} from '../../../utils/base';
 import {
   UploadFile,
   getFileColor,
@@ -43,6 +42,7 @@ import {
 } from '../../../utils/handle/chatHandle';
 import BaseDialog from '../../../components/commom/BaseDialog';
 import {getStorage} from '../../../utils/Storage';
+import dayjs from 'dayjs';
 import Clipboard from '@react-native-clipboard/clipboard';
 import BaseTopBar from '../../../components/commom/BaseTopBar';
 import VideoModal from '../../../components/commom/VideoModal';
@@ -230,7 +230,7 @@ const DataManager = ({navigation, route}) => {
           <View row marginT-4 bottom spread>
             <Text grey30>{(item.file_size / 1000000).toFixed(2)}M</Text>
             <Text grey40 text90L>
-              {dayjs(item.create_time).format('MM/DD HH:mm')}
+              {formatDateTime(item.create_time)}
             </Text>
           </View>
         </View>

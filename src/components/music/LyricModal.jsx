@@ -473,7 +473,7 @@ const styles = StyleSheet.create({
   },
   trackStyle: {
     height: 3,
-    maxWidth: fullWidth,
+    maxWidth: fullWidth * 0.9,
   },
   thumbStyle: {
     width: 12,

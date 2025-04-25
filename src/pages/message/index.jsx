@@ -26,7 +26,6 @@ import {
   cancelNotification,
   playSystemSound,
 } from '../../utils/notification';
-import dayjs from 'dayjs';
 import {
   setChatMsg,
   setNotRemindSessionIds,
@@ -34,6 +33,7 @@ import {
 } from '../../stores/store-slice/chatMsgStore';
 import Feather from 'react-native-vector-icons/Feather';
 import {getStorage, addStorage} from '../../utils/Storage';
+import {formatDateTime} from '../../utils/base';
 
 const Msg = ({navigation}) => {
   const dispatch = useDispatch();
@@ -62,7 +62,7 @@ const Msg = ({navigation}) => {
         msg_status: 'unread',
       });
       if (res.success) {
-        // console.log(res);
+        // console.log(res.data.list);
         setSessionlist(res.data.list);
         getSelfReminds(res.data.list);
         setRefreshing(false);
@@ -403,7 +403,7 @@ const Msg = ({navigation}) => {
                 )}
               </Text>
               <Text text90L grey40>
-                {dayjs(item.update_time).format('MM-DD HH:mm')}
+                {formatDateTime(item.update_time)}
               </Text>
             </View>
           </View>
