@@ -1,7 +1,7 @@
-import {displayName as appDisplayName} from '../../../app.json';
-import {Platform} from 'react-native';
-import RNFetchBlob from 'rn-fetch-blob';
-import {store} from '../../stores/index';
+import { displayName as appDisplayName } from '../../../app.json';
+import { Platform } from 'react-native';
+import ReactNativeBlobUtil from 'react-native-blob-util';
+import { store } from '../../stores/index';
 import {
   textExtNames,
   docTypes,
@@ -9,30 +9,46 @@ import {
   pptTypes,
   pdfTypes,
 } from '../../constants/baseConst.js';
-import {Colors} from 'react-native-ui-lib';
+import { Colors } from 'react-native-ui-lib';
 
 /* 下载文件 */
 export const DownloadFile = async (
   fileUrl,
   fileName,
-  callback = () => {},
+  callback = () => { },
   isInCameraRoll = false,
   isSystemDownload = true,
 ) => {
   // 处理下载路径
-  const dirs = RNFetchBlob.fs.dirs;
-  let path = dirs.DownloadDir;
+  const dirs = ReactNativeBlobUtil.fs.dirs;
+  let originPath = dirs.DownloadDir;
+  let dirName = appDisplayName;
 
   if (isInCameraRoll) {
-    path = dirs.DCIMDir;
+    originPath = dirs.DCIMDir;
   }
   if (Platform.OS === 'ios') {
-    path = dirs.DocumentDir;
+    originPath = dirs.DocumentDir;
+    dirName = 'Download';
+    if (isInCameraRoll) {
+      dirName = 'Picture';
+    }
   }
-  const downloadDest = `${path}/${appDisplayName}/${fileName}`;
+
+  const path = originPath + `/${dirName}`;
+
+  const isDirExists = await ReactNativeBlobUtil.fs.exists(path);
+  if (!isDirExists) {
+    const flag = await ReactNativeBlobUtil.fs.mkdir(path);
+    if (!flag) {
+      console.log('创建文件夹失败:', path);
+      return false;
+    }
+  }
+  const downloadDest = `${path}/${fileName}`;
 
   // 处理下载配置
-  let config = {path: downloadDest, fileCache: false};
+  let config = { path: downloadDest, fileCache: false };
   if (Platform.OS === 'ios') {
     config.IOSBackgroundTask = true;
     config.indicator = true;
@@ -50,7 +66,7 @@ export const DownloadFile = async (
 
   // 开始下载
   return new Promise(resolve => {
-    RNFetchBlob.config(config)
+    ReactNativeBlobUtil.config(config)
       .fetch('GET', fileUrl)
       .progress((received, total) => {
         const progress = Math.round((received / total) * 100);
@@ -73,10 +89,19 @@ export const writeJSONFile = async (jsonData, fileName) => {
   const jsonString = JSON.stringify(jsonData);
 
   // 定义文件路径
-  const path = RNFetchBlob.fs.dirs.DownloadDir + `/${appDisplayName}`;
-  const isDirExists = await RNFetchBlob.fs.exists(path);
+  const dirs = ReactNativeBlobUtil.fs.dirs;
+
+  let originPath = dirs.DownloadDir;
+  let dirName = appDisplayName;
+
+  if (Platform.OS === 'ios') {
+    originPath = dirs.DocumentDir;
+    dirName = 'Download';
+  }
+  const path = originPath + `/${dirName}`;
+  const isDirExists = await ReactNativeBlobUtil.fs.exists(path);
   if (!isDirExists) {
-    const flag = await RNFetchBlob.fs.mkdir(path);
+    const flag = await ReactNativeBlobUtil.fs.mkdir(path);
     if (!flag) {
       console.log('创建文件夹失败:', path);
       return false;
@@ -84,7 +109,7 @@ export const writeJSONFile = async (jsonData, fileName) => {
   }
   const writeDest = `${path}/${fileName}`;
   return new Promise(resolve => {
-    RNFetchBlob.fs
+    ReactNativeBlobUtil.fs
       .writeFile(writeDest, jsonString, 'utf8')
       .then(() => {
         resolve(true);
@@ -100,7 +125,7 @@ export const writeJSONFile = async (jsonData, fileName) => {
 /* 读取文件 */
 export const readJSONFile = async path => {
   try {
-    const jsonString = await RNFetchBlob.fs.readFile(path, 'utf8');
+    const jsonString = await ReactNativeBlobUtil.fs.readFile(path, 'utf8');
     const jsonData = JSON.parse(jsonString);
     console.log('jsonData', jsonString);
 
@@ -115,18 +140,18 @@ export const readJSONFile = async path => {
 /* 上传文件 */
 export const UploadFile = async (
   fileData,
-  callback = () => {},
+  callback = () => { },
   params = {},
 ) => {
-  const {BASE_URL} = store.getState().baseConfigStore.baseConfig;
+  const { BASE_URL } = store.getState().baseConfigStore.baseConfig;
   const userToken = store.getState().userStore.userToken;
 
-  const {uid, fileType, useType} = params;
+  const { uid, fileType, useType } = params;
 
   // 构建URL
   const url = `${BASE_URL}api/upload/file?uid=${uid}&file_type=${fileType}&use_type=${useType}`;
 
-  return RNFetchBlob.fetch(
+  return ReactNativeBlobUtil.fetch(
     'POST',
     url,
     {

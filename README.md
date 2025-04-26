@@ -97,15 +97,6 @@ yarn android
 ./node_modules/react-native-musicontrol/android/java/com/tanguyantoine/react/MusicControlModule.java:204
 原代码：context.registerReceiver(receiver, filter);
 修改为：context.registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED);
-
-./node_modules/rn-fetch-blob/android/src/main/android/java/com/RNFetchBlob/RNFetchBlobReq.java:199
-原代码：appCtx.registerReceiver(this, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
-修改为：if (Build.VERSION.SDK_INT >= 34 && appCtx.getApplicationInfo().targetSdkVersion >= 34) {
-                    appCtx.registerReceiver(this, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE),
-                    Context.RECEIVER_EXPORTED);
-                } else {
-                    appCtx.registerReceiver(this, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
-                }
 ```
 
 ##### ios端

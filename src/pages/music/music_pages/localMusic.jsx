@@ -10,7 +10,7 @@ import {
 } from 'react-native-ui-lib';
 import {FlatList, StyleSheet, Platform, Modal} from 'react-native';
 import {useToast} from '../../../components/commom/Toast';
-import RNFetchBlob from 'rn-fetch-blob';
+import ReactNativeBlobUtil from 'react-native-blob-util';
 import MusicList from '../../../components/music/MusicList';
 import {useRealm} from '@realm/react';
 import {v4 as uuid} from 'uuid';
@@ -36,7 +36,7 @@ const LocalMusic = ({navigation}) => {
     setLoading(true);
     const scanDirectory = async Path => {
       try {
-        const files = await RNFetchBlob.fs.ls(Path);
+        const files = await ReactNativeBlobUtil.fs.ls(Path);
         if (files.length === 0) {
           return;
         }
@@ -94,13 +94,13 @@ const LocalMusic = ({navigation}) => {
   // 扫描目录
   const [nowDirPath, setNowDirPath] = useState('');
   const scanDir = path => {
-    let directory = path || RNFetchBlob.fs.dirs.SDCardDir;
+    let directory = path || ReactNativeBlobUtil.fs.dirs.SDCardDir;
     if (Platform.OS === 'ios') {
-      directory = path || RNFetchBlob.fs.dirs.DocumentDir;
+      directory = path || ReactNativeBlobUtil.fs.dirs.DocumentDir;
     }
     const scanDirectory = async dirPath => {
       try {
-        const files = await RNFetchBlob.fs.ls(dirPath);
+        const files = await ReactNativeBlobUtil.fs.ls(dirPath);
         const dirList = [];
         if (files) {
           for (let i = 0; i < files.length; i++) {
@@ -129,7 +129,7 @@ const LocalMusic = ({navigation}) => {
   // 判断是否是目录
   const isDirectory = async path => {
     try {
-      const isDir = await RNFetchBlob.fs.isDir(path);
+      const isDir = await ReactNativeBlobUtil.fs.isDir(path);
       return isDir;
     } catch (error) {
       console.error(error);
@@ -243,7 +243,7 @@ const LocalMusic = ({navigation}) => {
                   onPress={() => {
                     if (
                       nowDirPath === '' ||
-                      nowDirPath === RNFetchBlob.fs.dirs.SDCardDir
+                      nowDirPath === ReactNativeBlobUtil.fs.dirs.SDCardDir
                     ) {
                       showToast('已经是根目录了', 'warning', true);
                       return;

@@ -23,7 +23,7 @@ import {
   displayName as appDisplayName,
 } from '../../../app.json';
 import DeviceInfo from 'react-native-device-info';
-import RNFetchBlob from 'rn-fetch-blob';
+import ReactNativeBlobUtil from 'react-native-blob-util';
 import ImgModal from '../../components/commom/ImgModal';
 import {isEmptyObject} from '../../utils/base';
 
@@ -125,7 +125,7 @@ const User = ({navigation}) => {
   const [showProgress, setShowProgress] = useState(false);
   const downloadApp = async () => {
     setShowProgress(true);
-    const android = RNFetchBlob.android;
+    const android = ReactNativeBlobUtil.android;
     const downloadRes = await DownloadFile(
       STATIC_URL + newAppInfo.app_fileName,
       appName + '_' + newAppInfo.app_version + '.apk',
@@ -268,7 +268,7 @@ const User = ({navigation}) => {
               RightText={versionName}
               Fun={() => {
                 if (Platform.OS === 'ios') {
-                  showToast('暂不支持ios版本', 'warning');
+                  showToast('IOS暂不支持', 'warning');
                   return;
                 }
                 setShowAppUpate(true);

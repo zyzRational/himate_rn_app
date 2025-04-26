@@ -1,5 +1,5 @@
 import {pinyin} from 'pinyin-pro';
-import RNFetchBlob from 'rn-fetch-blob';
+import ReactNativeBlobUtil from 'react-native-blob-util';
 import {Platform} from 'react-native';
 import {getFileExt} from './handle/fileHandle';
 import {
@@ -126,7 +126,7 @@ export const getfileFormdata = (doName, fileInfo) => {
     filename: `${doName}_${type}_${Math.random()
       .toString(16)
       .substring(2)}.${ext}`,
-    data: RNFetchBlob.wrap(fileInfo.path),
+    data: ReactNativeBlobUtil.wrap(fileInfo.path),
   };
 
   return {
@@ -163,7 +163,7 @@ export const getDocumentfileFormdata = (
     filename: useOriginalName
       ? oringalName
       : `${doName}_${type}_${Math.random().toString(16).substring(2)}.${ext}`,
-    data: RNFetchBlob.wrap(fileInfo.uri),
+    data: ReactNativeBlobUtil.wrap(fileInfo.uri),
   };
   return {
     file,
@@ -185,7 +185,7 @@ export const getRecordfileFormdata = (doName, filePath) => {
     filename: `${doName}_${type}_${Math.random()
       .toString(16)
       .substring(2)}.${ext}`,
-    data: Platform.OS === 'ios' ? filePath : RNFetchBlob.wrap(filePath),
+    data: Platform.OS === 'ios' ? filePath : ReactNativeBlobUtil.wrap(filePath),
   };
 
   return {

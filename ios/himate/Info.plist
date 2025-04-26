@@ -31,6 +31,10 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>UIFileSharingEnabled</key>
+    <true/>
+    <key>LSSupportsOpeningDocumentsInPlace</key>
+    <true/>
 	<key>NSAppleMusicUsageDescription</key>
 	<string>我们需要您授权访问Apple Music</string>
 	<key>NSCameraUsageDescription</key>
