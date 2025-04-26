@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Platform } from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {Platform} from 'react-native';
 import {
   View,
   Card,
@@ -9,9 +9,9 @@ import {
   ColorPicker,
   Switch,
 } from 'react-native-ui-lib';
-import { useToast } from '../../components/commom/Toast';
+import {useToast} from '../../components/commom/Toast';
 import ListItem from '../../components/commom/ListItem';
-import { useSelector, useDispatch } from 'react-redux';
+import {useSelector, useDispatch} from 'react-redux';
 import {
   setIsFullScreen,
   setPrimaryColor,
@@ -24,16 +24,16 @@ import {
 } from '../../stores/store-slice/settingStore';
 import BaseColorPicker from '../../components/setting/BaseColoerPciker';
 import BaseSheet from '../../components/commom/BaseSheet';
-import { addStorage } from '../../utils/Storage';
-import { playSystemSound } from '../../utils/notification';
-import { displayName as appDisplayName } from '../../../app.json';
-import { setBaseConfig } from '../../stores/store-slice/baseConfigStore';
-import { getBaseConfig } from '../../api/baseConfig';
-import { deepClone } from '../../utils/base';
-import { getStorage } from '../../utils/Storage';
+import {addStorage} from '../../utils/Storage';
+import {playSystemSound} from '../../utils/notification';
+import {displayName as appDisplayName} from '../../../app.json';
+import {setBaseConfig} from '../../stores/store-slice/baseConfigStore';
+import {getBaseConfig} from '../../api/baseConfig';
+import {deepClone} from '../../utils/base';
+import {getStorage} from '../../utils/Storage';
 
-const Setting = ({ navigation }) => {
-  const { showToast } = useToast();
+const Setting = ({navigation}) => {
+  const {showToast} = useToast();
   const themeColor = useSelector(state => state.settingStore.themeColor);
   const toastType = useSelector(state => state.settingStore.toastType);
   const isMusicApp = useSelector(state => state.settingStore.isMusicApp);
@@ -50,10 +50,10 @@ const Setting = ({ navigation }) => {
   const dispatch = useDispatch();
 
   const soundNames = [
-    { id: 1, name: '应用默认', value: 'default_1.mp3' },
-    { id: 2, name: '自定义1', value: 'default_2.mp3' },
-    { id: 3, name: '自定义2', value: 'default_3.mp3' },
-    { id: 3, name: '真由理(dudulu~)', value: 'default_4.mp3' },
+    {id: 1, name: '应用默认', value: 'default_1.mp3'},
+    {id: 2, name: '自定义1', value: 'default_2.mp3'},
+    {id: 3, name: '自定义2', value: 'default_3.mp3'},
+    {id: 3, name: '真由理(dudulu~)', value: 'default_4.mp3'},
   ];
 
   // 获取颜色
@@ -74,7 +74,7 @@ const Setting = ({ navigation }) => {
   // 设置静态资源地址
   const getStaticUrl = async () => {
     try {
-      const { STATIC_URL } = await getBaseConfig();
+      const {STATIC_URL} = await getBaseConfig();
       return STATIC_URL;
     } catch (error) {
       console.error(error);
@@ -86,7 +86,7 @@ const Setting = ({ navigation }) => {
   const settingStaticUrl = async value => {
     const newUrlInfo = deepClone(baseConfig);
     const staticUrl = await getStaticUrl();
-    const { FAST_STATIC_URL, LOW_STATIC_URL } = baseConfig;
+    const {FAST_STATIC_URL, LOW_STATIC_URL} = baseConfig;
     if (value) {
       newUrlInfo.STATIC_URL = FAST_STATIC_URL;
     } else {
@@ -244,7 +244,7 @@ const Setting = ({ navigation }) => {
       </View>
 
       <Dialog visible={showDialog} onDismiss={() => setShowDialog(false)}>
-        <Card padding-16 row left style={{ flexWrap: 'wrap' }}>
+        <Card padding-16 row left style={{flexWrap: 'wrap'}}>
           <BaseColorPicker
             SlectColor={themeColor}
             Fun={item => {
@@ -352,18 +352,25 @@ const Setting = ({ navigation }) => {
         <Card flexS padding-16>
           <View flexS paddingH-16>
             <Text text70BO>图片/视频存储位置</Text>
-            {
-              Platform.OS === 'ios' ? (<Text color={Colors.Primary}>我的iPhone/{appDisplayName}/Picture</Text>) : (<Text color={Colors.Primary}>系统相册/{appDisplayName}</Text>)
-            }
-
+            {Platform.OS === 'ios' ? (
+              <Text color={Colors.Primary}>
+                我的iPhone/{appDisplayName}/Picture
+              </Text>
+            ) : (
+              <Text color={Colors.Primary}>系统相册/{appDisplayName}</Text>
+            )}
           </View>
           <View marginT-16 flexS paddingH-16>
-            <Text text70BO>其它文件存储位置</Text>{
-              Platform.OS === 'ios' ? (<Text color={Colors.Primary}>我的iPhone/{appDisplayName}/Download</Text>) : (<Text color={Colors.Primary}>
+            <Text text70BO>其它文件存储位置</Text>
+            {Platform.OS === 'ios' ? (
+              <Text color={Colors.Primary}>
+                我的iPhone/{appDisplayName}/Download
+              </Text>
+            ) : (
+              <Text color={Colors.Primary}>
                 内部存储/Download/{appDisplayName}
-              </Text>)
-            }
-
+              </Text>
+            )}
           </View>
         </Card>
       </Dialog>

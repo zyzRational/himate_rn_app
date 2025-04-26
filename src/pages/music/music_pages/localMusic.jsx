@@ -94,7 +94,7 @@ const LocalMusic = ({navigation}) => {
   // 扫描目录
   const [nowDirPath, setNowDirPath] = useState('');
   const scanDir = path => {
-    let directory = path || ReactNativeBlobUtil.fs.dirs.SDCardDir;
+    let directory = path || ReactNativeBlobUtil.fs.dirs.LegacySDCardDir;
     if (Platform.OS === 'ios') {
       directory = path || ReactNativeBlobUtil.fs.dirs.DocumentDir;
     }
@@ -243,7 +243,7 @@ const LocalMusic = ({navigation}) => {
                   onPress={() => {
                     if (
                       nowDirPath === '' ||
-                      nowDirPath === ReactNativeBlobUtil.fs.dirs.SDCardDir
+                      nowDirPath === ReactNativeBlobUtil.fs.dirs.LegacySDCardDir
                     ) {
                       showToast('已经是根目录了', 'warning', true);
                       return;

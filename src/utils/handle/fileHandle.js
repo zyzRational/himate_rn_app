@@ -1,7 +1,7 @@
-import { displayName as appDisplayName } from '../../../app.json';
-import { Platform } from 'react-native';
+import {displayName as appDisplayName} from '../../../app.json';
+import {Platform} from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
-import { store } from '../../stores/index';
+import {store} from '../../stores/index';
 import {
   textExtNames,
   docTypes,
@@ -9,23 +9,23 @@ import {
   pptTypes,
   pdfTypes,
 } from '../../constants/baseConst.js';
-import { Colors } from 'react-native-ui-lib';
+import {Colors} from 'react-native-ui-lib';
 
 /* 下载文件 */
 export const DownloadFile = async (
   fileUrl,
   fileName,
-  callback = () => { },
+  callback = () => {},
   isInCameraRoll = false,
   isSystemDownload = true,
 ) => {
   // 处理下载路径
   const dirs = ReactNativeBlobUtil.fs.dirs;
-  let originPath = dirs.DownloadDir;
+  let originPath = dirs.LegacyDownloadDir;
   let dirName = appDisplayName;
 
   if (isInCameraRoll) {
-    originPath = dirs.DCIMDir;
+    originPath = dirs.LegacyDCIMDir;
   }
   if (Platform.OS === 'ios') {
     originPath = dirs.DocumentDir;
@@ -48,7 +48,7 @@ export const DownloadFile = async (
   const downloadDest = `${path}/${fileName}`;
 
   // 处理下载配置
-  let config = { path: downloadDest, fileCache: false };
+  let config = {path: downloadDest, fileCache: false};
   if (Platform.OS === 'ios') {
     config.IOSBackgroundTask = true;
     config.indicator = true;
@@ -91,7 +91,7 @@ export const writeJSONFile = async (jsonData, fileName) => {
   // 定义文件路径
   const dirs = ReactNativeBlobUtil.fs.dirs;
 
-  let originPath = dirs.DownloadDir;
+  let originPath = dirs.LegacyDownloadDir;
   let dirName = appDisplayName;
 
   if (Platform.OS === 'ios') {
@@ -140,13 +140,13 @@ export const readJSONFile = async path => {
 /* 上传文件 */
 export const UploadFile = async (
   fileData,
-  callback = () => { },
+  callback = () => {},
   params = {},
 ) => {
-  const { BASE_URL } = store.getState().baseConfigStore.baseConfig;
+  const {BASE_URL} = store.getState().baseConfigStore.baseConfig;
   const userToken = store.getState().userStore.userToken;
 
-  const { uid, fileType, useType } = params;
+  const {uid, fileType, useType} = params;
 
   // 构建URL
   const url = `${BASE_URL}api/upload/file?uid=${uid}&file_type=${fileType}&use_type=${useType}`;
