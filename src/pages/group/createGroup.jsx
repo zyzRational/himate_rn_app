@@ -41,7 +41,6 @@ const CreateGroup = ({navigation, route}) => {
     }
     try {
       if (groupId && g_Id && !is_create) {
-        // 群主本身也要加入群聊
         addQueue([...selectUids], g_Id, groupId);
         showToast('邀请群成员成功', 'error');
         navigation.goBack();

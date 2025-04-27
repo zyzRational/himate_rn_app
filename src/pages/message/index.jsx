@@ -61,12 +61,12 @@ const Msg = ({navigation}) => {
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    if (sessionlist?.length > 0 && roomName && socketReady) {
+    if (sessionlist?.length && roomName && socketReady) {
       sessionlist.forEach(item => {
         chatMsglistener(roomName, item);
       });
     }
-  }, [sessionlist?.length, roomName, socketReady]);
+  }, [sessionlist?.length, roomName, socketReady, isFocused]);
 
   /* 获取会话列表 */
   const [sessionlist, setSessionlist] = useState([]);

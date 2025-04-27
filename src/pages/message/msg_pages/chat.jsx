@@ -316,16 +316,22 @@ const Chat = React.memo(({navigation, route}) => {
   );
 
   /* 更改消息状态 */
-  const updateMessage = useCallback((msgId, status) => {
-    setMessages(previousMessages => {
-      const index = previousMessages.findIndex(item => item._id === msgId);
-      if (index !== -1) {
-        const formattedMsg = addMsgToLocal(previousMessages[index], status);
-        previousMessages[index] = {...previousMessages[index], ...formattedMsg};
-      }
-      return GiftedChat.append(previousMessages, []);
-    });
-  }, []);
+  const updateMessage = useCallback(
+    (msgId, status) => {
+      setMessages(previousMessages => {
+        const index = previousMessages.findIndex(item => item._id === msgId);
+        if (index !== -1) {
+          const formattedMsg = addMsgToLocal(previousMessages[index], status);
+          previousMessages[index] = {
+            ...previousMessages[index],
+            ...formattedMsg,
+          };
+        }
+        return GiftedChat.append(previousMessages, []);
+      });
+    },
+    [addMsgToLocal],
+  );
 
   /* 添加消息到本地数据库 */
   const addMsgToLocal = useCallback(
@@ -366,46 +372,43 @@ const Chat = React.memo(({navigation, route}) => {
   }, []);
 
   /* 发送消息 */
-  const sendMessage = useCallback(
-    (message, msg_type = 'text', isReSend = false) => {
-      const baseMsg = {
-        sId,
-        session_id,
-        send_uid: userId,
-        msgdata: message,
-        chat_type,
-        msg_type,
-        isReSend,
-      };
-      // 加密消息
-      if (isEncryptMsg) {
-        const {secret, trueSecret} = createRandomSecretKey(secretStr);
-        baseMsg.msg_secret = secret;
-        baseMsg.msgdata = JSON.stringify(encryptAES(message, trueSecret));
-      }
-      return new Promise((resolve, reject) => {
-        if (socketReady) {
-          try {
-            socket?.emit('chat', baseMsg, res => {
-              // console.log('chat msg', res);
-              if (res.success) {
-                resolve(res.data);
-              } else {
-                showToast(res.message, 'error');
-                reject(new Error('发送失败'));
-              }
-            });
-          } catch (error) {
-            reject(new Error(error));
-          }
-        } else {
-          showToast('socket 未连接', 'error');
-          reject(new Error('socket 未连接'));
+  const sendMessage = (message, msg_type = 'text', isReSend = false) => {
+    const baseMsg = {
+      sId,
+      session_id,
+      send_uid: userId,
+      msgdata: message,
+      chat_type,
+      msg_type,
+      isReSend,
+    };
+    // 加密消息
+    if (isEncryptMsg) {
+      const {secret, trueSecret} = createRandomSecretKey(secretStr);
+      baseMsg.msg_secret = secret;
+      baseMsg.msgdata = JSON.stringify(encryptAES(message, trueSecret));
+    }
+    return new Promise((resolve, reject) => {
+      if (socketReady) {
+        try {
+          socket?.emit('chat', baseMsg, res => {
+            // console.log('chat msg', res);
+            if (res.success) {
+              resolve(res.data);
+            } else {
+              showToast(res.message, 'error');
+              reject(new Error('发送失败'));
+            }
+          });
+        } catch (error) {
+          reject(new Error(error));
         }
-      });
-    },
-    [sId, session_id, userId, chat_type, isEncryptMsg],
-  );
+      } else {
+        showToast('socket 未连接', 'error');
+        reject(new Error('socket 未连接'));
+      }
+    });
+  };
 
   /* 向服务器确认收到消息 */
   const readMessage = useCallback(
@@ -442,70 +445,79 @@ const Chat = React.memo(({navigation, route}) => {
         }
       });
     },
-    [userId],
+    [userId, socketReady],
   );
 
   /* 添加为待上传的媒体消息 */
-  const addUploadIds = useCallback((Msgs = []) => {
-    const newIds = [];
-    Msgs.forEach(item => {
-      if (item?.msg_type && item?.msg_type !== 'text') {
-        newIds.push(item._id);
-      }
-    });
-    setUploadIds(prevIds => Array.from(new Set([...prevIds, ...newIds])));
-  }, []);
+  const addUploadIds = useCallback(
+    (Msgs = []) => {
+      const newIds = [];
+      Msgs.forEach(item => {
+        if (item?.msg_type && item?.msg_type !== 'text') {
+          newIds.push(item._id);
+        }
+      });
+      setUploadIds(prevIds => Array.from(new Set([...prevIds, ...newIds])));
+    },
+    [setUploadIds],
+  );
 
   /* 上传完成的媒体消息移除 */
-  const removeUploadId = useCallback(message_id => {
-    setUploadIds(prevIds => prevIds.filter(id => id !== message_id));
-  }, []);
+  const removeUploadId = useCallback(
+    message_id => {
+      setUploadIds(prevIds => prevIds.filter(id => id !== message_id));
+    },
+    [setUploadIds],
+  );
 
   const [nowSendId, setNowSendId] = useState(null);
   const [uploadIds, setUploadIds] = useState([]);
   const [uploadProgress, setUploadProgress] = useState(0);
 
   /* 本地发送 */
-  const onSend = useCallback(async (_messages = []) => {
-    setMessages(previousMessages =>
-      GiftedChat.append(previousMessages, _messages),
-    );
-    addUploadIds(_messages);
+  const onSend = useCallback(
+    async (_messages = []) => {
+      setMessages(previousMessages =>
+        GiftedChat.append(previousMessages, _messages),
+      );
+      addUploadIds(_messages);
 
-    for (const message of _messages) {
-      const {_id, msg_type, text, file} = message;
-      let content = text;
-      try {
-        if (msg_type && msg_type !== 'text' && file) {
-          setNowSendId(_id);
-          const res = await UploadFile(
-            file,
-            value => {
-              setUploadProgress(value);
-            },
-            {uid: userId, fileType: msg_type, useType: 'chat'},
-          );
-          setNowSendId(null);
-          removeUploadId(_id);
-          setUploadProgress(0);
-          const upRes = JSON.parse(res.text());
-          if (!upRes.success) {
-            continue;
+      for (const message of _messages) {
+        const {_id, msg_type, text, file} = message;
+        let content = text;
+        try {
+          if (msg_type && msg_type !== 'text' && file) {
+            setNowSendId(_id);
+            const res = await UploadFile(
+              file,
+              value => {
+                setUploadProgress(value);
+              },
+              {uid: userId, fileType: msg_type, useType: 'chat'},
+            );
+            setNowSendId(null);
+            removeUploadId(_id);
+            setUploadProgress(0);
+            const upRes = JSON.parse(res.text());
+            if (!upRes.success) {
+              continue;
+            }
+            content = upRes.data.file_name;
           }
-          content = upRes.data.file_name;
-        }
 
-        const reslut = await sendMessage(content, msg_type);
-        const msg = formatMsg(reslut);
-        setLocalMsg(realm, [msg]);
-        handleSystemMsg(null, false);
-      } catch (error) {
-        console.error('消息发送失败:', error);
-        handleSystemMsg('发送失败！');
-        updateMessage(_id, 'failed');
+          const reslut = await sendMessage(content, msg_type);
+          const msg = formatMsg(reslut);
+          setLocalMsg(realm, [msg]);
+          handleSystemMsg(null, false);
+        } catch (error) {
+          console.error('消息发送失败:', error);
+          handleSystemMsg('发送失败！');
+          updateMessage(_id, 'failed');
+        }
       }
-    }
-  }, []);
+    },
+    [sendMessage],
+  );
 
   /* 媒体消息 */
   const sendMediaMsg = useCallback(
@@ -556,7 +568,7 @@ const Chat = React.memo(({navigation, route}) => {
       }
       onSend(mediaMsgs);
     },
-    [userInfo, userInGroupInfo],
+    [userInfo, userInGroupInfo, onSend],
   );
 
   /* 加载本地消息 */
