@@ -37,11 +37,13 @@ import {
   setRandomNum,
 } from '../../stores/store-slice/musicStore';
 import {getMusicList, importFavorites} from '../../api/music';
+import {useIsFocused} from '@react-navigation/native';
 
 const Music = ({navigation}) => {
   const {showToast} = useToast();
   const dispatch = useDispatch();
   const realm = useRealm();
+  const isFocused = useIsFocused();
 
   const userInfo = useSelector(state => state.userStore.userInfo);
   const userId = useSelector(state => state.userStore.userId);
@@ -54,18 +56,16 @@ const Music = ({navigation}) => {
   );
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      if (userId) {
-        getUserFavoritesList(userId);
-        getDefaultFavoritesCount(userId);
-        getAllMusicList();
-        if (realm) {
-          getLocalMusicInfo();
-        }
+    if (userId && isFocused) {
+      getAllFavoritesList();
+      getUserFavoritesList(userId);
+      getDefaultFavoritesCount(userId);
+      getAllMusicList();
+      if (realm) {
+        getLocalMusicInfo();
       }
-    });
-    return unsubscribe;
-  }, [navigation, userId]);
+    }
+  }, [isFocused, userId]);
 
   const [showAddDialog, setShowAddDialog] = useState(false);
 
@@ -75,7 +75,7 @@ const Music = ({navigation}) => {
       title: '发现歌单',
       icon: 'cloud',
       iconColor: Colors.blue50,
-      num: '',
+      num: 0,
       route: 'FindFavorites',
     },
     {
@@ -232,6 +232,22 @@ const Music = ({navigation}) => {
       if (res.success) {
         setAllMusicNum(res.data.count);
         dispatch(setRandomNum({min: 1, max: res.data.count}));
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const getAllFavoritesList = async () => {
+    try {
+      const res = await getFavoritesList({
+        is_public: 1,
+      });
+      if (res.success) {
+        setItemData(prev => {
+          prev[0].num = res.data.count;
+          return prev;
+        });
       }
     } catch (error) {
       console.error(error);
@@ -400,7 +416,11 @@ const Music = ({navigation}) => {
                   link
                   color={Colors.red30}
                   onPress={() => {
-                    delFavorites(selectedItems);
+                    if (selectedItems.length) {
+                      delFavorites(selectedItems);
+                      return;
+                    }
+                    showToast('请选择要删除的歌单', 'error');
                   }}
                 />
                 <Button

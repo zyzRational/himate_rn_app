@@ -9,6 +9,7 @@ import {
   LoaderScreen,
 } from 'react-native-ui-lib';
 import {StyleSheet} from 'react-native';
+import {useIsFocused} from '@react-navigation/native';
 import {useSelector} from 'react-redux';
 import {getFavoritesDetail} from '../../../api/music';
 import MusicList from '../../../components/music/MusicList';
@@ -18,6 +19,8 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
 const FavoritesDetail = ({navigation, route}) => {
   const {favoritesId} = route.params || {};
+
+  const isFocused = useIsFocused();
 
   const userId = useSelector(state => state.userStore.userId);
 
@@ -46,13 +49,10 @@ const FavoritesDetail = ({navigation, route}) => {
   };
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      if (favoritesId) {
-        getFavorites(favoritesId);
-      }
-    });
-    return unsubscribe;
-  }, [navigation, favoritesId]);
+    if (favoritesId && isFocused) {
+      getFavorites(favoritesId);
+    }
+  }, [favoritesId, isFocused]);
 
   return (
     <>

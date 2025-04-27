@@ -32,19 +32,19 @@ const Grouplist = ({navigation}) => {
         const allGroupList = res.data.list;
         setSelfGroupList(allGroupList.filter(item => item.creator_uid === uid));
         setJoinGroupList(allGroupList.filter(item => item.creator_uid !== uid));
-        setLoading(false);
       } else {
         showToast(res.message, 'error');
-        setLoading(false);
       }
     } catch (error) {
       console.error(error);
+    } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
     if (userId) {
+      setLoading(true);
       const timer = setTimeout(() => {
         getUserGroups(userId);
       }, 500);
@@ -87,7 +87,7 @@ const Grouplist = ({navigation}) => {
   return (
     <>
       {loading ? (
-        <LoaderScreen message={'正在加载...'} color={Colors.Primary} />
+        <LoaderScreen message={'加载中...'} color={Colors.Primary} />
       ) : (
         <View>
           {selfGroupList.length > 0 ? (

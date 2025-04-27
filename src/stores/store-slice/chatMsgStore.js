@@ -5,6 +5,7 @@ const defaultState = {
   socketReady: false, // socket连接状态
   msgData: {}, // 从服务器获取到的消息数据
   nowSessionId: '', // 当前聊天会话id
+  remindSessions: [], // 待提醒的会话列表
   notRemindSessionIds: [], // 不用提醒的会话id列表
 };
 
@@ -13,10 +14,13 @@ export const chatMsgSlice = createSlice({
   initialState: defaultState,
   extraReducers: builder => {
     builder
-      .addCase(initChatMsgStore.fulfilled, (state, action) => {
-        const {notRemindSessionIds} = action.payload || {};
-        state.notRemindSessionIds = notRemindSessionIds || [];
-        return state;
+      .addCase(initChatMsgStore.fulfilled, (_, action) => {
+        const {notRemindSessionIds, remindSessions} = action.payload || {};
+        return {
+          ...defaultState,
+          remindSessions: remindSessions || [],
+          notRemindSessionIds: notRemindSessionIds || [],
+        };
       })
       .addCase(initChatMsgStore.rejected, () => defaultState);
   },
@@ -45,6 +49,21 @@ export const chatMsgSlice = createSlice({
       state.notRemindSessionIds.splice(index, 1);
       addStorage('chat', 'notRemindSessionIds', state.notRemindSessionIds);
     },
+    setRemindSessions: (state, action) => {
+      if (state.remindSessions.includes(action.payload)) {
+        return;
+      }
+      state.remindSessions.push(action.payload);
+      addStorage('chat', 'remindSessions', state.remindSessions);
+    },
+    delRemindSessions: (state, action) => {
+      const index = state.remindSessions.indexOf(action.payload);
+      if (index === -1) {
+        return;
+      }
+      state.remindSessions.splice(index, 1);
+      addStorage('chat', 'remindSessions', state.remindSessions);
+    },
   },
 });
 
@@ -66,6 +85,8 @@ export const {
   setNowSessionId,
   setNotRemindSessionIds,
   delNotRemindSessionIds,
+  setRemindSessions,
+  delRemindSessions,
 } = chatMsgSlice.actions;
 
 export default chatMsgSlice.reducer;

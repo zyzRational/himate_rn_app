@@ -30,13 +30,18 @@ import {
   setChatMsg,
   setNotRemindSessionIds,
   delNotRemindSessionIds,
+  setRemindSessions,
+  delRemindSessions,
+  initChatMsgStore,
 } from '../../stores/store-slice/chatMsgStore';
 import Feather from 'react-native-vector-icons/Feather';
-import {getStorage, addStorage} from '../../utils/Storage';
 import {formatDateTime} from '../../utils/base';
+import {useIsFocused} from '@react-navigation/native';
 
 const Msg = ({navigation}) => {
   const dispatch = useDispatch();
+  const isFocused = useIsFocused();
+
   const userId = useSelector(state => state.userStore.userId);
   const isPlaySound = useSelector(state => state.settingStore.isPlaySound);
   const acceptMsgData = useSelector(state => state.chatMsgStore.msgData);
@@ -44,6 +49,9 @@ const Msg = ({navigation}) => {
   const nowSessionId = useSelector(state => state.chatMsgStore.nowSessionId);
   // baseConfig
   const {STATIC_URL} = useSelector(state => state.baseConfigStore.baseConfig);
+  const remindSessions = useSelector(
+    state => state.chatMsgStore.remindSessions,
+  );
   const notRemindSessionIds = useSelector(
     state => state.chatMsgStore.notRemindSessionIds,
   );
@@ -51,6 +59,14 @@ const Msg = ({navigation}) => {
   const realm = useRealm();
   const {socket} = useSocket();
   const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    if (sessionlist?.length > 0 && roomName && socketReady) {
+      sessionlist.forEach(item => {
+        chatMsglistener(roomName, item);
+      });
+    }
+  }, [sessionlist?.length, roomName, socketReady]);
 
   /* 获取会话列表 */
   const [sessionlist, setSessionlist] = useState([]);
@@ -117,23 +133,21 @@ const Msg = ({navigation}) => {
   };
 
   /* 本地确认收到消息 */
-  const readListMsg = sessionInfo => {
+  const readListMsg = async sessionInfo => {
     cancelNotification(sessionInfo.session_id);
-    setRemindSessions(prev => {
-      if (prev.includes(sessionInfo.session_id)) {
-        return prev.filter(function (item) {
-          return item !== sessionInfo.session_id;
-        });
-      } else {
-        return prev;
-      }
-    });
+    dispatch(delRemindSessions(sessionInfo.session_id));
     if (sessionInfo.msgs.length > 0) {
       const newlist = [];
-      sessionInfo.msgs.forEach(msg => {
-        readMsg(msg.id, sessionInfo.id, userId);
-        newlist.push(formatMsg(msg));
+
+      const readMsgPromises = sessionInfo.msgs.map(async msg => {
+        try {
+          await readMsg(msg.id, sessionInfo.id, userId);
+          newlist.push(formatMsg(msg));
+        } catch (error) {
+          console.error(error);
+        }
       });
+      await Promise.all(readMsgPromises);
       setLocalMsg(realm, newlist);
       sessionDataInit(userId);
     }
@@ -158,13 +172,10 @@ const Msg = ({navigation}) => {
 
   // 监听页面聚焦
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      if (userId) {
-        sessionDataInit(userId);
-      }
-    });
-    return unsubscribe;
-  }, [navigation, userId]);
+    if (isFocused && userId) {
+      sessionDataInit(userId);
+    }
+  }, [isFocused, userId]);
 
   // 监听应用状态
   const appState = useRef(AppState.currentState);
@@ -190,7 +201,6 @@ const Msg = ({navigation}) => {
 
   /* 强制显示提醒 */
   const [selfRemindList, setSelfRemindList] = useState([]); // 提醒自己的@
-  const [remindSessions, setRemindSessions] = useState([]); // 显示@提醒的会话
   const getSelfReminds = sessions => {
     sessions.forEach(sessionInfo => {
       if (sessionInfo.chat_type === 'group') {
@@ -223,6 +233,7 @@ const Msg = ({navigation}) => {
 
   useEffect(() => {
     //console.log('store接受到的消息', acceptMsgData);
+
     if (acceptMsgData?.id && userId) {
       sessionDataInit(userId);
       if (
@@ -231,7 +242,7 @@ const Msg = ({navigation}) => {
         !notRemindSessionIds.includes(acceptMsgData.session_id)
       ) {
         playSystemSound();
-        if (appStateVisible === 'background') {
+        if (appStateVisible === 'background' || !isFocused) {
           onDisplayRealMsg(acceptMsgData);
         }
       }
@@ -246,17 +257,12 @@ const Msg = ({navigation}) => {
             trueMsg.includes(item.selfRemind) &&
             item.session_id === acceptMsgData.session_id
           ) {
-            setRemindSessions(prev => {
-              if (prev.includes(item.session_id)) {
-                return prev;
-              } else {
-                return [...prev, item.session_id];
-              }
-            });
+            dispatch(setRemindSessions(item.session_id));
             playSystemSound();
             if (
-              appStateVisible === 'background' &&
-              notRemindSessionIds.includes(acceptMsgData.session_id)
+              (appStateVisible === 'background' &&
+                notRemindSessionIds.includes(acceptMsgData.session_id)) ||
+              !isFocused
             ) {
               onDisplayRealMsg(acceptMsgData);
             }
@@ -265,14 +271,6 @@ const Msg = ({navigation}) => {
       }
     }
   }, [acceptMsgData?.id, userId]);
-
-  useEffect(() => {
-    if (sessionlist?.length > 0 && roomName && socketReady) {
-      sessionlist.forEach(item => {
-        chatMsglistener(roomName, item);
-      });
-    }
-  }, [sessionlist?.length, roomName, socketReady]);
 
   const [roomName, setRoomName] = useState(null);
   useEffect(() => {
@@ -286,36 +284,16 @@ const Msg = ({navigation}) => {
       .catch(error => {
         console.error(error);
       });
-    getStorage('chat', 'remindSessions').then(res => {
-      if (res) {
-        setRemindSessions(res);
-      }
-    });
+    return () => {
+      dispatch(initChatMsgStore());
+    };
   }, []);
 
   useEffect(() => {
-    if (userId) {
-      sessionDataInit(userId);
-    }
-  }, [userId]);
-
-  useEffect(() => {
     if (nowSessionId !== '') {
-      setRemindSessions(prev => {
-        if (prev.includes(nowSessionId)) {
-          return prev.filter(function (item) {
-            return item !== nowSessionId;
-          });
-        } else {
-          return prev;
-        }
-      });
+      dispatch(delRemindSessions(nowSessionId));
     }
   }, [nowSessionId]);
-
-  useEffect(() => {
-    addStorage('chat', 'remindSessions', remindSessions);
-  }, [remindSessions]);
 
   /* 列表元素 */
   const renderSessionItem = item => {

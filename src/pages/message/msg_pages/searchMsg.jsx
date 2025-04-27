@@ -13,20 +13,22 @@ import {useRealm} from '@realm/react';
 import {showMediaType, getLocalUser} from '../../../utils/handle/chatHandle';
 import {useSelector} from 'react-redux';
 import {fullHeight, fullWidth} from '../../../styles';
+import {useIsFocused} from '@react-navigation/native';
 
 const SearchMsg = ({navigation, route}) => {
   const {session_id} = route.params || {};
+
   const realm = useRealm();
+  const isFocused = useIsFocused();
 
   // baseConfig
   const {STATIC_URL} = useSelector(state => state.baseConfigStore.baseConfig);
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
+    if (isFocused && keyword && session_id) {
       getMsgList(keyword, session_id);
-    });
-    return unsubscribe;
-  }, [navigation, keyword, session_id]);
+    }
+  }, [isFocused, keyword, session_id]);
 
   // 群聊列表
   const [msgList, setMsgList] = React.useState([]);

@@ -2,10 +2,12 @@ import React, {useEffect} from 'react';
 import {View, Colors} from 'react-native-ui-lib';
 import {getmatelist, getapplylist} from '../../api/mate';
 import {useSelector} from 'react-redux';
+import {useIsFocused} from '@react-navigation/native';
 import ListItem from '../../components/commom/ListItem';
 import MateList from '../../components/mate/MateList';
 
 const Mate = ({navigation}) => {
+  const isFocused = useIsFocused();
   const userId = useSelector(state => state.userStore.userId);
 
   /*   好友列表 */
@@ -37,14 +39,11 @@ const Mate = ({navigation}) => {
   };
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      if (userId) {
-        getApplylist(userId);
-        getMatelist(userId);
-      }
-    });
-    return unsubscribe;
-  }, [navigation, userId]);
+    if (isFocused && userId) {
+      getApplylist(userId);
+      getMatelist(userId);
+    }
+  }, [isFocused, userId]);
 
   return (
     <View>

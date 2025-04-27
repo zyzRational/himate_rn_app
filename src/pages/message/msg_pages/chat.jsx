@@ -1,6 +1,7 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, {useEffect, useCallback, useState, useRef} from 'react';
 import {ActivityIndicator, StyleSheet, Vibration, Modal} from 'react-native';
+import {useIsFocused} from '@react-navigation/native';
 import {
   View,
   Button,
@@ -99,6 +100,8 @@ let recordTimer = null;
 const Chat = React.memo(({navigation, route}) => {
   const {session_id, chat_type, searchMsg_cid} = route.params;
 
+  const isFocused = useIsFocused();
+
   const dispatch = useDispatch();
   const {showToast} = useToast();
   const {socket} = useSocket();
@@ -124,7 +127,7 @@ const Chat = React.memo(({navigation, route}) => {
   const [messages, setMessages] = useState([]);
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
+    if (isFocused && session_id) {
       cancelNotification(session_id);
       dispatch(setIsPlaySound(false));
       dispatch(setNowSessionId(session_id));
@@ -136,15 +139,13 @@ const Chat = React.memo(({navigation, route}) => {
           setAudioPlayprogress({});
         }
       });
-    });
-    return () => {
+    } else {
       dispatch(setIsPlaySound(true));
       dispatch(setNowSessionId(''));
       audioRecorderPlayer.stopPlayer();
       audioRecorderPlayer.removePlayBackListener();
-      return unsubscribe;
-    };
-  }, [navigation, session_id]);
+    }
+  }, [isFocused, session_id]);
 
   /* 获取未读消息 */
   const [isLoadingComplete, setIsLoadingComplete] = useState(false);

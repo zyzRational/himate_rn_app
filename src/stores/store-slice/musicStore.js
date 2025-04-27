@@ -19,10 +19,9 @@ export const musicSlice = createSlice({
   initialState: defaultState,
   extraReducers: builder => {
     builder
-      .addCase(initMusicStore.fulfilled, (state, action) => {
+      .addCase(initMusicStore.fulfilled, (_, action) => {
         const {switchCount} = action.payload || {};
-        state.switchCount = switchCount || 0;
-        return state;
+        return {...defaultState, switchCount: switchCount || 0};
       })
       .addCase(initMusicStore.rejected, () => defaultState);
 

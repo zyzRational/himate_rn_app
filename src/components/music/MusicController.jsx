@@ -21,6 +21,7 @@ import {
   setIsClosed,
   addPlayList,
   setPlayList,
+  initMusicStore,
 } from '../../stores/store-slice/musicStore';
 import {useToast} from '../commom/Toast';
 import {useRealm} from '@realm/react';
@@ -452,8 +453,7 @@ const MusicCtrlProvider = React.memo(props => {
   useEffect(() => {
     return () => {
       audioPlayer.removePlayBackListener(subscription);
-      dispatch(setPlayingMusic({}));
-      dispatch(setPlayList([]));
+      dispatch(initMusicStore());
       restMusicStatus();
     };
   }, []);

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Vibration, StyleSheet, Modal } from 'react-native';
+import React, {useState} from 'react';
+import {Vibration, StyleSheet, Modal} from 'react-native';
 import {
   View,
   Card,
@@ -10,26 +10,27 @@ import {
   TouchableOpacity,
   Avatar,
 } from 'react-native-ui-lib';
-import { useSelector, useDispatch } from 'react-redux';
-import { useToast } from '../../../components/commom/Toast';
+import {useSelector, useDispatch} from 'react-redux';
+import {useToast} from '../../../components/commom/Toast';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import { getUserdetail } from '../../../api/user';
-import { addmate, getmateStatus } from '../../../api/mate';
+import {getUserdetail} from '../../../api/user';
+import {addmate, getmateStatus} from '../../../api/mate';
 import BaseDialog from '../../../components/commom/BaseDialog';
 import {
   Camera,
   useCameraDevice,
   useCodeScanner,
 } from 'react-native-vision-camera';
-import { requestCameraPermission } from '../../../stores/store-slice/permissionStore';
+import {requestCameraPermission} from '../../../stores/store-slice/permissionStore';
+import {fullHeight} from '../../../styles';
 
-const Addmate = ({ navigation, route }) => {
-  const { showToast } = useToast();
+const Addmate = ({navigation, route}) => {
+  const {showToast} = useToast();
   const userId = useSelector(state => state.userStore.userId);
   const isFullScreen = useSelector(state => state.settingStore.isFullScreen);
   const accessCamera = useSelector(state => state.permissionStore.accessCamera);
   // baseConfig
-  const { STATIC_URL } = useSelector(state => state.baseConfigStore.baseConfig);
+  const {STATIC_URL} = useSelector(state => state.baseConfigStore.baseConfig);
   const dispatch = useDispatch();
 
   /*  搜索用户 */
@@ -41,7 +42,7 @@ const Addmate = ({ navigation, route }) => {
       return;
     }
     try {
-      const userRes = await getUserdetail({ self_account: userAccount });
+      const userRes = await getUserdetail({self_account: userAccount});
       if (userRes.success) {
         setUserDetail(userRes.data);
       }
@@ -137,7 +138,7 @@ const Addmate = ({ navigation, route }) => {
             marginL-12
             label={'搜索'}
             borderRadius={8}
-            labelStyle={{ fontSize: 13 }}
+            labelStyle={{fontSize: 13}}
             avoidMinWidth={true}
             size={Button.sizes.small}
             backgroundColor={Colors.Primary}
@@ -177,7 +178,7 @@ const Addmate = ({ navigation, route }) => {
                 marginL-8
                 label={'添加'}
                 borderRadius={8}
-                labelStyle={{ fontSize: 13 }}
+                labelStyle={{fontSize: 13}}
                 avoidMinWidth={true}
                 outline
                 outlineColor={Colors.Primary}
@@ -231,7 +232,7 @@ const Addmate = ({ navigation, route }) => {
           setModalVisible(!modalVisible);
         }}>
         <View bg-white>
-          {isFullScreen ? null : (
+          {!isFullScreen ? (
             <View padding-12 row center backgroundColor={Colors.Primary}>
               <TouchableOpacity
                 style={styles.BackBut}
@@ -242,7 +243,7 @@ const Addmate = ({ navigation, route }) => {
                 <Text white>扫一扫</Text>
               </View>
             </View>
-          )}
+          ) : null}
           <Camera
             style={styles.Camera}
             device={device}
@@ -252,9 +253,8 @@ const Addmate = ({ navigation, route }) => {
           <Text center white style={styles.tipText}>
             请对准需要识别的二维码
           </Text>
-          <View>
+          <View marginT-16>
             <TouchableOpacity
-              padding-16
               center
               onPress={() => {
                 setModalVisible(false);
@@ -274,11 +274,11 @@ const Addmate = ({ navigation, route }) => {
   );
 };
 const styles = StyleSheet.create({
-  Camera: { width: '100%', height: '82%' },
+  Camera: {width: '100%', height: fullHeight * 0.8, zIndex: -1},
   tipText: {
     position: 'absolute',
     width: '100%',
-    bottom: '20%',
+    bottom: fullHeight * 0.2,
   },
   selfCode: {
     padding: 2,
