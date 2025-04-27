@@ -22,8 +22,7 @@ export const musicSlice = createSlice({
       .addCase(initMusicStore.fulfilled, (state, action) => {
         const {switchCount} = action.payload || {};
         state.switchCount = switchCount || 0;
-        state.playingMusic = {};
-        state.playList = [];
+        return state;
       })
       .addCase(initMusicStore.rejected, () => defaultState);
 

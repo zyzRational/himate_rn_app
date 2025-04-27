@@ -16,6 +16,7 @@ export const chatMsgSlice = createSlice({
       .addCase(initChatMsgStore.fulfilled, (state, action) => {
         const {notRemindSessionIds} = action.payload || {};
         state.notRemindSessionIds = notRemindSessionIds || [];
+        return state;
       })
       .addCase(initChatMsgStore.rejected, () => defaultState);
   },
