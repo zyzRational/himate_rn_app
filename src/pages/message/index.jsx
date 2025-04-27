@@ -172,7 +172,7 @@ const Msg = ({navigation}) => {
 
   // 监听页面聚焦
   useEffect(() => {
-    if (isFocused && userId) {
+    if (userId) {
       sessionDataInit(userId);
     }
   }, [isFocused, userId]);
