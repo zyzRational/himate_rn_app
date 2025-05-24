@@ -50,7 +50,7 @@ const FavoritesList = props => {
                   <Text text50BO grey50 marginL-4>
                     {item.musicCount}
                   </Text>
-                  <Text text100BO grey50 marginL-4 marginB-10>
+                  <Text text100BO grey50 marginL-4 marginB-4>
                     首
                   </Text>
                 </View>

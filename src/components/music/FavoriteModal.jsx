@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet, Modal, ImageBackground} from 'react-native';
+import {StyleSheet, ScrollView, Modal, ImageBackground} from 'react-native';
 import {
   View,
   Text,
@@ -41,30 +41,32 @@ const FavoriteModal = React.memo(props => {
           <TouchableOpacity paddingT-48 paddingL-22 onPress={OnClose}>
             <AntDesign name="close" color={Colors.white} size={24} />
           </TouchableOpacity>
-          <View flexS center marginT-20>
-            <Image source={{uri: BackgroundImg}} style={styles.image} />
-          </View>
-          <View row center marginT-20>
-            <Avatar
-              size={26}
-              source={{
-                uri: CreateAvatar,
-              }}
-            />
-            <Text text70 marginL-6 white>
-              {CreateName}
-            </Text>
-          </View>
-          <View center marginT-20 paddingH-20>
-            <Text text60 marginL-6 white>
-              {Title}
-            </Text>
-          </View>
-          <View marginT-20 paddingH-20>
-            <Text text80 marginL-6 white>
-              {Remark}
-            </Text>
-          </View>
+          <ScrollView>
+            <View flexS center marginT-20>
+              <Image source={{uri: BackgroundImg}} style={styles.image} />
+            </View>
+            <View row center marginT-20>
+              <Avatar
+                size={26}
+                source={{
+                  uri: CreateAvatar,
+                }}
+              />
+              <Text text70 marginL-6 white>
+                {CreateName}
+              </Text>
+            </View>
+            <View center marginT-20 paddingH-20>
+              <Text text60 marginL-6 white>
+                {Title}
+              </Text>
+            </View>
+            <View marginT-20 paddingH-20>
+              <Text text80 marginL-6 white>
+                {Remark}
+              </Text>
+            </View>
+          </ScrollView>
         </ImageBackground>
       </View>
     </Modal>

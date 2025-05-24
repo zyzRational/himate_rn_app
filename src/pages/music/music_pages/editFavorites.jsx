@@ -10,7 +10,7 @@ import {
   TextField,
   Button,
 } from 'react-native-ui-lib';
-import {StyleSheet} from 'react-native';
+import {StyleSheet, ScrollView} from 'react-native';
 import {useSelector, useDispatch} from 'react-redux';
 import {useToast} from '../../../components/commom/Toast';
 import {getFavoritesDetail, updateFavorites} from '../../../api/music';
@@ -139,7 +139,7 @@ const EditFavorites = ({navigation, route}) => {
   }, [favoritesId]);
 
   return (
-    <>
+    <ScrollView>
       <View padding-16>
         <Card
           flexS
@@ -285,7 +285,8 @@ const EditFavorites = ({navigation, route}) => {
           overlay={true}
         />
       ) : null}
-    </>
+      <View height={120}/>
+    </ScrollView>
   );
 };
 const styles = StyleSheet.create({
