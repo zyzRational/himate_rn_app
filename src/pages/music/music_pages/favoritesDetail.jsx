@@ -13,6 +13,7 @@ import {useIsFocused} from '@react-navigation/native';
 import {useSelector} from 'react-redux';
 import {getFavoritesDetail} from '../../../api/music';
 import MusicList from '../../../components/music/MusicList';
+import FavoriteModal from '../../../components/music/FavoriteModal';
 import {isEmptyObject} from '../../../utils/base';
 import dayjs from 'dayjs';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -54,35 +55,48 @@ const FavoritesDetail = ({navigation, route}) => {
     }
   }, [favoritesId, isFocused]);
 
+  const [detailModalVisible, setdDetailModalVisible] = useState(false);
+
   return (
     <>
       {isEmptyObject(favoritesForm) ? null : (
         <>
           <View padding-24 row spread>
-            <View row>
-              <Image
-                source={{uri: THUMBNAIL_URL + favoritesForm.favorites_cover}}
-                style={styles.image}
-              />
-              <View marginL-12>
-                <Text text60 grey10 marginT-4>
-                  {favoritesForm.favorites_name}
-                </Text>
-                <View row centerV marginT-10>
-                  <Avatar
-                    size={26}
-                    source={{
-                      uri: STATIC_URL + favoritesForm.creator_avatar,
-                    }}
-                  />
-                  <Text text90 marginL-4 grey20>
-                    {favoritesForm.creator_name}
+            <View flexS row width={'70%'}>
+              <TouchableOpacity
+                onPress={() => {
+                  setdDetailModalVisible(true);
+                }}>
+                <Image
+                  source={{uri: THUMBNAIL_URL + favoritesForm.favorites_cover}}
+                  style={styles.image}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  setdDetailModalVisible(true);
+                }}>
+                <View marginL-12>
+                  <Text text60 grey10 marginT-4 numberOfLines={2}>
+                    {favoritesForm.favorites_name}
+                  </Text>
+                  <View row centerV marginT-10>
+                    <Avatar
+                      size={26}
+                      source={{
+                        uri: STATIC_URL + favoritesForm.creator_avatar,
+                      }}
+                    />
+                    <Text text90 marginL-4 grey20>
+                      {favoritesForm.creator_name}
+                    </Text>
+                  </View>
+                  <Text marginT-10 text90L grey40>
+                    创建于
+                    {dayjs(favoritesForm.create_time).format('YYYY-MM-DD')}
                   </Text>
                 </View>
-                <Text marginT-10 text90L grey40>
-                  创建于{dayjs(favoritesForm.create_time).format('YYYY-MM-DD')}
-                </Text>
-              </View>
+              </TouchableOpacity>
             </View>
             {favoritesForm?.creator_uid === userId ? (
               <TouchableOpacity
@@ -102,14 +116,18 @@ const FavoritesDetail = ({navigation, route}) => {
               <View />
             )}
           </View>
-          <View paddingH-16>
+          <TouchableOpacity
+            paddingH-16
+            onPress={() => {
+              setdDetailModalVisible(true);
+            }}>
             <Text grey20 text70BO>
               歌单简介
             </Text>
-            <Text grey40 text90L marginT-4>
+            <Text grey40 text90L marginT-4 numberOfLines={1}>
               {favoritesForm.favorites_remark ?? '还没有简介哦~'}
             </Text>
-          </View>
+          </TouchableOpacity>
         </>
       )}
       <View paddingH-12 marginT-12>
@@ -122,6 +140,15 @@ const FavoritesDetail = ({navigation, route}) => {
           IsOwn={favoritesForm?.creator_uid === userId}
         />
       </View>
+      <FavoriteModal
+        Visible={detailModalVisible}
+        OnClose={() => setdDetailModalVisible(false)}
+        BackgroundImg={THUMBNAIL_URL + favoritesForm?.favorites_cover}
+        Title={favoritesForm?.favorites_name}
+        Remark={favoritesForm?.favorites_remark}
+        CreateAvatar={STATIC_URL + favoritesForm?.creator_avatar}
+        CreateName={favoritesForm?.creator_name}
+      />
       {loading ? (
         <LoaderScreen
           message={'加载中...'}
