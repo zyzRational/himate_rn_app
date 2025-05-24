@@ -1,6 +1,5 @@
-import React, {useMemo, useCallback} from 'react';
-import {StyleSheet, Modal, ImageBackground, FlatList} from 'react-native';
-import {useSelector} from 'react-redux';
+import React from 'react';
+import {StyleSheet, Modal, ImageBackground} from 'react-native';
 import {
   View,
   Text,
