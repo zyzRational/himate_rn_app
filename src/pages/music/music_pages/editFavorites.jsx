@@ -171,7 +171,7 @@ const EditFavorites = ({navigation, route}) => {
                 placeholderTextColor={Colors.grey50}
                 validate={[value => value.length !== 0]}
                 validationMessage={['收藏夹名称不能为空！']}
-                maxLength={7}
+                maxLength={20}
                 showCharCounter
                 value={favoritesName}
                 validateOnChange={true}
@@ -189,11 +189,9 @@ const EditFavorites = ({navigation, route}) => {
                   placeholder={'收藏夹简介'}
                   color={Colors.grey10}
                   placeholderTextColor={Colors.grey50}
-                  validate={[value => value.length !== 0]}
-                  validationMessage={['收藏夹名称不能为空！']}
                   multiline
                   numberOfLines={3}
-                  maxLength={100}
+                  maxLength={1000}
                   showCharCounter
                   value={favoritesRemark}
                   validateOnChange={true}
