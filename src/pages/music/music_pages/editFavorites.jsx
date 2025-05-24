@@ -140,97 +140,93 @@ const EditFavorites = ({navigation, route}) => {
 
   return (
     <>
-      {loading ? null : (
-        <>
-          <View padding-16>
-            <Card
-              flexS
-              left
-              row
-              center
-              padding-16
-              onPress={() => setShowDialog(true)}>
-              <View flex>
-                <Text grey10 text70>
-                  收藏夹封面
-                </Text>
-              </View>
-              <View marginR-12>
-                <Image source={{uri: coverUri}} style={styles.image} />
-              </View>
-              <FontAwesome name="angle-right" color={Colors.grey50} size={26} />
-            </Card>
-            <Card marginT-12 padding-16>
-              <TextField
-                labelColor={Colors.grey10}
-                text70
-                enableErrors
-                placeholder={'收藏夹名称'}
-                floatingPlaceholder
-                color={Colors.grey10}
-                placeholderTextColor={Colors.grey50}
-                validate={[value => value.length !== 0]}
-                validationMessage={['收藏夹名称不能为空！']}
-                maxLength={20}
-                showCharCounter
-                value={favoritesName}
-                validateOnChange={true}
-                onChangeText={value => {
-                  setFavoritesName(value);
+      <View padding-16>
+        <Card
+          flexS
+          left
+          row
+          center
+          padding-16
+          onPress={() => setShowDialog(true)}>
+          <View flex>
+            <Text grey10 text70>
+              收藏夹封面
+            </Text>
+          </View>
+          <View marginR-12>
+            <Image source={{uri: coverUri}} style={styles.image} />
+          </View>
+          <FontAwesome name="angle-right" color={Colors.grey50} size={26} />
+        </Card>
+        <Card marginT-12 padding-16>
+          <TextField
+            labelColor={Colors.grey10}
+            text70
+            enableErrors
+            placeholder={'收藏夹名称'}
+            floatingPlaceholder
+            color={Colors.grey10}
+            placeholderTextColor={Colors.grey50}
+            validate={[value => value.length !== 0]}
+            validationMessage={['收藏夹名称不能为空！']}
+            maxLength={20}
+            showCharCounter
+            value={favoritesName}
+            validateOnChange={true}
+            onChangeText={value => {
+              setFavoritesName(value);
+              isNeedSave(value);
+            }}
+          />
+          <View marginT-10>
+            <TextField
+              labelColor={Colors.grey10}
+              text70
+              enableErrors
+              floatingPlaceholder
+              placeholder={'收藏夹简介'}
+              color={Colors.grey10}
+              placeholderTextColor={Colors.grey50}
+              multiline
+              numberOfLines={3}
+              maxLength={1000}
+              showCharCounter
+              value={favoritesRemark}
+              validateOnChange={true}
+              onChangeText={value => {
+                setFavoritesRemark(value);
+                isNeedSave(value);
+              }}
+            />
+          </View>
+          <View marginT-10 row centerV>
+            <Text grey40>是否公开</Text>
+            <View marginL-12>
+              <Switch
+                onColor={Colors.Primary}
+                offColor={Colors.grey50}
+                value={isPublic}
+                onValueChange={value => {
+                  setIsPublic(value);
                   isNeedSave(value);
                 }}
               />
-              <View marginT-10>
-                <TextField
-                  labelColor={Colors.grey10}
-                  text70
-                  enableErrors
-                  floatingPlaceholder
-                  placeholder={'收藏夹简介'}
-                  color={Colors.grey10}
-                  placeholderTextColor={Colors.grey50}
-                  multiline
-                  numberOfLines={3}
-                  maxLength={1000}
-                  showCharCounter
-                  value={favoritesRemark}
-                  validateOnChange={true}
-                  onChangeText={value => {
-                    setFavoritesRemark(value);
-                    isNeedSave(value);
-                  }}
-                />
-              </View>
-              <View marginT-10 row centerV>
-                <Text grey40>是否公开</Text>
-                <View marginL-12>
-                  <Switch
-                    onColor={Colors.Primary}
-                    offColor={Colors.grey50}
-                    value={isPublic}
-                    onValueChange={value => {
-                      setIsPublic(value);
-                      isNeedSave(value);
-                    }}
-                  />
-                </View>
-              </View>
-            </Card>
-            <Card marginT-16 center backgroundColor={Colors.Primary}>
-              <Button
-                label={'保存'}
-                link
-                linkColor={Colors.white}
-                style={styles.button}
-                disabled={!isSave}
-                onPress={() => {
-                  submitForm();
-                }}
-              />
-            </Card>
+            </View>
           </View>
-        </>
-      )}
+        </Card>
+        <Card marginT-16 center backgroundColor={Colors.Primary}>
+          <Button
+            label={'保存'}
+            link
+            linkColor={Colors.white}
+            style={styles.button}
+            disabled={!isSave}
+            onPress={() => {
+              submitForm();
+            }}
+          />
+        </Card>
+      </View>
       <BaseSheet
         Title={'选择收藏夹封面'}
         Visible={showDialog}

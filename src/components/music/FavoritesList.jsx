@@ -47,7 +47,7 @@ const FavoritesList = props => {
                   style={styles.image}
                 />
                 <View row bottom>
-                  <Text text30BO grey50 marginL-4>
+                  <Text text50BO grey50 marginL-4>
                     {item.musicCount}
                   </Text>
                   <Text text100BO grey50 marginL-4 marginB-10>
