@@ -11,4 +11,4 @@ export const getGroupDetail = data =>
   instance.get('api/group/detail', {params: data});
 
 // 删除群组
-export const deleteGroup = data => instance.delete('api/group/del', data);
+export const deleteGroup = data => instance.delete('api/group/del', {data});

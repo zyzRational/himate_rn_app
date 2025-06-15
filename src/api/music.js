@@ -16,7 +16,7 @@ export const updateFavorites = data => instance.put('api/favorites/edit', data);
 
 // 删除歌单
 export const deleteFavorites = data =>
-  instance.delete('api/favorites/del', data);
+  instance.delete('api/favorites/del', {data});
 
 // 我的收藏
 export const editDefaultFavorites = data =>

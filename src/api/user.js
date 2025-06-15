@@ -24,4 +24,4 @@ export const getUserdetail = params =>
 export const EditUserInfo = form => instance.put('api/user/edit', form);
 
 // 用户注销
-export const userLogOff = data => instance.delete('api/user/del', data);
+export const userLogOff = data => instance.delete('api/user/del', {data});
