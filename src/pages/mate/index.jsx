@@ -27,7 +27,7 @@ const Mate = ({navigation}) => {
   /* 申请好友数量 */
   const [applycount, setApplycount] = React.useState(null);
   const getApplylist = _userId => {
-    getapplylist(_userId)
+    getapplylist({uid: _userId})
       .then(res => {
         if (res.success) {
           setApplycount(res.data.count);

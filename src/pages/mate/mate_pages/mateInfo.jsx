@@ -15,6 +15,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import ListItem from '../../../components/commom/ListItem';
 import {getUserdetail} from '../../../api/user';
 import {addmate, editmate, deletemate, getmateStatus} from '../../../api/mate';
+import {delSessionMsgs} from '../../../api/dataManager';
 import {DownloadFile} from '../../../utils/handle/fileHandle';
 import BaseDialog from '../../../components/commom/BaseDialog';
 import ImgModal from '../../../components/commom/ImgModal';
@@ -42,7 +43,7 @@ const Mateinfo = ({navigation, route}) => {
 
   /*  判断是否为好友 */
   const [mateInfo, setMateInfo] = useState({});
-  const getMateStatus = async (selfUid, otherUid, status = null) => {
+  const getMateStatusFnc = async (selfUid, otherUid, status = null) => {
     try {
       const mateRes = await getmateStatus({
         selfUid,
@@ -74,7 +75,7 @@ const Mateinfo = ({navigation, route}) => {
         showToast('不能添加自己为好友', 'error');
         return;
       }
-      const statusRes = await getMateStatus(userId, uid);
+      const statusRes = await getMateStatusFnc(userId, uid);
       if (statusRes) {
         showToast('你们已是好友或已申请', 'error');
         return;
@@ -119,10 +120,11 @@ const Mateinfo = ({navigation, route}) => {
   const [deleteisVisible, setDeleteIsVisible] = useState(false);
   const deleteFriend = async () => {
     try {
-      const delRes = await deletemate(mateInfo.id);
+      const delRes = await deletemate({id: mateInfo.id});
       if (delRes.success) {
         setDeleteIsVisible(false);
         navigation.navigate('Mate');
+        delSessionMsgs({session_id: mateInfo.mate_id});
       }
       showToast(delRes.message, delRes.success ? 'success' : 'error');
     } catch (error) {
@@ -149,7 +151,7 @@ const Mateinfo = ({navigation, route}) => {
       getOtherUserInfo(uid);
     }
     if (uid && userId) {
-      getMateStatus(userId, uid, 'agreed');
+      getMateStatusFnc(userId, uid, 'agreed');
     }
   }, [uid, userId]);
 

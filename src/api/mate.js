@@ -7,19 +7,16 @@ export const addmate = form => instance.post('api/mate/add', form);
 export const editmate = form => instance.put('api/mate/edit', form);
 
 // 删除好友
-export const deletemate = id => instance.delete('api/mate/del', {params: {id}});
-
-// 好友列表
-export const getmateDetailBymId = data =>
-  instance.get('api/mate/detailBymId', {params: data});
+export const deletemate = data =>
+  instance.delete('api/mate/del', {params: data});
 
 // 好友列表
 export const getmatelist = data =>
   instance.get('api/mate/list', {params: data});
 
 // 申请好友列表
-export const getapplylist = uid =>
-  instance.get('api/mate/applylist', {params: {uid}});
+export const getapplylist = data =>
+  instance.get('api/mate/applylist', {params: data});
 
 // 好友关系
 export const getmateStatus = data =>

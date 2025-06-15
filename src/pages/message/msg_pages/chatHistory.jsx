@@ -29,7 +29,7 @@ const ChatHistory = ({navigation, route}) => {
   const getCouldChatHistory = async () => {
     try {
       setLoading(true);
-      const res = await getUserMsgList({session_id, isPaging: false});
+      const res = await getUserMsgList({session_id, isPaging: 0});
       if (res.success) {
         const newlist = [];
         res.data.list.forEach(item => {

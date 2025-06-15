@@ -17,6 +17,7 @@ import {
   EditUserInfo,
   mailValidate,
   getCodeBymail,
+  userLogOff,
 } from '../../../api/user';
 import {useDispatch} from 'react-redux';
 import {setUserInfo as setUserData} from '../../../stores/store-slice/userStore';
@@ -181,6 +182,22 @@ const Edituser = ({navigation, route}) => {
     showToast('您已退出登录！', 'success');
   };
 
+  // 注销账号
+  const [showLogOff, setShowLogOff] = useState(false);
+  const logOff = async () => {
+    try {
+      const res = await userLogOff({ids: [userId]});
+      if (res.success) {
+        dispatch(clearUserStore());
+        clearStorage();
+        showToast('您已注销账号！', 'success');
+      }
+    } catch (error) {
+      console.error(error);
+      showToast('注销账号失败！', 'error');
+    }
+  };
+
   useEffect(() => {
     dataInit();
   }, []);
@@ -289,8 +306,18 @@ const Edituser = ({navigation, route}) => {
             marginT-16
             enableShadow={false}
             padding-8
+            bg-red40
+            onPress={() => setShowLogOff(true)}>
+            <Button link text70 red30 label="注销账号" />
+          </Card>
+          <Card
+            flexS
+            center
+            marginT-16
+            enableShadow={false}
+            padding-8
             onPress={() => setShowLoginOut(true)}>
-            <Button link text70 orange30 label="退出登录" />
+            <Button link text70 orange40 label="退出登录" />
           </Card>
         </View>
       </ScrollView>
@@ -369,6 +396,15 @@ const Edituser = ({navigation, route}) => {
         Visible={showLoginOut}
         SetVisible={setShowLoginOut}
         MainText={'您确定要退出登录吗？'}
+      />
+      <BaseDialog
+        IsWarning={true}
+        Title={true}
+        IsButton={true}
+        Fun={logOff}
+        Visible={showLogOff}
+        SetVisible={setShowLogOff}
+        MainText={'您确定要注销账号吗？'}
       />
       {uploading ? (
         <LoaderScreen

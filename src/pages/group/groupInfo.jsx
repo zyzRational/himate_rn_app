@@ -1,4 +1,4 @@
-import React, {Component, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {StyleSheet, ScrollView, Vibration, RefreshControl} from 'react-native';
 import {
   View,
@@ -33,6 +33,7 @@ import {
 } from '../../stores/store-slice/permissionStore';
 import {formatMsg, setLocalMsg} from '../../utils/handle/chatHandle';
 import {getUserMsgList} from '../../api/dataManager';
+import {delSessionMsgs} from '../../api/dataManager';
 
 const GroupInfo = ({navigation, route}) => {
   const {session_id} = route.params || {};
@@ -54,7 +55,7 @@ const GroupInfo = ({navigation, route}) => {
   const dataInit = async groupId => {
     setRefreshing(true);
     try {
-      const res = await getGroupDetail(groupId);
+      const res = await getGroupDetail({group_id: groupId});
       // console.log(res);
       if (res.success) {
         const {group_name, group_avatar, group_introduce} = res.data;
@@ -160,10 +161,11 @@ const GroupInfo = ({navigation, route}) => {
 
   const deleteTheGroup = async () => {
     try {
-      const addRes = await deleteGroup(groupInfo.id);
+      const addRes = await deleteGroup({group_ids: [groupInfo.group_id]});
       if (addRes.success) {
         setDeleteIsVisible(false);
         navigation.navigate('Mate');
+        delSessionMsgs({session_id: groupInfo.group_id});
       }
       showToast(addRes.message, addRes.success ? 'success' : 'error');
     } catch (error) {
@@ -175,7 +177,7 @@ const GroupInfo = ({navigation, route}) => {
   const [existVisible, setExistVisible] = useState(false);
   const exitTheGroup = async () => {
     try {
-      const addRes = await deleteGroupMember(memberId);
+      const addRes = await deleteGroupMember({id: memberId});
       if (addRes.success) {
         showToast('退出成功！', 'success');
         navigation.navigate('Msg');
@@ -226,7 +228,7 @@ const GroupInfo = ({navigation, route}) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const deleteGroupMemberInfo = async mId => {
     try {
-      const addRes = await deleteGroupMember(mId);
+      const addRes = await deleteGroupMember({id: mId});
       if (addRes.success) {
         dataInit(session_id);
       }
@@ -258,7 +260,7 @@ const GroupInfo = ({navigation, route}) => {
   const getCouldChatHistory = async () => {
     try {
       setRefreshing(true);
-      const res = await getUserMsgList({session_id, isPaging: false});
+      const res = await getUserMsgList({session_id, isPaging: 0});
       if (res.success) {
         const newlist = [];
         res.data.list.forEach(item => {

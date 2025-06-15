@@ -28,7 +28,7 @@ const Newmate = ({navigation}) => {
   /* 申请好友列表 */
   const [applylist, setAplylist] = React.useState([]);
   const getApplylist = _userId => {
-    getapplylist(_userId)
+    getapplylist({uid: _userId})
       .then(res => {
         // console.log(res);
         if (res.success) {
@@ -100,7 +100,7 @@ const Newmate = ({navigation}) => {
   const [deleteId, setDeleteId] = React.useState(null);
   const deleteApplyInfo = async delete_id => {
     try {
-      const delRes = await deletemate(delete_id);
+      const delRes = await deletemate({id: delete_id});
       if (delRes.success) {
         setDeleteIsVisible(false);
         getWaitinglist(userId);

@@ -22,3 +22,6 @@ export const getUserdetail = params =>
 
 // 修改用户信息
 export const EditUserInfo = form => instance.put('api/user/edit', form);
+
+// 用户注销
+export const userLogOff = data => instance.delete('api/user/del', data);

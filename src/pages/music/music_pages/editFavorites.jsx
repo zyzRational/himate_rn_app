@@ -49,7 +49,7 @@ const EditFavorites = ({navigation, route}) => {
   const getFavorites = async f_id => {
     setLoading(true);
     try {
-      const res = await getFavoritesDetail({id: f_id, is_find_music: false});
+      const res = await getFavoritesDetail({id: f_id, isFindMusic: 0});
       if (res.success) {
         setFavoritesForm(res.data);
         const {favorites_name, favorites_remark, favorites_cover, is_public} =
@@ -285,7 +285,7 @@ const EditFavorites = ({navigation, route}) => {
           overlay={true}
         />
       ) : null}
-      <View height={120}/>
+      <View height={120} />
     </ScrollView>
   );
 };

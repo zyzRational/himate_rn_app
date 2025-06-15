@@ -13,5 +13,5 @@ export const getAllJoinGroupList = data =>
   instance.get('api/groupMember/joinGroup', {params: data});
 
 // 删除群成员
-export const deleteGroupMember = id =>
-  instance.delete('api/groupMember/del', {params: {id}});
+export const deleteGroupMember = data =>
+  instance.delete('api/groupMember/del', {params: data});
