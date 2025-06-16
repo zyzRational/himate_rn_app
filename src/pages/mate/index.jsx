@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View, Colors} from 'react-native-ui-lib';
 import {getmatelist, getapplylist} from '../../api/mate';
 import {useSelector} from 'react-redux';
@@ -11,9 +11,10 @@ const Mate = ({navigation}) => {
   const userId = useSelector(state => state.userStore.userId);
 
   /*   好友列表 */
-  const [matelist, setMatelist] = React.useState([]);
+  const [matelist, setMatelist] = useState([]);
+  const [pageNum, setPageNum] = useState(0);
   const getMatelist = _userId => {
-    getmatelist({uid: _userId, mate_status: 'agreed'})
+    getmatelist({uid: _userId, pageSize: pageNum * 20, mate_status: 'agreed'})
       .then(res => {
         if (res.success) {
           setMatelist(res.data.list);
@@ -25,7 +26,7 @@ const Mate = ({navigation}) => {
   };
 
   /* 申请好友数量 */
-  const [applycount, setApplycount] = React.useState(null);
+  const [applycount, setApplycount] = useState(null);
   const getApplylist = _userId => {
     getapplylist({uid: _userId})
       .then(res => {
@@ -43,7 +44,7 @@ const Mate = ({navigation}) => {
       getApplylist(userId);
       getMatelist(userId);
     }
-  }, [isFocused, userId]);
+  }, [isFocused, userId, pageNum]);
 
   return (
     <View>
@@ -74,6 +75,9 @@ const Mate = ({navigation}) => {
         <MateList
           OriginList={matelist}
           Height={'84.3%'}
+          OnEndReached={() => {
+            setPageNum(prev => prev + 1);
+          }}
           Fun={item => {
             navigation.navigate('Mateinfo', {
               uid: item.uid,

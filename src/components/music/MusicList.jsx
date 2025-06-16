@@ -30,7 +30,7 @@ import {
   getFavoritesDetail,
   getFavoritesList,
 } from '../../api/music';
-import {DownloadFile} from '../../utils/handle/fileHandle';
+import {DownloadFile, getFileExt} from '../../utils/handle/fileHandle';
 
 const MusicList = props => {
   const {
@@ -70,7 +70,7 @@ const MusicList = props => {
   };
 
   // 个人歌单列表
-  const [pageNum, setPageNum] = useState(1);
+  const [pageNum, setPageNum] = useState(0);
   const [favoritesList, setFavoritesList] = useState([]);
   const getUserFavoritesList = async _userId => {
     try {
@@ -298,7 +298,7 @@ const MusicList = props => {
       setNowFileIndex(i + 1);
       const savePath = await DownloadFile(
         STATIC_URL + file.file_name,
-        file.file_name,
+        `${file.title} - ${file.artist}.${getFileExt(file.file_name)}`,
         progress => {
           if (progress) {
             setDownloadProgress(progress);

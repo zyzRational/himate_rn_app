@@ -23,6 +23,7 @@ const MateList = props => {
     SelectedIds = [],
     ExistMemberIds = [],
     IsNew = false,
+    OnEndReached = () => {},
   } = props;
 
   // baseConfig
@@ -115,12 +116,10 @@ const MateList = props => {
   };
 
   useEffect(() => {
-    if (OriginList.length > 0) {
-      const needRes = toGroupList(OriginList);
-      setMatelist(needRes.mlist);
-      setAlphabetList(needRes.letterList);
-      setScorollData(ScorollSetting(needRes.letterList));
-    }
+    const needRes = toGroupList(OriginList);
+    setMatelist(needRes.mlist);
+    setAlphabetList(needRes.letterList);
+    setScorollData(ScorollSetting(needRes.letterList));
   }, [OriginList]);
 
   const [selectedItem, setSelectedItem] = useState(SelectedIds);
@@ -131,6 +130,9 @@ const MateList = props => {
         sections={matelist}
         keyExtractor={(item, index) => item + index}
         ref={Ref => setFlatListRef(Ref)}
+        onEndReached={() => {
+          OnEndReached();
+        }}
         renderItem={({item}) =>
           IsSelect ? (
             <View flexS row centerV backgroundColor={Colors.white} padding-12>

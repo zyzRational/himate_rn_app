@@ -102,7 +102,7 @@ const Music = ({navigation}) => {
   ]);
 
   // 个人歌单列表
-  const [pageNum, setPageNum] = useState(1);
+  const [pageNum, setPageNum] = useState(0);
   const [favoritesList, setFavoritesList] = useState([]);
   const [favoritesCount, setFavoritesCount] = useState(0);
   const getUserFavoritesList = async _userId => {

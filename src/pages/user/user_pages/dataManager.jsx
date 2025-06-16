@@ -65,7 +65,7 @@ const DataManager = ({navigation, route}) => {
   const [loading, setLoading] = useState(false);
   const getFilesList = async (uid, type) => {
     setLoading(true);
-    let filePageNum = 1;
+    let filePageNum = 0;
     if (type === 'chat') {
       filePageNum = chatPageNum;
     }
@@ -361,7 +361,7 @@ const DataManager = ({navigation, route}) => {
 
   // 聊天文件列表
   const [chatFilesList, setChatFilesList] = useState([]);
-  const [chatPageNum, setChatPageNum] = useState(1);
+  const [chatPageNum, setChatPageNum] = useState(0);
   const ChatFilesScreen = (
     <FlatList
       data={chatFilesList}
@@ -384,7 +384,7 @@ const DataManager = ({navigation, route}) => {
   // 头像文件列表
   const [userAvaterFilesList, setUserAvaterFilesList] = useState([]);
   const [groupAvaterFilesList, setGroupAvaterFilesList] = useState([]);
-  const [avatarPageNum, setAvatarPageNum] = useState(1);
+  const [avatarPageNum, setAvatarPageNum] = useState(0);
   const AvaterFilesScreen = (
     <View>
       {userAvaterFilesList.length > 0 ? (
@@ -464,7 +464,7 @@ const DataManager = ({navigation, route}) => {
 
   // 上传的文件列表
   const [uploadFilesList, setUploadFilesList] = useState([]);
-  const [uploadPageNum, setUploadPageNum] = useState(1);
+  const [uploadPageNum, setUploadPageNum] = useState(0);
   const UploadFilesScreen = (
     <FlatList
       data={uploadFilesList}

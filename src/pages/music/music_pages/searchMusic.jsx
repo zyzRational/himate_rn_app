@@ -32,10 +32,10 @@ const SearchMusic = ({navigation}) => {
       });
       if (res.success) {
         const {list} = res.data;
-        if (list.length < pageSize && pageNum !== 1) {
+        setMusic(prev => [...prev, ...list]);
+        if (list.length < pageSize && pageNum !== 0) {
           return;
         }
-        setMusic(prev => [...prev, ...list]);
       }
     } catch (error) {
       console.error(error);
@@ -45,9 +45,7 @@ const SearchMusic = ({navigation}) => {
   };
 
   useEffect(() => {
-    if (pageNum) {
-      getAllMusicList();
-    }
+    getAllMusicList();
   }, [pageNum]);
 
   return (

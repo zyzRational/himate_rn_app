@@ -11,7 +11,7 @@ const MyFavorites = ({navigation}) => {
   const [favoriteId, setFavoriteId] = useState(null);
 
   /* 获取用户收藏的音乐列表 */
-  const [pageNum, setPageNum] = useState(1);
+  const [pageNum, setPageNum] = useState(0);
   const getAllMusicList = async _userId => {
     try {
       const res = await getFavoritesDetail({

@@ -28,13 +28,11 @@ const FindFavorites = ({navigation}) => {
         favorites_name: keyword,
       });
       if (res.success) {
-        console.log(res.data);
-
         const {list} = res.data;
-        if (list.length < pageSize && pageNum !== 1) {
+        setFavoritesList(prev => [...prev, ...list]);
+        if (list.length < pageSize && pageNum !== 0) {
           return;
         }
-        setFavoritesList(prev => [...prev, ...list]);
       }
     } catch (error) {
       console.error(error);
@@ -44,9 +42,7 @@ const FindFavorites = ({navigation}) => {
   };
 
   useEffect(() => {
-    if (pageNum) {
-      getAllFavoritesList();
-    }
+    getAllFavoritesList();
   }, [pageNum]);
 
   return (

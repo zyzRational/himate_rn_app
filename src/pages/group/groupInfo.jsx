@@ -17,7 +17,11 @@ import {
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import {useToast} from '../../components/commom/Toast';
 import {getGroupDetail, editGroup, deleteGroup} from '../../api/group';
-import {editGroupMember, deleteGroupMember} from '../../api/groupMember';
+import {
+  editGroupMember,
+  deleteGroupMember,
+  deleteAllGroupMember,
+} from '../../api/groupMember';
 import {UploadFile} from '../../utils/handle/fileHandle';
 import {useSelector, useDispatch} from 'react-redux';
 import ImagePicker from 'react-native-image-crop-picker';
@@ -165,7 +169,9 @@ const GroupInfo = ({navigation, route}) => {
       if (addRes.success) {
         setDeleteIsVisible(false);
         navigation.navigate('Mate');
+        // 删除群组相关信息
         delSessionMsgs({session_id: groupInfo.group_id});
+        deleteAllGroupMember({group_id: groupInfo.group_id});
       }
       showToast(addRes.message, addRes.success ? 'success' : 'error');
     } catch (error) {
@@ -514,7 +520,12 @@ const GroupInfo = ({navigation, route}) => {
                           if (groupRole !== 'member') {
                             Vibration.vibrate(50);
                             setShowActionSheet(true);
-                            setEditMemberInfo(item);
+                            setEditMemberInfo({
+                              id: item.id,
+                              member_remark: item.member_remark,
+                              member_role: item.member_role,
+                              member_status: item.member_status,
+                            });
                           }
                         }}
                         onPress={() => {

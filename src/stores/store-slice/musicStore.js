@@ -9,7 +9,7 @@ const defaultState = {
   showMusicCtrl: false,
   closeTime: 0,
   isClosed: false,
-  randomNum: {min: 1, max: 1},
+  randomNum: {min: 0, max: 1},
   isRandomPlay: false,
   switchCount: 0,
 };
@@ -91,7 +91,7 @@ export const musicSlice = createSlice({
       state.isRandomPlay = action.payload ?? false;
     },
     setRandomNum: (state, action) => {
-      state.randomNum = action.payload || {min: 1, max: 1};
+      state.randomNum = action.payload || {min: 0, max: 1};
     },
   },
 });
