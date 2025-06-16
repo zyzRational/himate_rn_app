@@ -283,7 +283,7 @@ const User = ({navigation}) => {
               Fun={() => {
                 navigation.navigate('WebView', {
                   title: '关于' + appDisplayName,
-                  url: STATIC_URL + 'index.html',
+                  url: STATIC_URL + 'default_assets/index.html',
                 });
               }}
             />

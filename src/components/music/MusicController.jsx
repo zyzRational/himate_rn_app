@@ -491,7 +491,7 @@ const MusicCtrlProvider = React.memo(props => {
                             uri:
                               STATIC_URL +
                               (playingMusic?.musicMore?.music_cover ||
-                                'default_music_cover.jpg'),
+                                'default_assets/default_music_cover.jpg'),
                           }}
                           style={styles.image}
                         />

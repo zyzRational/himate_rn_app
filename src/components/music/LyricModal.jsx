@@ -148,7 +148,8 @@ const LyricModal = React.memo(props => {
                     source={{
                       uri:
                         STATIC_URL +
-                        (musicMore?.music_cover || 'default_music_cover.jpg'),
+                        (musicMore?.music_cover ||
+                          'default_assets/default_music_cover.jpg'),
                     }}
                     style={[styles.HbigImage, {borderColor: Colors.lyricColor}]}
                   />
@@ -270,7 +271,8 @@ const LyricModal = React.memo(props => {
                   Music={musicMore}
                   Cover={
                     STATIC_URL +
-                    (musicMore?.music_cover || 'default_music_cover.jpg')
+                    (musicMore?.music_cover ||
+                      'default_assets/default_music_cover.jpg')
                   }
                   IsHorizontal={true}
                   CurrentTime={CurPosition}
@@ -296,7 +298,8 @@ const LyricModal = React.memo(props => {
                     source={{
                       uri:
                         STATIC_URL +
-                        (musicMore?.music_cover || 'default_music_cover.jpg'),
+                        (musicMore?.music_cover ||
+                          'default_assets/default_music_cover.jpg'),
                     }}
                     style={[styles.bigImage, {borderColor: Colors.lyricColor}]}
                   />
@@ -426,7 +429,8 @@ const LyricModal = React.memo(props => {
                   Music={musicMore}
                   Cover={
                     STATIC_URL +
-                    (musicMore?.music_cover || 'default_music_cover.jpg')
+                    (musicMore?.music_cover ||
+                      'default_assets/default_music_cover.jpg')
                   }
                   CurrentTime={CurPosition}
                   OnLyricsChange={setNowLyric}

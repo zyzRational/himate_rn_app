@@ -395,7 +395,7 @@ const Login = ({navigation}) => {
           onPress={() => {
             navigation.navigate('WebView', {
               title: '用户使用协议',
-              url: STATIC_URL + 'user_protocol.html',
+              url: STATIC_URL + 'default_assets/user_protocol.html',
             });
           }}
         />

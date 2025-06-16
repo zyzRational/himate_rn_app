@@ -11,7 +11,7 @@ const BaseWebView = ({navigation, route}) => {
 
   return (
     <View style={styles.webView}>
-      <WebView source={{uri: url ?? STATIC_URL + 'index.html'}} />
+      <WebView source={{uri: url ?? STATIC_URL + 'default_assets/index.html'}} />
     </View>
   );
 };
